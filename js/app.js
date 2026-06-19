@@ -299,7 +299,7 @@
           pendingMascotNudge = true;
           render("next");
         } else {
-          st.feedback = { kind: "retry", msg: "Nästan! Tryck “Börja om” och försök i en annan ordning." };
+          st.feedback = { kind: "retry", msg: "Nästan! Tryck ”Börja om” och försök i en annan ordning." };
           render("options");
         }
       } else {

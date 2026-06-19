@@ -1,5 +1,7 @@
 # Stora binärer – idébank, committas inte
 docs/reference/*.pdf
+# Handoff-/exportarkiv ska inte committas
+*.zip
 
 # OS-skräp
 .DS_Store
