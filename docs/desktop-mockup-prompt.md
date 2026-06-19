@@ -6,19 +6,10 @@ en mobil-mockup; nu vill vi ha samma sak fast designad för stor skärm
 (MacBook + Chrome är primär enhet enligt `docs/plan.md`).
 
 ## Så här använder du prompten
-1. Öppna ett nytt projekt i Claude Design.
-2. Bifoga (ladda upp) dessa filer från repot så att designen bygger på rätt
-   underlag i stället för gissningar:
-   - `docs/design.md` — visuell spec och designtokens (källa till sanning).
-   - `style.css` — implementerade tokens och komponent-CSS.
-   - `content/kapitel-1.js` — de riktiga texterna och datamodellen per steg.
-   - `js/app.js` — render-/interaktionslogiken (steg-tillstånd, feedback).
-   - `docs/plan.md` — kort PRD (målgrupp, enheter, scope).
-   - **Den befintliga mobil-mockupen**: packa upp
-     `Edison Hemguide design chat-handoff.zip` och bifoga
-     `edison-hemguide-design-chat/project/Edison Hemguide - Mockup.dc.html`.
-     Den är vår referens för utseende och de A/B-val som redan är gjorda.
-3. Klistra in allt under linjen ("PROMPT" nedan) som meddelande.
+1. Öppna ett nytt projekt i Claude Design och koppla GitHub-repot:
+   **https://github.com/Jaloopo/Robot-Academy** (branch `main`). Claude Design
+   kommer åt alla filer direkt därifrån — du behöver inte ladda upp något.
+2. Klistra in allt under linjen ("PROMPT" nedan) som meddelande.
 
 ---
 
@@ -26,18 +17,23 @@ en mobil-mockup; nu vill vi ha samma sak fast designad för stor skärm
 
 Du designar en **desktop-version** av "Edison Hemguide", en liten statisk
 lärwebbplats på svenska. Barn (ca 7+ med god läsnivå) gör aktiviteterna
-tillsammans med en vuxen. Det finns redan en mobil-mockup (bifogad) — din uppgift
-är att översätta samma innehåll, tokens och komponenter till en layout som mår bra
-på stor skärm. Återanvänd allt befintligt; inför inget nytt designsystem.
+tillsammans med en vuxen. Det finns redan en mobil-mockup — din uppgift är att
+översätta samma innehåll, tokens och komponenter till en layout som mår bra på stor
+skärm. Återanvänd allt befintligt; inför inget nytt designsystem.
 
-### Kontext och underlag (bifogade filer)
+### Kontext och underlag (allt finns i GitHub-repot)
+Repo: **https://github.com/Jaloopo/Robot-Academy** (branch `main`). Läs dessa filer
+direkt därifrån — gissa inte:
 - `docs/design.md` är källa till sanning för färger, radie, typografi och
   steg-tillstånd. Följ den.
 - `style.css` innehåller de implementerade tokens och CSS-klasserna.
 - `content/kapitel-1.js` har de exakta svenska texterna — använd dem i skärmarna,
   hitta inte på egen text.
-- `Edison Hemguide - Mockup.dc.html` är den befintliga mobil-mockupen och visar de
-  beslut som redan tagits (se "Redan beslutat" nedan).
+- `js/app.js` är render-/interaktionslogiken (steg-tillstånd, feedback).
+- `docs/plan.md` är kort PRD (målgrupp, enheter, scope).
+- Den befintliga mobil-mockupen ligger i `Edison Hemguide design chat-handoff.zip`
+  (`edison-hemguide-design-chat/project/Edison Hemguide - Mockup.dc.html`) och visar
+  de beslut som redan tagits (se "Redan beslutat" nedan).
 
 ### Hårda tekniska krav (måste hållas)
 - Endast statisk **HTML + CSS + vanilla JS**. Inga ramverk, ingen build, inga
