@@ -194,6 +194,7 @@
         ? "<span class=\"step-label\">Tips till dig som hjälper</span>"
         : "";
       var nextDisabled = (current === totalSteps - 1) || !st.done;
+      var pct = Math.round(((current + 1) / totalSteps) * 100);
       var hintHtml = (!st.done && step.type !== "text")
         ? "<p class=\"nav-hint\">Svara först för att gå vidare.</p>"
         : "";
@@ -206,6 +207,7 @@
           "</div>" +
           MASCOT_HTML +
         "</header>" +
+        "<div class=\"progressbar\" aria-hidden=\"true\"><span style=\"width:" + pct + "%\"></span></div>" +
         "<article class=\"" + cardClass + "\" id=\"step-card\" tabindex=\"-1\">" +
           labelHtml +
           renderStepContent(step, st) +

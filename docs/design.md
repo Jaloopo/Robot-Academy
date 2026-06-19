@@ -20,18 +20,23 @@ Claude Design (JSON-tokens nedan), och ligger till grund för CSS:en som Cursor 
 - Framstegsindikator högst upp (t.ex. "Steg 3 av 12" eller prickar).
 
 ### Desktop (≥720 px)
-Layout A: lugn, centrerad kolumn. "Ett steg i taget" behålls. Allt är ADDITIVT via
-`@media (min-width: 720px)` – mobilens token-/klassvärden ändras inte. `#app` centreras
-redan i basen via `margin: 0 auto`. Tillagt block i `style.css`:
+Layout A: lugn, centrerad kolumn, "ett steg i taget" behålls. För polish ramas vyn in som
+ett **ark** (`#app`, bakgrund `#FAF7F2`, radie 24 px, mjuk skugga) som vilar på en lugnare
+**canvas** (`body` `#e7e5df`) med luft över/under – samma visuella språk som mobil-mockupens
+"enhet på canvas". Allt är ADDITIVT via `@media (min-width: 720px)`; mobilens token-/
+klassvärden ändras inte. Kortets textmått hålls ~640–660 px. Tillagt block i `style.css`:
 
 ```css
-/* ADDITIVT — påverkar bara skärmar ≥ 720 px. Mobilen oförändrad. */
 @media (min-width: 720px) {
-  #app       { max-width: 680px; padding: 3.5rem 1.5rem 3rem; } /* smalt textmått + mer luft */
-  body       { font-size: 1.125rem; }   /* additiv brödtext-bump ~18 px */
+  body { background: #e7e5df; font-size: 1.125rem; }
+  #app {
+    max-width: 760px; margin: 3rem auto; padding: 2.75rem 3rem 2.25rem;
+    background: var(--color-bg); border: 1px solid #ece5da;
+    border-radius: 24px; box-shadow: 0 18px 48px rgba(31,41,51,.12);
+  }
   .app-title { font-size: 1.75rem; }
-  .btn       { min-height: 48px; }       /* lite större träffytor med mus */
-  .nav       { gap: 1rem; }
+  .btn { min-height: 48px; }
+  .nav { gap: 1rem; }
 }
 ```
 
@@ -89,6 +94,7 @@ Layout B (tvådelad vy med kontextspalt/chapter-rail) är FRAMTIDA – den kräv
 - **Maskot**: Alternativ B valt — liten (~48 px) inline-SVG-Edison i headerns övre högra
   hörn, `aria-hidden="true"`, dekorativ. Togglar `.is-happy` (CSS `@keyframes edisonNudge`,
   0,9 s, en gång) vid rätt svar. `prefers-reduced-motion: reduce` stänger av animationen.
-- **Framstegsindikator**: Alternativ A behålls — "Steg X av N" som text. Tydligare för
-  barn och helt tillgängligt utan extra a11y-markup.
+- **Framstegsindikator**: "Steg X av N" som text (Alternativ A) + en tunn ifylld
+  framstegsstapel (`.progressbar`) under headern som komplement. Texten bär a11y; stapeln
+  är `aria-hidden`. Inga 12 prickar.
 - **Animation/ljud**: Enbart den korta maskot-nudge-animationen vid rätt svar. Inget ljud.
