@@ -13,6 +13,18 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
 - En branch + en PR i taget. Aldrig parallellt arbete på samma filer.
   Visa hela filen när du ändrar den.
 
+## Sessioner & handoff
+- Källor till sanning: durabla regler i denna fil; **levande tillstånd i `docs/status.md`**;
+  ordnad backlog i `docs/roadmap.md`.
+- Vid start: läs `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`,
+  `docs/status.md`. Ange status + nästa åtgärd innan du kör verktyg.
+- Gör EXAKT ett roadmap-steg per session – håll sessionen kort och avgränsad.
+- Verifiera (`file://` i Chrome, `node --check`, genomklick av kapitlet).
+- Vid slut: uppdatera `docs/status.md` (nuläge, vad du gjorde, beslut, varningar, nästa
+  steg, modellrekommendation) och bocka av i `docs/roadmap.md`. Committa + pusha till
+  `main`. Lämna en färdig copy-paste-prompt för nästa session i `docs/status.md`.
+  Öppna ingen PR om användaren inte ber om det.
+
 ## Teknik
 - Endast statisk HTML + CSS + vanilla JS. Inga ramverk, ingen build, inga bundlers.
 - Måste fungera både via file:// och GitHub Pages. Använd relativa sökvägar (`./...`).

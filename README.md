@@ -18,6 +18,8 @@ Publiceras via GitHub Pages (main) – testbar på telefon och surfplatta.
 - `content/kapitel-1.js` – allt innehåll (`window.KAPITEL`, redigerbart även från mobilen)
 - `docs/plan.md` – kort PRD
 - `docs/design.md` – visuell spec / designsystem
+- `docs/roadmap.md` – ordnad backlog + roller/modellval
+- `docs/status.md` – levande handoff mellan sessioner (uppdateras varje session)
 - `CLAUDE.md` / `.cursorrules` – regler för AI-assistenter (hålls i synk)
 
 ## Bygg-arbetsflöde
