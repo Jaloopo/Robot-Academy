@@ -19,6 +19,25 @@ Claude Design (JSON-tokens nedan), och ligger till grund för CSS:en som Cursor 
 - Minimera scroll: ett steg ska oftast få plats utan att scrolla på en telefon.
 - Framstegsindikator högst upp (t.ex. "Steg 3 av 12" eller prickar).
 
+### Desktop (≥720 px)
+Layout A: lugn, centrerad kolumn. "Ett steg i taget" behålls. Allt är ADDITIVT via
+`@media (min-width: 720px)` – mobilens token-/klassvärden ändras inte. `#app` centreras
+redan i basen via `margin: 0 auto`. Tillagt block i `style.css`:
+
+```css
+/* ADDITIVT — påverkar bara skärmar ≥ 720 px. Mobilen oförändrad. */
+@media (min-width: 720px) {
+  #app       { max-width: 680px; padding: 3.5rem 1.5rem 3rem; } /* smalt textmått + mer luft */
+  body       { font-size: 1.125rem; }   /* additiv brödtext-bump ~18 px */
+  .app-title { font-size: 1.75rem; }
+  .btn       { min-height: 48px; }       /* lite större träffytor med mus */
+  .nav       { gap: 1rem; }
+}
+```
+
+Layout B (tvådelad vy med kontextspalt/chapter-rail) är FRAMTIDA – den kräver ett nytt
+`<aside>`-element och tas först när fler kapitel finns. Implementeras inte nu.
+
 ## Designtokens (i synk med `style.css`)
 - Bakgrund: `#FAF7F2` (varm off-white)
 - Text: `#1F2933`

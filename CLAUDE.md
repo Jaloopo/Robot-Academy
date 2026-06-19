@@ -56,7 +56,8 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
   men ska inte överanvändas eller byggas på en specifik bokserie.
 
 ## UX
-- Mobil-först: en kolumn, inga sidopaneler. Touch-knappar minst 44 px. Max bredd ~600 px.
+- Mobil-först, responsiv upp till desktop (≥720 px breddar textmåttet additivt):
+ en kolumn, inga sidopaneler. Touch-knappar minst 44 px.
 - En "Nästa"-knapp per steg, minimera scroll.
 - Visuell spec finns i `docs/design.md`.
 
