@@ -1,0 +1,5 @@
+# Stora binärer – idébank, committas inte
+docs/reference/*.pdf
+
+# OS-skräp
+.DS_Store

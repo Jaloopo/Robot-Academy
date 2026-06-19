@@ -15,9 +15,11 @@ Publiceras via GitHub Pages (main) – testbar på telefon och surfplatta.
 ## Struktur
 - `index.html`, `style.css` – sida och utseende
 - `js/app.js` – render- och navigationslogik
-- `content/kapitel-1.json` – allt innehåll (redigerbart, även från mobilen)
+- `content/kapitel-1.js` – allt innehåll (`window.KAPITEL`, redigerbart även från mobilen)
 - `docs/plan.md` – kort PRD
-- `CLAUDE.md` – regler för AI-assistenter (Claude Code / Cursor)
+- `docs/design.md` – visuell spec / designsystem
+- `CLAUDE.md` / `.cursorrules` – regler för AI-assistenter (hålls i synk)
 
 ## Bygg-arbetsflöde
-Planering: Claude Code. Byggande: Cursor. Aldrig parallellt – en branch + en PR i taget.
+Planering, dokumentation och känsligt/komplext arbete (UI/UX, a11y): Claude Code.
+Rutinbygge utifrån spec: Cursor. Aldrig parallellt – en branch + en PR i taget.
