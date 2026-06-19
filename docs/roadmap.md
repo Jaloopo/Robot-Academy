@@ -32,8 +32,11 @@ det som inte är committat och pushat försvinner).
 - Kort: *bedömning → Opus; mekanik → enklare.*
 
 ## Roadmap (ordnad)
-0. **Granska byggarbetet** (UI-grunden mobil + desktop) mot `docs/design.md`, a11y och
-   `file://`. — Opus. Klar: inga regressioner, additivt, mobil <720 px oförändrad.
+0. **(✓ KLAR)** **Granska byggarbetet** (UI-grunden mobil + desktop) mot `docs/design.md`,
+   a11y och `file://`. — Opus. Klar: inga regressioner, additivt, mobil <720 px oförändrad.
+   Resultat: desktop-blocket är helt additivt (`@media (min-width: 720px)`), inga externa
+   beroenden/fonter/fetch, riktiga `<button>`, fokusring, `lang="sv"` och ikon+text (inte
+   enbart färg). Genomklick verifierad via committat jsdom-test (se steg 5).
 1. **Flerkapitelstöd:** avhårdkoda `CHAPTER_ID` i `js/app.js`; kapitelval via `?kapitel=N`
    (funkar på `file://`) + enkel landningsvy som listar `window.KAPITEL`; "klart →
    nästa/tillbaka". — Opus (logik). Klar: kan växla kapitel, funkar `file://` + Pages.
@@ -44,8 +47,11 @@ det som inte är committat och pushat försvinner).
 4. **"Explore"-fördjupning:** korta avsnitt/länkar om robottyper (robotarmar, Roomba m.m.).
    Externa länkar ok; bilder MÅSTE vara lokala assets (inget CDN); fakta omskriven. — Opus.
 5. **Nice-to-have:** framstegssparande (`localStorage`; opålitligt på `file://`), lätt
-   ljud/animation, ev. committad dev-testharness (avvägning: inför node-tooling i ett
-   annars verktygsfritt projekt).
+   ljud/animation. **Committad dev-testharness (✓ KLAR):** `npm test` kör en jsdom-genomklick
+   (`test/clickthrough.test.js`) mot den riktiga renderaren + innehållet och verifierar gating,
+   fel→rätt-feedback, blandad ordning/"Börja om" och bakåtnavigering. `jsdom` är ett
+   DEV-beroende (`package.json`, `node_modules/` är git-ignorerat) – **sajten själv är fortsatt
+   beroendefri** och laddas oförändrad via `file://` och GitHub Pages.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
