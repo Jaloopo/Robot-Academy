@@ -2,6 +2,8 @@
 :root {
   --color-edison-orange: #F26B1D;
   --color-edison-orange-dark: #C8540F;
+  /* Filled surfaces (btn bg, badge): WCAG AA white on this = 4.9:1. Keep #F26B1D for borders/focus/mascot. */
+  --color-edison-orange-fill: #BD4E0A;
   --color-bg: #FAF7F2;
   --color-text: #1F2933;
   --color-text-muted: #5c5c5c;
@@ -56,6 +58,9 @@ body {
 
 /* Header */
 .app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: var(--spacing-lg);
 }
 
@@ -144,8 +149,8 @@ body {
 .btn--primary {
   flex: 1;
   color: #ffffff;
-  background: var(--color-edison-orange);
-  border-color: var(--color-edison-orange);
+  background: var(--color-edison-orange-fill);
+  border-color: var(--color-edison-orange-fill);
 }
 
 .btn--primary:not(:disabled):hover,
@@ -247,7 +252,7 @@ body {
   min-width: 1.6rem;
   height: 1.6rem;
   border-radius: 50%;
-  background: var(--color-edison-orange);
+  background: var(--color-edison-orange-fill);
   color: #ffffff;
   font-weight: 700;
   font-size: 0.9rem;
@@ -255,6 +260,9 @@ body {
 
 /* Feedback */
 .feedback {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
   margin: var(--spacing-md) 0 0;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: 8px;
@@ -280,4 +288,23 @@ body {
 #step-card:focus-visible {
   outline: 2px solid var(--color-edison-orange);
   outline-offset: 2px;
+}
+
+/* Maskot */
+.mascot {
+  flex: 0 0 auto;
+}
+
+.mascot.is-happy {
+  animation: edisonNudge 0.9s ease 1;
+}
+
+@keyframes edisonNudge {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30%       { transform: translateY(-4px) rotate(-4deg); }
+  60%       { transform: translateY(-1px) rotate(3deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot.is-happy { animation: none; }
 }

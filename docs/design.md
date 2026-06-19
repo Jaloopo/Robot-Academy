@@ -4,8 +4,8 @@ Visuell spec och designsystem för guiden. Källa till sanning för utseende och
 interaktion. Författas i Claude Code (UI/UX-ägare), kan importeras som designsystem i
 Claude Design (JSON-tokens nedan), och ligger till grund för CSS:en som Cursor bygger.
 
-> Status: Tokens och steg-tillstånd nedan är IMPLEMENTERADE i `style.css`/`js/app.js`
-> (PR 1, 3 och 4). Öppna frågor längst ned kvarstår för en Claude Design-runda.
+> Status: Tokens, steg-tillstånd, maskot och ikonfeedback är IMPLEMENTERADE i
+> `style.css`/`js/app.js` (PR 1, 3, 4 + design-deltas). Öppna frågor längst ned är stängda.
 
 ## Designprinciper
 - Mobil-först, en sak per skärm. Lugnt och lekfullt, inte rörigt.
@@ -22,7 +22,10 @@ Claude Design (JSON-tokens nedan), och ligger till grund för CSS:en som Cursor 
 ## Designtokens (i synk med `style.css`)
 - Bakgrund: `#FAF7F2` (varm off-white)
 - Text: `#1F2933`
-- Primär (Edison-orange; knappar/accent): `#F26B1D`, mörk (hover/aktiv): `#C8540F`
+- Primär (Edison-orange; kanter/fokusring/maskot): `#F26B1D`, mörk (hover/aktiv): `#C8540F`
+- **Fylld yta** (`--color-edison-orange-fill: #BD4E0A`): används för `.btn--primary` (bakgrund +
+  kant) och `.option-badge` (bakgrund). Vit text på denna ger 4,9:1 → WCAG AA godkänt.
+  Behåll `#F26B1D` för kanter, fokusring, hover-outline och maskoten.
 - Barn-kort bakgrund: `#FFFFFF`, kant `#e0dbd3`
 - Vuxen-tips: bakgrund `#e3edf7`, kant `#4a7ab5`, etikett-text `#2d5a8e`
 - Rätt-svar: kant `#2E7D32`, bakgrund `#E7F3E8`, text `#1E5E22`
@@ -59,9 +62,14 @@ Claude Design (JSON-tokens nedan), och ligger till grund för CSS:en som Cursor 
 ## Tillgänglighet (a11y)
 - Kontrast minst WCAG AA. Synlig fokusring. `lang="sv"`.
 - Allt klickbart nåbart med tangentbord. Knappar är riktiga `<button>`.
-- Ingen information enbart via färg (lägg till ikon/text för rätt/fel).
+- Ingen information enbart via färg: rätt svar leds av en grön ✓-SVG, fel/retry av en
+  amber ↻-SVG. Feedback-paragrafen är `role="status" aria-live="polite"`. Alla ikoner är
+  `aria-hidden="true"` – texten bär betydelsen.
 
-## Att besluta (öppet)
-- Maskot/illustration av Edison? (måste i så fall vara lokal asset, inget CDN.)
-- Framstegsindikator: text vs. prickar.
-- Ljud/animation vid rätt svar? (håll lätt; ska funka utan nät.)
+## Beslutade frågor (stängda)
+- **Maskot**: Alternativ B valt — liten (~48 px) inline-SVG-Edison i headerns övre högra
+  hörn, `aria-hidden="true"`, dekorativ. Togglar `.is-happy` (CSS `@keyframes edisonNudge`,
+  0,9 s, en gång) vid rätt svar. `prefers-reduced-motion: reduce` stänger av animationen.
+- **Framstegsindikator**: Alternativ A behålls — "Steg X av N" som text. Tydligare för
+  barn och helt tillgängligt utan extra a11y-markup.
+- **Animation/ljud**: Enbart den korta maskot-nudge-animationen vid rätt svar. Inget ljud.
