@@ -1,7 +1,7 @@
 (function (root) {
   "use strict";
 
-  // ---- Pure helpers (testbara, ingen DOM) ----
+  // ---- Pure helpers (testable, no DOM) ----
 
   function sequencesEqual(a, b) {
     if (!a || !b || a.length !== b.length) return false;
@@ -11,7 +11,7 @@
     return true;
   }
 
-  // Blandad visningsordning av optionsindex. Undviker att visa i "löst" ordning.
+  // Shuffles display order of option indices. Avoids showing in "correct" order.
   function shuffleDisplayOrder(n, avoid) {
     var arr = [];
     for (var i = 0; i < n; i++) arr.push(i);
@@ -50,6 +50,43 @@
     var totalSteps = steps.length;
     var current = 0;
     var state = steps.map(makeStepState);
+    var pendingMascotNudge = false;
+
+    // Inline SVG icons (aria-hidden – form+colour, text conveys meaning).
+    // Check: used in correct option button and ok-feedback.
+    var SVG_CHECK =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="#1E5E22" stroke-width="3" stroke-linecap="round"' +
+      ' stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto">' +
+      '<path d="M5 13l4 4L19 7"/></svg>';
+
+    // Retry arrow: used inside wrong option buttons (matches border colour).
+    var SVG_RETRY_BTN =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="#B26A00" stroke-width="2.4" stroke-linecap="round"' +
+      ' stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto">' +
+      '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v4h-4"/></svg>';
+
+    // Retry arrow: used in retry-feedback paragraph (matches text colour).
+    var SVG_RETRY_FEEDBACK =
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="#7A4A00" stroke-width="2.4" stroke-linecap="round"' +
+      ' stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto">' +
+      '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v4h-4"/></svg>';
+
+    // Mascot: small inline-SVG Edison, decorative, lives in .app-header corner.
+    var MASCOT_HTML =
+      '<div class="mascot" aria-hidden="true">' +
+      '<svg width="48" height="48" viewBox="0 0 64 64" fill="none">' +
+      '<line x1="32" y1="6" x2="32" y2="15" stroke="#C8540F" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="32" cy="5" r="3.5" fill="#F26B1D"/>' +
+      '<rect x="9" y="14" width="46" height="40" rx="13" fill="#F26B1D"/>' +
+      '<rect x="9" y="14" width="46" height="40" rx="13" fill="none" stroke="#C8540F" stroke-width="1.5"/>' +
+      '<rect x="15" y="22" width="34" height="24" rx="9" fill="#1F2933"/>' +
+      '<circle cx="25" cy="34" r="3.5" fill="#fff"/>' +
+      '<circle cx="39" cy="34" r="3.5" fill="#fff"/>' +
+      '<path d="M27 40 q5 4 10 0" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>' +
+      '</svg></div>';
 
     function makeStepState(step) {
       if (step.type === "question_single_choice") {
@@ -70,8 +107,10 @@
 
     function feedbackHtml(st) {
       if (!st || !st.feedback) return "";
-      return "<p class=\"feedback feedback--" + st.feedback.kind + "\" " +
-        "role=\"status\" aria-live=\"polite\">" + escapeHtml(st.feedback.msg) + "</p>";
+      var icon = st.feedback.kind === "ok" ? SVG_CHECK : SVG_RETRY_FEEDBACK;
+      return "<p class=\"feedback feedback--" + st.feedback.kind + "\"" +
+        " role=\"status\" aria-live=\"polite\">" +
+        icon + "<span>" + escapeHtml(st.feedback.msg) + "</span></p>";
     }
 
     function renderText(step) {
@@ -84,16 +123,21 @@
       step.options.forEach(function (opt, i) {
         var cls = "option";
         var disabled = "";
+        var inner = "<span>" + escapeHtml(opt) + "</span>";
         if (st.done) {
           disabled = " disabled";
-          if (i === step.correctAnswer) cls += " option--correct";
+          if (i === step.correctAnswer) {
+            cls += " option--correct";
+            inner = SVG_CHECK + inner;
+          }
         } else if (st.wrongTried.indexOf(i) !== -1) {
           cls += " option--wrong";
+          inner = SVG_RETRY_BTN + inner;
         }
         var pressed = st.chosen === i ? "true" : "false";
         html += "<li><button type=\"button\" class=\"" + cls + "\" data-idx=\"" + i +
           "\" aria-pressed=\"" + pressed + "\"" + disabled + ">" +
-          escapeHtml(opt) + "</button></li>";
+          inner + "</button></li>";
       });
       html += "</ul>";
       html += feedbackHtml(st);
@@ -156,8 +200,11 @@
 
       appEl.innerHTML =
         "<header class=\"app-header\">" +
-          "<h1 class=\"app-title\">" + escapeHtml(chapter.titel) + "</h1>" +
-          "<p class=\"progress\">Steg " + (current + 1) + " av " + totalSteps + "</p>" +
+          "<div>" +
+            "<h1 class=\"app-title\">" + escapeHtml(chapter.titel) + "</h1>" +
+            "<p class=\"progress\">Steg " + (current + 1) + " av " + totalSteps + "</p>" +
+          "</div>" +
+          MASCOT_HTML +
         "</header>" +
         "<article class=\"" + cardClass + "\" id=\"step-card\" tabindex=\"-1\">" +
           labelHtml +
@@ -170,6 +217,16 @@
           "<button type=\"button\" class=\"btn btn--primary\" id=\"btn-next\"" +
             (nextDisabled ? " disabled" : "") + ">Nästa</button>" +
         "</nav>";
+
+      // Trigger mascot nudge on correct answer
+      if (pendingMascotNudge) {
+        pendingMascotNudge = false;
+        var mascot = appEl.querySelector(".mascot");
+        if (mascot) {
+          void mascot.offsetWidth; // force reflow to restart animation
+          mascot.classList.add("is-happy");
+        }
+      }
 
       // Re-attach handlers
       doc.getElementById("btn-prev").addEventListener("click", goPrev);
@@ -221,6 +278,7 @@
       if (i === step.correctAnswer) {
         st.done = true;
         st.feedback = { kind: "ok", msg: "Rätt! Bra jobbat." };
+        pendingMascotNudge = true;
         render("next");
       } else {
         if (st.wrongTried.indexOf(i) === -1) st.wrongTried.push(i);
@@ -238,9 +296,10 @@
         if (sequencesEqual(st.picks, step.correctAnswer)) {
           st.done = true;
           st.feedback = { kind: "ok", msg: "Perfekt ordning! Edison är redo." };
+          pendingMascotNudge = true;
           render("next");
         } else {
-          st.feedback = { kind: "retry", msg: "Nästan! Tryck ”Börja om” och försök i en annan ordning." };
+          st.feedback = { kind: "retry", msg: "Nästan! Tryck “Börja om” och försök i en annan ordning." };
           render("options");
         }
       } else {
@@ -268,12 +327,12 @@
     render(null);
   }
 
-  // ---- Bootstrap (endast i webbläsare) ----
+  // ---- Bootstrap (browser only) ----
   if (typeof document !== "undefined" && document.getElementById) {
     initApp(document);
   }
 
-  // Exponera testbara rena funktioner för Node-tester.
+  // Expose testable pure functions for Node tests.
   root.EdisonApp = { sequencesEqual: sequencesEqual, shuffleDisplayOrder: shuffleDisplayOrder, initApp: initApp };
 
 })(typeof window !== "undefined" ? window : (typeof global !== "undefined" ? global : this));
