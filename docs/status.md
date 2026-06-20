@@ -5,7 +5,7 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · Nytt kapitel 4 "Roboten som känner" (sensorer + om-då)
+Senast uppdaterad: 2026-06-20 · Kap 4 mergad (#16); owner-steg klara (CI required + Pages); beslut: nästa = kapitel 5 "Loopar"; EdBlocks-lärarguide tillagd som idébank
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -131,6 +131,28 @@ Senast uppdaterad: 2026-06-20 · Nytt kapitel 4 "Roboten som känner" (sensorer 
 - https://meetedison.com/edison-robots-sensors/ (sensorer/knappar)
 - https://meetedison.com/robot-programming-software/edblocks/ + https://www.edblocksapp.com/v3/ (WebUSB, V3)
 - "Getting started with Edison V3" / EdBlocks getting-started (nedladdningsflöde dator vs iPad, USB-A/adapter)
+- **EdBlocks lesson activities – Teachers guide & answer key (Edison V3), Microbric/Emma Dewar,
+  CC BY-SA 4.0.** Ligger som idébank i `docs/reference/` (PDF, git-ignorerad – committas ALDRIG;
+  se `.gitignore`). KOPIERA ALDRIG text/bilder därifrån (upphovsrätt) – skriv om allt med egna
+  svenska ord. Bra för att verifiera exakta block/flöden innan ett kapitel skrivs.
+
+## Verifierade loop-fakta (egna ord, ur lärarguiden – för kapitel 5)
+Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapiteltexten:
+- EdBlocks har en **grupp loop-block**. En loop läggs RUNT andra block och får dem att upprepas
+  (vänster→höger) så länge loopens villkor är uppfyllt. (Guidens Aktivitet 16 "Let's use the lights".)
+- Det finns **flera olika loop-block**, bl.a. en **oändlig loop** ("kör för alltid"). Loopar kan
+  dessutom **nästlas** (loop inuti loop).
+- Man kan lägga **många block i samma loop**: dra loopen över en befintlig blockkedja (den töjs ut)
+  eller lägg loopen först och släpp block inuti den.
+- Tids-blocket **"wait until"** låter Edison vänta ett antal sekunder (0,01–320) innan nästa block.
+- **LED-lamporna** lyser i bakgrunden tills programmet släcker dem eller slutar (bra loop-exempel:
+  blinka på/av för alltid).
+- Klassiskt loop+sensor-program (guidens Aktivitet 17–18): **kör framåt → vänta tills hinder känns
+  → backa → sväng → loopen startar om**. Bra konkret koppling mellan kap 4 (villkor) och loopar.
+- "Musikstolar": spela musik i en loop **tills runda knappen trycks**. Edison läser block vänster→höger.
+- OBS att verifiera: de exakta *namnen/ikonerna* i blockmenyn varierar per EdBlocks-version – håll
+  texten på begrepps­nivå ("en loop", "ett upprepa-block") och flagga app-specifika detaljer i ett
+  vuxen-steg, precis som i kap 4.
 
 ## Varningar / blockers
 - `npm test` täcker logik + datakorrekthet, INTE det visuella. CSS/layout måste fortfarande
@@ -141,26 +163,24 @@ Senast uppdaterad: 2026-06-20 · Nytt kapitel 4 "Roboten som känner" (sensorer 
 - `file://` ger en ofarlig konsolvarning ("Unsafe attempt to load URL") – inga nätverksanrop.
 - `node_modules/` committas aldrig: kör `npm install` en gång innan `npm test`/`npm run validate`.
   (I denna Cloud-miljö installeras det via setup-skript; kör annars `npm install`.)
-- **CI är grön men ännu inte en *required* check.** Inget hindrar tekniskt en merge med röd CI
-  förrän en branch-protection-regel satts för `main` (owner-steg, se roadmap D). Tills dess:
-  granska CI-status manuellt före merge.
-- **GitHub Pages-deploy är inte bekräftad härifrån.** Filerna är Pages-redo (relativa `./`-
-  sökvägar, ingen CDN/fetch), men att Pages är på och publicerar från `main`/root är ett owner-steg.
+- `node_modules/` saknas i en färsk Cloud-container → `npm test` failar då falskt på
+  "Cannot find module 'jsdom'". Kör **`npm install` först** (se nedan).
 
-## Owner-steg (manuella, kan inte göras via API härifrån)
-- **Gör CI till required check:** Settings → Branches → branch protection för `main` →
-  Require status checks to pass → välj **"test"**. Då gatear grönt faktiskt merge.
-- **Bekräfta GitHub Pages:** Settings → Pages → Source = `main` / root; öppna den publicerade
-  URL:en och klicka igenom ett kapitel.
+## Owner-steg (✓ KLARA 2026-06-20, bekräftat av ägaren)
+- **CI är nu en *required* check** för `main` (branch protection: Require status checks → "test").
+  Grönt gatear faktiskt merge.
+- **GitHub Pages är på och publicerar** (bekräftat av ägaren) – sajten är live från `main`/root.
+  Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
-## Nästa steg (exakt ETT)
-Kapitel 4 "Roboten som känner" är klart. Rekommenderat nästa (välj ETT):
-- **Nytt kapitel/modul** (t.ex. loopar/upprepa, felsökning, eller bygg ett sensorprogram steg
-  för steg) – beslut bredd vs djup. Opus (pedagogik + Edison-fakta, mall `content/_mall.js`). ELLER
-- **Fler bilder** med befintliga `image`-typen: block-snäpp i kap 2 / robotsiluetter i kap 3 /
-  sensorillustration i kap 4 – bara nya lokala assets + ett bild-steg per kapitel. Enklare modell
-  (Sonnet) mot spec. ELLER
-- **Owner-/processteg:** gör CI till *required* check + bekräfta GitHub Pages (se "Owner-steg").
+## Nästa steg (exakt ETT) – BESLUTAT
+**Kapitel 5 "Loopar / upprepa"** (nästa kärnkoncept efter villkor: sekvens → program → villkor →
+loop). Eget kapitel med BEFINTLIGA stegtyper, inga bilder, ingen logik-/datamodell-/CSS-ändring.
+Utgå från `content/_mall.js` + ny `<script>`-rad i `index.html` FÖRE `js/app.js`. Faktabas finns
+i "Verifierade loop-fakta" ovan (skriv om med egna ord; flagga app-specifika blocknamn "att verifiera").
+- **Frivilligt (ägarens flagga):** om tempot känns för högt EFTER kap 4 går det bra att lägga in en
+  kort **brygg-/befästningslektion FÖRE loopar** – t.ex. ett praktiskt "bygg ett om-då-program steg
+  för steg" (kör framåt → vänta tills hinder → sväng), som också är en perfekt upptakt till loopar.
+  Det är inget krav; loopar är ändå det planerade nästa passet. "Inga problem att lägga in saker före."
 Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan computerUse köra den.
 
 ## Modellrekommendation för nästa steg
@@ -172,27 +192,36 @@ Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan co
 ```text
 Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Academy, main).
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
-Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
+Kör npm install EN gång först (färsk container saknar node_modules → annars failar npm test
+falskt på "Cannot find module 'jsdom'"). Ange kort nuläge + planerad åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): VÄLJ ETT. (a) Nytt kapitel/modul (loopar/upprepa, felsökning el. bygg ett
-sensorprogram) – Opus, pedagogik + Edison-fakta, utgå från content/_mall.js + ny <script>-rad i
-index.html FÖRE js/app.js. (b) Fler bilder via befintliga image-stegtypen (block-snäpp kap 2 /
-robotsiluetter kap 3 / sensorbild kap 4) – egna lokala SVG i assets/, ett bild-steg per kapitel,
-ingen logikändring. (c) Owner-/processteg (CI required check + bekräfta GitHub Pages). A11y- &
-UI/UX-granskningen (spår B) är klar – se docs/a11y.md (kontrasttabell + checklista) om du rör
-CSS/markup, och håll AA. Kapitel 1–4 finns redan (kap 4 = sensorer/om-då).
-Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages. All UI-text
-på svenska. Rör inte datamodellen vid design-/UI-arbete.
+UPPGIFT (exakt ETT steg): Bygg Kapitel 5 "Loopar / upprepa" som INNEHÅLL. Loop är nästa
+kärnkoncept efter villkor (kap 4): sekvens → första program → villkor → loop. Knyt till Edison:
+upprepa en rörelse (kör en fyrkant), blinka LED, eller kör framåt → vänta tills hinder → sväng,
+om och om (loopen startar om). Se "Verifierade loop-fakta" i docs/status.md (källa: EdBlocks-
+lärarguiden i docs/reference/ – idébank, KOPIERA ALDRIG, skriv om med egna svenska ord).
+- Ny content/kapitel-5.js: utgå från content/_mall.js. Befintliga stegtyper (text, vuxen-tips,
+  question_single_choice, ordering). INGEN renderar-/datamodell-/CSS-ändring, inga bilder.
+- Lägg <script src="./content/kapitel-5.js"></script> i index.html FÖRE js/app.js. Kap 5 blir
+  sista kapitlet (numerisk sortering): kap 4 länkar då till kap 5 och kap 5 till "Till kapitel-
+  översikt". Verifiera kedjan i genomklicket.
+- Pedagogik: tilltala barnet direkt, max 2-3 meningar/steg, adult-steg utan "Vuxen:"-prefix,
+  minst en flervalsfråga + en ordningsfråga. Exakta EdBlocks-blocknamn varierar per version →
+  flagga "att verifiera" i ett vuxen-steg (hitta inte på).
+- FRIVILLIGT: om tempot känns högt får du lägga en kort brygglektion (praktiskt "bygg ett om-då-
+  program") FÖRE loopar – inget krav, loopar är ändå det planerade passet.
 
-VERKTYG: npm install (en gång) → npm run validate (schema, 4 kapitelfiler) → npm test (15,
-genomklickar alla kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. Bild-steg: type
-"image" med lokal src + alt (se kap 1). CI (Node 22) kör node --check + npm run validate + npm test
-på varje PR/push – håll grön.
+HÅRDA KRAV: endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages.
+All UI-text på svenska. Rör inte datamodellen (window.KAPITEL / correctAnswer). Inga CDN/fetch.
 
-VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome vid CSS/logik-ändring
-(i Cloud: computerUse). Vid a11y-känsliga färgändringar: kontrollera AA-kontrast mot docs/a11y.md.
+VERKTYG: npm install (en gång) → npm run validate (schema, bör säga 5 kapitelfiler) → npm test
+(genomklickar alla kapitel automatiskt – nytt kapitel kräver ingen teständring) → node --check
+js/app.js. CI (Node 22) är nu en REQUIRED check (node --check + validate + test) – håll grön.
+
+VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome (i Cloud: computerUse)
+– landning listar kap 5, gating, fel→rätt-feedback, ordningsfråga, avslutslänk "Till kapitelöversikt".
 
 AVSLUTA enligt handoff: uppdatera docs/status.md (nuläge, gjort, beslut, varningar, nästa steg,
-modellrek) + bocka av i docs/roadmap.md, committa och pusha till main (eller branch+PR i Cloud).
-Skriv en ny copy-paste för nästa session i status.md.
+modellrek) + bocka av "loopar" i docs/roadmap.md, committa (branch+PR/auto-merge i Cloud; öppna
+ingen PR om användaren inte ber om det). Skriv en ny copy-paste längst ned. Modell: Opus.
 ```
