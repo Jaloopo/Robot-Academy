@@ -5,7 +5,7 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · testverktyg – datadrivet genomklick av ALLA riktiga kapitelfiler
+Senast uppdaterad: 2026-06-20 · testverktyg (datadrivet genomklick av alla kapitel) + GitHub Actions-CI
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -25,6 +25,9 @@ Senast uppdaterad: 2026-06-20 · testverktyg – datadrivet genomklick av ALLA r
 - **Testet genomklickar nu ALLA riktiga `content/kapitel-*.js` automatiskt** (kapitel 1, 2, 3
   i dag) – inte längre bara kapitel 1 + ett syntetiskt inline-kapitel. Ett nytt kapitel testas
   alltså bara genom att lägga till filen; trasig kapiteldata får `npm test` att faila.
+- **GitHub Actions-CI** (`.github/workflows/ci.yml`) kör `node --check` (renderaren + alla
+  kapitelfiler) + `npm test` på varje PR och vid push till `main`. Workflow-filen påverkar inte
+  sajten (laddas aldrig av `index.html`); sajten är fortsatt beroendefri.
 
 ## Vad senaste sessionen gjorde
 - **Granskade + mergade roadmap-steg 4 (Kapitel 3 "Robotar i världen").** PR #9 granskad
@@ -35,8 +38,10 @@ Senast uppdaterad: 2026-06-20 · testverktyg – datadrivet genomklick av ALLA r
   laddar dem i jsdom och kör samma datadrivna genomklick per kapitel (gating, fel→rätt, blandad
   ordning, samt rätt avslutslänk: "Nästa kapitel" för alla utom det sista, "Till kapitelöversikt"
   för det sista). Det syntetiska inline-kapitlet finns kvar för routing-/rail-testerna.
-- Rörde INTE renderaren (`js/app.js`), datamodellen, CSS:en eller innehållet – bara testfilen
-  samt dokumentationen (`CLAUDE.md` + `.cursorrules` i synk).
+- **La till GitHub Actions-CI** (`.github/workflows/ci.yml`): `npm install` → `node --check`
+  (renderaren + alla `content/kapitel-*.js`) → `npm test`, på `pull_request` och push till `main`.
+- Rörde INTE renderaren (`js/app.js`), datamodellen, CSS:en eller innehållet – bara testfilen,
+  CI-workflowen samt dokumentationen (`CLAUDE.md` + `.cursorrules` i synk).
 - Verifierade: `node --check js/app.js` ✓, `node --check test/clickthrough.test.js` ✓,
   `npm test` ✓ (**10 tester**). Bekräftade fail-loud: en tillfällig `correctAnswer` utanför
   index i `content/kapitel-3.js` fick testet att faila, och grönt igen efter återställning.
@@ -63,20 +68,20 @@ Senast uppdaterad: 2026-06-20 · testverktyg – datadrivet genomklick av ALLA r
   (miljön tillåter inte push till `main`). PR är vägen in till `main` här.
 
 ## Nästa steg (exakt ETT)
-Två rimliga spår – välj ETT:
-- **Process/CI:** lägg till en liten GitHub Actions-workflow som kör `node --check` + `npm test`
-  på varje PR (PR:ar gatas automatiskt; workflow-filen påverkar inte sajten/beroendefriheten).
-  Ev. även en schema-validator (`correctAnswer` i range, `ordering` = permutation, `options`
-  finns). — enklare modell när scopet är låst.
-- **Roadmap-steg 5 (Nice-to-have):** framstegssparande (`localStorage`; måste degradera snällt
-  på `file://`) ELLER lätt ljud/animation (a11y: `prefers-reduced-motion`, inget ljud-autospel).
+Roadmap-steg 5 (Nice-to-have) – välj ETT:
+- **Framstegssparande** via `localStorage`: kom ihåg klarade steg/kapitel. Måste degradera
+  snällt på `file://` (där `localStorage` kan saknas/blockeras) och inte röra datamodellen i
+  onödan. — **Opus** (rör renderings-/state-logik + edge-cases).
+- **Lätt ljud/animation** enligt `docs/design.md`: liten feedback vid rätt svar/kapitelklart.
+  A11y: respektera `prefers-reduced-motion`, inget ljud-autospel. — **enklare modell** när
+  scopet är låst (mest CSS/asset), men låt Opus granska a11y.
+
+(Mindre, valfritt tillägg om man vill: en schema-validator – `correctAnswer` i range,
+`ordering` = permutation, `options` finns – som CI kan köra. Enklare modell.)
 
 ## Modellrekommendation för nästa steg
-- CI-workflow + schema-validator → **enklare modell** (mekaniskt när scopet är låst).
-- `localStorage`-sparande rör renderings-/state-logik och måste degradera snällt på `file://`
-  → **Opus** (logik + edge-case-bedömning).
-- Ljud/animation är mest CSS/asset-arbete → **enklare modell** när scope är låst, men a11y
-  (`prefers-reduced-motion`, inget ljud-autospel) bör Opus granska.
+- Framstegssparande (`localStorage`) → **Opus** (logik + edge-case-bedömning på `file://`).
+- Ljud/animation → **enklare modell (Sonnet)** när scope är låst; Opus granskar a11y.
 
 ## Copy-paste för nästa session
 ```text
@@ -84,17 +89,15 @@ Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Ac
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): Välj EN av:
-- Process/CI: liten GitHub Actions-workflow som kör `node --check` + `npm test` på varje PR
-  (gata PR:ar automatiskt; workflow-filen får INTE påverka sajten/beroendefriheten). Ev. även
-  en schema-validator (correctAnswer i range, ordering = permutation, options finns). ELLER
-- Roadmap-steg 5 – Nice-to-have: framstegssparande via localStorage (måste degradera snällt på
-  file://; rör inte datamodellen i onödan), ELLER lätt ljud/animation enligt docs/design.md
-  (a11y: prefers-reduced-motion, inget ljud-autospel).
+UPPGIFT (ett steg): Roadmap-steg 5 – Nice-to-have. Välj EN av:
+- Framstegssparande via localStorage (kom ihåg klarade steg/kapitel). Måste degradera snällt på
+  file:// (localStorage kan saknas/blockeras) och inte röra datamodellen i onödan. ELLER
+- Lätt ljud/animation enligt docs/design.md (feedback vid rätt svar/kapitelklart). A11y:
+  prefers-reduced-motion, inget ljud-autospel.
 Bestäm scope/form först. Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och
 GitHub Pages. Inga ramverk/CDN/externa fonter/nätverksanrop. All UI-text på svenska.
-OBS: npm test genomklickar nu ALLA riktiga content/kapitel-*.js automatiskt – nytt kapitel = bara
-ny fil, ingen teständring.
+OBS: npm test genomklickar nu ALLA riktiga content/kapitel-*.js automatiskt, och GitHub Actions-CI
+(.github/workflows/ci.yml) kör node --check + npm test på varje PR – håll den grön.
 
 VERIFIERA: node --check js/app.js, npm test (kör npm install först), samt genomklick via file://
 i Chrome (landningsvy + berört flöde) – särskilt vid CSS/logik-ändring.
