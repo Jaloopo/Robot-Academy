@@ -34,23 +34,68 @@
       .replace(/"/g, "&quot;");
   }
 
+  function chapterNumberFromId(id) {
+    var match = String(id).match(/^kapitel-(\d+)$/);
+    return match ? parseInt(match[1], 10) : null;
+  }
+
+  function sortedChapterIds(chapters) {
+    var ids = [];
+    var key;
+    for (key in chapters) {
+      if (Object.prototype.hasOwnProperty.call(chapters, key) && chapters[key]) {
+        ids.push(key);
+      }
+    }
+    ids.sort(function (a, b) {
+      var an = chapterNumberFromId(a);
+      var bn = chapterNumberFromId(b);
+      if (an !== null && bn !== null && an !== bn) return an - bn;
+      if (an !== null && bn === null) return -1;
+      if (an === null && bn !== null) return 1;
+      return a.localeCompare(b, "sv");
+    });
+    return ids;
+  }
+
+  function queryValue(search, name) {
+    var query = String(search || "").replace(/^\?/, "");
+    if (!query) return null;
+    var pairs = query.split("&");
+    for (var i = 0; i < pairs.length; i++) {
+      var parts = pairs[i].split("=");
+      var key = decodeURIComponent((parts[0] || "").replace(/\+/g, " "));
+      if (key === name) {
+        return decodeURIComponent((parts.slice(1).join("=") || "").replace(/\+/g, " "));
+      }
+    }
+    return null;
+  }
+
+  function chapterIdFromSearch(search) {
+    var value = queryValue(search, "kapitel");
+    if (!value) return null;
+    if (/^\d+$/.test(value)) return "kapitel-" + value;
+    if (/^kapitel-\d+$/.test(value)) return value;
+    return null;
+  }
+
+  function chapterHref(id) {
+    var nr = chapterNumberFromId(id);
+    return "?kapitel=" + encodeURIComponent(nr === null ? id : nr);
+  }
+
+  function landingHref() {
+    return "./index.html";
+  }
+
   // ---- App (DOM) ----
 
   function initApp(doc) {
-    var CHAPTER_ID = "kapitel-1";
     var appEl = doc.getElementById("app");
-    var chapter = root.KAPITEL && root.KAPITEL[CHAPTER_ID];
-
-    if (!chapter) {
-      appEl.textContent = "Kunde inte ladda kapitel.";
-      return;
-    }
-
-    var steps = chapter.steps;
-    var totalSteps = steps.length;
-    var current = 0;
-    var state = steps.map(makeStepState);
-    var pendingMascotNudge = false;
+    if (!appEl) return;
+    var chapters = root.KAPITEL || {};
+    var chapterIds = sortedChapterIds(chapters);
 
     // Inline SVG icons (aria-hidden – form+colour, text conveys meaning).
     // Check: used in correct option button and ok-feedback.
@@ -87,6 +132,59 @@
       '<circle cx="39" cy="34" r="3.5" fill="#fff"/>' +
       '<path d="M27 40 q5 4 10 0" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>' +
       '</svg></div>';
+
+    function renderLanding(message) {
+      var html =
+        "<header class=\"app-header app-header--landing\">" +
+          "<div>" +
+            "<p class=\"eyebrow\">Edison Hemguide</p>" +
+            "<h1 class=\"app-title\">Välj kapitel</h1>" +
+            "<p class=\"landing-intro\">Börja med ett kapitel. Allt laddas från filer som redan finns här.</p>" +
+          "</div>" +
+          MASCOT_HTML +
+        "</header>";
+
+      if (message) {
+        html += "<p class=\"landing-message\" role=\"status\">" + escapeHtml(message) + "</p>";
+      }
+
+      if (chapterIds.length === 0) {
+        html += "<p class=\"step-stub\">Inga kapitel är laddade ännu.</p>";
+      } else {
+        html += "<main class=\"landing\" aria-label=\"Kapitel\"><ol class=\"chapter-list\">";
+        chapterIds.forEach(function (id) {
+          var chapter = chapters[id];
+          var nr = chapterNumberFromId(id);
+          html += "<li><a class=\"chapter-link\" href=\"" + chapterHref(id) + "\">" +
+            "<span class=\"chapter-kicker\">" + (nr === null ? "Kapitel" : "Kapitel " + nr) + "</span>" +
+            "<span class=\"chapter-title\">" + escapeHtml(chapter.titel || id) + "</span>" +
+          "</a></li>";
+        });
+        html += "</ol></main>";
+      }
+
+      appEl.innerHTML = html;
+    }
+
+    var requestedChapterId = chapterIdFromSearch(root.location && root.location.search);
+    if (!requestedChapterId) {
+      renderLanding(null);
+      return;
+    }
+
+    var chapter = chapters[requestedChapterId];
+    if (!chapter) {
+      renderLanding("Kapitlet finns inte än. Välj ett kapitel i listan.");
+      return;
+    }
+
+    var chapterIndex = chapterIds.indexOf(requestedChapterId);
+    var nextChapterId = chapterIndex !== -1 ? chapterIds[chapterIndex + 1] : null;
+    var steps = chapter.steps;
+    var totalSteps = steps.length;
+    var current = 0;
+    var state = steps.map(makeStepState);
+    var pendingMascotNudge = false;
 
     function makeStepState(step) {
       if (step.type === "question_single_choice") {
@@ -193,11 +291,33 @@
       var labelHtml = isAdult
         ? "<span class=\"step-label\">Tips till dig som hjälper</span>"
         : "";
-      var nextDisabled = (current === totalSteps - 1) || !st.done;
+      var isLastStep = current === totalSteps - 1;
+      var nextDisabled = !isLastStep && !st.done;
       var pct = Math.round(((current + 1) / totalSteps) * 100);
       var hintHtml = (!st.done && step.type !== "text")
         ? "<p class=\"nav-hint\">Svara först för att gå vidare.</p>"
         : "";
+      var navHtml =
+        "<nav class=\"nav\" aria-label=\"Stegnavigering\">" +
+          "<button type=\"button\" class=\"btn btn--secondary\" id=\"btn-prev\"" +
+            (current === 0 ? " disabled" : "") + ">Föregående</button>";
+
+      if (isLastStep) {
+        if (st.done) {
+          navHtml += "<a class=\"btn btn--primary\" id=\"link-finish\" href=\"" +
+            (nextChapterId ? chapterHref(nextChapterId) : landingHref()) + "\">" +
+            (nextChapterId ? "Nästa kapitel" : "Till kapitelöversikt") + "</a>";
+        } else {
+          navHtml += "<button type=\"button\" class=\"btn btn--primary\" id=\"btn-next\" disabled>Klart</button>";
+        }
+      } else {
+        navHtml += "<button type=\"button\" class=\"btn btn--primary\" id=\"btn-next\"" +
+          (nextDisabled ? " disabled" : "") + ">Nästa</button>";
+      }
+      navHtml += "</nav>";
+      if (isLastStep && st.done && nextChapterId) {
+        navHtml += "<p class=\"chapter-finish\"><a href=\"" + landingHref() + "\">Till kapitelöversikt</a></p>";
+      }
 
       appEl.innerHTML =
         "<header class=\"app-header\">" +
@@ -213,12 +333,7 @@
           renderStepContent(step, st) +
         "</article>" +
         hintHtml +
-        "<nav class=\"nav\" aria-label=\"Stegnavigering\">" +
-          "<button type=\"button\" class=\"btn btn--secondary\" id=\"btn-prev\"" +
-            (current === 0 ? " disabled" : "") + ">Föregående</button>" +
-          "<button type=\"button\" class=\"btn btn--primary\" id=\"btn-next\"" +
-            (nextDisabled ? " disabled" : "") + ">Nästa</button>" +
-        "</nav>";
+        navHtml;
 
       // Trigger mascot nudge on correct answer
       if (pendingMascotNudge) {
@@ -232,7 +347,8 @@
 
       // Re-attach handlers
       doc.getElementById("btn-prev").addEventListener("click", goPrev);
-      doc.getElementById("btn-next").addEventListener("click", goNext);
+      var nextBtn = doc.getElementById("btn-next");
+      if (nextBtn) nextBtn.addEventListener("click", goNext);
 
       if (step.type === "question_single_choice") {
         forEachEl(appEl.querySelectorAll(".option[data-idx]"), function (btn) {
@@ -262,6 +378,7 @@
       var el = null;
       if (focus === "next") {
         el = doc.getElementById("btn-next");
+        if (!el) el = doc.getElementById("link-finish");
         if (el && el.disabled) el = null;
       } else if (focus === "options") {
         el = appEl.querySelector(".option:not(:disabled)");
@@ -335,6 +452,12 @@
   }
 
   // Expose testable pure functions for Node tests.
-  root.EdisonApp = { sequencesEqual: sequencesEqual, shuffleDisplayOrder: shuffleDisplayOrder, initApp: initApp };
+  root.EdisonApp = {
+    sequencesEqual: sequencesEqual,
+    shuffleDisplayOrder: shuffleDisplayOrder,
+    chapterIdFromSearch: chapterIdFromSearch,
+    sortedChapterIds: sortedChapterIds,
+    initApp: initApp
+  };
 
 })(typeof window !== "undefined" ? window : (typeof global !== "undefined" ? global : this));

@@ -77,6 +77,76 @@ body {
   color: var(--color-text-muted);
 }
 
+.eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.landing-intro {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.landing-message {
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-retry-text);
+  background: var(--color-retry-bg);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.landing {
+  margin-top: var(--spacing-lg);
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: var(--touch-min);
+  padding: var(--spacing-md);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-card);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.chapter-link:hover,
+.chapter-link:focus-visible {
+  border-color: var(--color-edison-orange);
+}
+
+.chapter-link:focus-visible {
+  outline: 2px solid var(--color-edison-orange);
+  outline-offset: 2px;
+}
+
+.chapter-kicker {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-edison-orange-fill);
+}
+
+.chapter-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
 /* Framstegsstapel – komplement till "Steg X av N"-texten (texten bär a11y) */
 .progressbar {
   height: 6px;
@@ -168,6 +238,14 @@ body {
   color: #ffffff;
   background: var(--color-edison-orange-fill);
   border-color: var(--color-edison-orange-fill);
+}
+
+.btn[href] {
+  text-decoration: none;
+}
+
+.btn--primary:visited {
+  color: #ffffff;
 }
 
 .btn--primary:not(:disabled):hover,
@@ -300,6 +378,21 @@ body {
   margin: 0 0 var(--spacing-sm);
   font-size: 0.9rem;
   color: var(--color-text-muted);
+}
+
+.chapter-finish {
+  margin: var(--spacing-sm) 0 0;
+  text-align: center;
+}
+
+.chapter-finish a {
+  color: var(--color-edison-orange-fill);
+  font-weight: 700;
+}
+
+.chapter-finish a:focus-visible {
+  outline: 2px solid var(--color-edison-orange);
+  outline-offset: 2px;
 }
 
 #step-card:focus-visible {
