@@ -182,7 +182,10 @@ test("chapterIdFromSearch tolkar ?kapitel=N för file://", () => {
   assert.strictEqual(chapterIdFromSearch("?kapitel=1"), "kapitel-1");
   assert.strictEqual(chapterIdFromSearch("?foo=bar&kapitel=2"), "kapitel-2");
   assert.strictEqual(chapterIdFromSearch(""), null);
-  assert.deepStrictEqual(sortedChapterIds({ "kapitel-2": {}, "kapitel-1": {} }), ["kapitel-1", "kapitel-2"]);
+  assert.deepStrictEqual(Array.from(sortedChapterIds({ "kapitel-2": {}, "kapitel-1": {} })), [
+    "kapitel-1",
+    "kapitel-2"
+  ]);
 });
 
 test("landningsvyn listar alla kapitel i window.KAPITEL", () => {
