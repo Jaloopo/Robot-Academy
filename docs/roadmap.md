@@ -117,11 +117,14 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   blocknamn/placering i EdBlocks (varierar per version) – medvetet kvar som adult-flagga.
 - **Innehållstäckning:** är 3 kapitel rätt scope? Kandidater till nytt kapitel/modul
   (t.ex. sensorer, loopar, felsökning) eller referenssida. Beslut om bredd vs djup.
-- **Bilder/media:** kapitel 3 flaggade att `<img>`/inbäddade länkar kräver en additiv,
-  escapad mediastegtyp – utred om det är värt det (lokala assets, ingen CDN). **OBS upphovsrätt:**
-  lyft ALDRIG bilder/skärmdumpar ur EdBlocks-PDF:en eller appen (Microbrics IP) till sajten –
-  använd egna inline-SVG (vi ritar) eller egna foton. **Bästa första bild-kandidat (faktastödd):**
-  kap 1:s tre knappar (rund/triangel/fyrkant) som original-SVG – pyttesmå, förstärker exakt texten.
+- **Bilder/media (✓ KLAR 2026-06-20):** ny additiv stegtyp `image` i `js/app.js`
+  (`renderImage`: `src` lokal sökväg + `alt`, escapad; texten bär fortfarande betydelsen).
+  Validatorn kräver lokal `src` (ingen http/CDN) + `alt`. Första bilden: `assets/edison-knappar.svg`
+  (original-SVG: rund/triangel/fyrkant) i kapitel 1. CSS `.step-image` (responsiv). Mall +
+  CLAUDE.md/.cursorrules uppdaterade. Dedikerat test (`img.step-image`, src/alt, ej blockerande).
+  **OBS upphovsrätt:** lyft ALDRIG bilder/skärmdumpar ur EdBlocks-PDF:en eller appen (Microbrics
+  IP) – egna SVG/foton, lokalt i `assets/`. Fler bild-kandidater finns (block-snäpp i kap 2,
+  robotsiluetter i kap 3) – samma stegtyp, bara nya assets.
 
 ### B. UI/UX- & a11y-granskning
 - **Strukturerad genomgång av `docs/design.md` mot bygget:** responsivitet (mobil→desktop,

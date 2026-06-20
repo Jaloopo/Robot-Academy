@@ -68,9 +68,11 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
 - Container: `{ "id": "kapitel-N", "titel": "...", "steps": [ <steg>, ... ] }`
 - Steg:
     { "role": "child" | "adult",
-      "type": "text" | "question_single_choice" | "ordering",
+      "type": "text" | "image" | "question_single_choice" | "ordering",
       "text": "...",
       "options": [ ... ],        // endast för question_single_choice och ordering
+      "src": "./assets/...",     // endast för image (LOKAL sökväg, ingen CDN/fetch)
+      "alt": "...",              // endast för image (text-alternativ, a11y)
       "correctAnswer": ... }     // se nedan
 - correctAnswer:
     - question_single_choice: 0-baserat index i `options` (t.ex. `1`).
@@ -79,6 +81,9 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
   stil via `role`.
 
 ## Rendering
+- image: visa en lokal bild (`src`) med `alt`-text. Bilden är ett KOMPLEMENT – texten bär
+  betydelsen. Inga externa bilder/CDN; lyft ALDRIG bilder/skärmdumpar ur EdBlocks-PDF/app
+  (Microbrics upphovsrätt) – egna inline-SVG eller egna foton, lokalt i `assets/`.
 - question_single_choice: visa knappval, ge snäll rätt/fel-feedback.
 - ordering: renderaren MÅSTE blanda visningsordningen och jämföra klick-/pil-sekvensen
   mot `correctAnswer`. Visa aldrig alternativen i löst ordning. INGEN drag-and-drop –

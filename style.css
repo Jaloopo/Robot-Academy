@@ -217,6 +217,16 @@ body {
   margin: 0;
 }
 
+/* Illustration i ett bild-steg (lokal SVG/bild). Komplement till texten – texten
+   bär betydelsen. Skalar ner på mobil, centrerad, växer inte förbi sin naturliga storlek. */
+.step-image {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: var(--spacing-md) auto 0;
+}
+
 .step-stub {
   margin: 0;
   padding: var(--spacing-md);
