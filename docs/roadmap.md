@@ -115,11 +115,18 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   "robotens programknapp". (2) kap 2: Edisons sladd är USB-A → MacBook (bara USB-C) behöver
   USB-C-till-USB-A-adapter; tillagt i adult-tipset. Kvarstående "att verifiera": exakta
   blocknamn/placering i EdBlocks (varierar per version) – medvetet kvar som adult-flagga.
-- **Innehållstäckning (pågående):** **Kapitel 4 "Roboten som känner" (✓ KLAR 2026-06-20)** –
+- **Innehållstäckning (pågående):** **Kapitel 4 "Roboten som känner" (✓ KLAR 2026-06-20, mergad #16)** –
   sensorer + villkor (om-då) i `content/kapitel-4.js` (13 steg) + ny `<script>`-rad i `index.html`.
   Befintliga stegtyper, inga bilder, datamodell/renderare/CSS orörda. Faktagranskat mot
-  meetedison.com; appspecifika blocknamn flaggade "att verifiera". Kvarstående kandidater till
-  fler kapitel/moduler: loopar, felsökning eller referenssida. Beslut om bredd vs djup.
+  meetedison.com; appspecifika blocknamn flaggade "att verifiera".
+  **BESLUTAT nästa: Kapitel 5 "Loopar / upprepa"** (nästa kärnkoncept: sekvens → program → villkor
+  → loop). Faktabas (egna ord) + källa finns i `docs/status.md` ("Verifierade loop-fakta", ur
+  EdBlocks-lärarguiden). Frivillig brygglektion (praktiskt "bygg ett om-då-program") får läggas
+  FÖRE loopar om tempot känns högt. Senare kandidater: felsökning, referenssida, fler bilder.
+- **EdBlocks-lärarguide som idébank (✓ tillagd 2026-06-20):** "EdBlocks lesson activities –
+  Teachers guide & answer key (Edison V3)" (Microbric/Emma Dewar, CC BY-SA 4.0) ligger i
+  `docs/reference/` (PDF, git-ignorerad – committas ALDRIG, se `.gitignore`). KOPIERA ALDRIG
+  text/bilder (upphovsrätt) – skriv om allt med egna svenska ord. Bra för att verifiera block/flöden.
 - **Bilder/media (✓ KLAR 2026-06-20):** ny additiv stegtyp `image` i `js/app.js`
   (`renderImage`: `src` lokal sökväg + `alt`, escapad; texten bär fortfarande betydelsen).
   Validatorn kräver lokal `src` (ingen http/CDN) + `alt`. Första bilden: `assets/edison-knappar.svg`
@@ -142,9 +149,9 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   förstärks av hover/fokus + text. Se `docs/a11y.md`. Verifierat: `node --check`, `npm run
   validate`, `npm test` (15) + `file://`-genomklick i Chrome (landning, kapitel 1, fel→rätt, bild).
 
-> **Grund-/processpass (✓ KLAR 2026-06-20):** delar av C och D nedan är nu gjorda – se
-> markeringar. Återstår mest manuella/owner-steg (required check) och de utforskande spåren
-> A och B.
+> **Grund-/processpass (✓ KLAR 2026-06-20):** C och D nedan är nu gjorda – inkl. owner-stegen
+> (CI är en required check; GitHub Pages är på och publicerar från `main`). Återstår främst det
+> utforskande spåret A (innehåll: nästa = kapitel 5 "Loopar").
 
 ### C. Författarflöde & grundfiler (effektivitet)
 - **Kapitelmall + checklista (✓ KLAR):** `content/_mall.js` – kopiera → `content/kapitel-N.js`,
@@ -157,14 +164,14 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   synk. Kvar (valfritt): en kort PR-checklista.
 
 ### D. Test- & CI-robusthet
-- **CI som verklig grind (delvis):** Node-pinningen åtgärdad + validator tillagd. **KVAR (owner):**
-  gör CI till en **required status check** i repo-inställningarna (Settings → Branches → branch
-  protection rule för `main` → Require status checks → välj "test"). Kan inte sättas via API här.
+- **CI som verklig grind (✓ KLAR 2026-06-20):** Node-pinningen åtgärdad + validator tillagd, och
+  CI är nu en **required status check** för `main` (branch protection → Require status checks →
+  "test"; satt av ägaren). Grönt gatear faktiskt merge.
 - **Fler tester:** schema-validering klar (se C). Ev. liten a11y-/struktur-smoke kvar. `file://`-
   genomklick förblir manuell grind för CSS/visuellt.
-- **GitHub Pages-verifiering (delvis):** `index.html` är filnivå-ren (enbart relativa `./`-sökvägar,
-  ingen CDN/fetch) → Pages-redo. KVAR: bekräfta att Pages faktiskt är på och publicerar från
-  `main` (root) – ett owner-steg i repo-inställningarna.
+- **GitHub Pages-verifiering (✓ KLAR 2026-06-20):** Pages är på och publicerar från `main`/root
+  (bekräftat av ägaren) – sajten är live. `index.html` var redan filnivå-ren (relativa `./`-
+  sökvägar, ingen CDN/fetch).
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
