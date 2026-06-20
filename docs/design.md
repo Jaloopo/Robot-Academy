@@ -71,7 +71,10 @@ Allt är ADDITIVT via `@media (min-width: 900px)`; mobilen och 720 px-arket är 
 ## Designtokens (i synk med `style.css`)
 - Bakgrund: `#FAF7F2` (varm off-white)
 - Text: `#1F2933`
-- Primär (Edison-orange; kanter/fokusring/maskot): `#F26B1D`, mörk (hover/aktiv): `#C8540F`
+- Primär (Edison-orange; kanter/fokusring/maskot): `#F26B1D`, mörk (hover/aktiv + rubriktext
+  `.app-title`): `#C8540F`. Obs: `#F26B1D` som *text* på `#FAF7F2` når bara ~2,85:1 (under
+  WCAG AA), så rubriker använder den mörka varianten (~4,1:1). `#F26B1D` är ok för kanter/
+  fokusring/maskot (dekor, ej textbärande).
 - **Fylld yta** (`--color-edison-orange-fill: #BD4E0A`): används för `.btn--primary` (bakgrund +
   kant) och `.option-badge` (bakgrund). Vit text på denna ger 4,9:1 → WCAG AA godkänt.
   Behåll `#F26B1D` för kanter, fokusring, hover-outline och maskoten.
