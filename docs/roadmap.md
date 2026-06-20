@@ -12,7 +12,7 @@ det som inte är committat och pushat försvinner).
 - **Mobil + desktop** klart: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
   canvas, samt tunn framstegsstapel. Desktop ≥900 px har dessutom en chapter-rail
   (kontextspalt) i kapitelvyn.
-- En enda kanonisk innehållskälla: `content/kapitel-1.js` (`window.KAPITEL`).
+- Innehåll i `content/kapitel-1.js` och `content/kapitel-2.js` (`window.KAPITEL`).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
   redan laddade lokala script och fungerar på `file://`.
 
@@ -53,8 +53,14 @@ det som inte är committat och pushat försvinner).
    `.nav` och dubbleras inte. Allt additivt via `@media (min-width: 900px)`; mobil + 720 px-arket
    orört (`.chapter-rail { display:none }` under 900 px). Verifierat: `node --check`, `npm test`
    (9 tester) och `file://`-genomklick i Chrome (mobilbredd + desktop ≥900 px).
-3. **Kapitel 2-innehåll** (EdBlocks / första programmet). — Opus (pedagogik; Edison-fakta
-   skrivs om med egna ord, osäkert flaggas "att verifiera").
+3. **(✓ KLAR)** **Kapitel 2-innehåll** (EdBlocks / första programmet). — Opus (pedagogik;
+   Edison-fakta skrivs om med egna ord, osäkert flaggas "att verifiera"). Resultat: ny
+   `content/kapitel-2.js` ("Ditt första program", 11 steg: text, vuxen-tips, en flervalsfråga
+   om körordning, en ordningsfråga bygg→skicka→play) enligt datamodellen + ny `<script>`-rad i
+   `index.html` före `js/app.js`. Renderare/datamodell/CSS orörda. Appspecifika osäkerheter
+   (exakta blocknamn/placering) flaggade "att verifiera" i ett vuxen-tips. Verifierat:
+   `node --check`, `npm test` (9 tester) och `file://`-genomklick i Chrome (kapitel 1 + 2,
+   gating, fel→rätt, blandad ordning, avslutslänk "Till kapitelöversikt").
 4. **"Explore"-fördjupning:** korta avsnitt/länkar om robottyper (robotarmar, Roomba m.m.).
    Externa länkar ok; bilder MÅSTE vara lokala assets (inget CDN); fakta omskriven. — Opus.
 5. **Nice-to-have:** framstegssparande (`localStorage`; opålitligt på `file://`), lätt
