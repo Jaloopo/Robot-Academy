@@ -1,0 +1,40 @@
+// Innehåll för Kapitel 4. Laddas via <script> före js/app.js (ingen fetch – funkar på file://).
+window.KAPITEL = window.KAPITEL || {};
+window.KAPITEL["kapitel-4"] = {
+  "id": "kapitel-4",
+  "titel": "Roboten som känner",
+  "steps": [
+    { "role": "child", "type": "text",
+      "text": "I förra kapitlet bestämde du allt som Edison gjorde. Nu ska du få upptäcka att Edison kan känna av saker själv och svara på dem. Den gör det med sina sensorer." },
+    { "role": "adult", "type": "text",
+      "text": "Låt barnet titta på roboten och gissa var dess ”sinnen” sitter innan ni går vidare. Inget program behöver byggas i det här kapitlet – det handlar om att förstå hur sensorer fungerar." },
+    { "role": "child", "type": "text",
+      "text": "En sensor är ungefär som ett sinne för roboten. Edison har flera sensorer som hjälper den att känna av ljus, ljud och hinder runt omkring sig." },
+    { "role": "child", "type": "text",
+      "text": "På ovansidan av Edison sitter två ljussensorer, en till höger och en till vänster. Med dem känner roboten hur ljust eller mörkt det är där den är." },
+    { "role": "child", "type": "text",
+      "text": "Framtill har Edison en hindersensor. Den skickar ut osynligt ljus rakt fram, och om ljuset studsar tillbaka från till exempel en vägg vet roboten att något är i vägen." },
+    { "role": "child", "type": "question_single_choice",
+      "text": "Vilken sensor hjälper Edison att märka en vägg rakt framför sig?",
+      "options": ["Ljussensorerna på ovansidan", "Hindersensorn framtill", "Hjulen under roboten"],
+      "correctAnswer": 1 },
+    { "role": "child", "type": "text",
+      "text": "Edison kan också höra! Bredvid den runda knappen sitter en ljudsensor. Den kan känna av ett starkt ljud, till exempel när du klappar händerna." },
+    { "role": "child", "type": "text",
+      "text": "Hur använder man en sensor i ett program? Du ger roboten en regel med ett villkor: ”OM något händer, GÖR då detta”. Villkoret är som ett om-då-tänk." },
+    { "role": "adult", "type": "text",
+      "text": "Det här är villkor och förgrening – en av de viktigaste idéerna i programmering. De exakta blocken för sensorer och ”om-då” kan se olika ut i EdBlocks (att verifiera) – utforska blockmenyn tillsammans." },
+    { "role": "child", "type": "question_single_choice",
+      "text": "Ett program säger: ”OM Edison ser ett hinder, SÅ svänger den.” Vad gör Edison när vägen är fri?",
+      "options": ["Den svänger ändå", "Den fortsätter rakt fram", "Den stannar för alltid"],
+      "correctAnswer": 1 },
+    { "role": "child", "type": "text",
+      "text": "Under roboten finns en linjesensor som ser skillnad på ljust och mörkt golv. Med den kan Edison följa en linje som du har ritat på ett papper." },
+    { "role": "child", "type": "ordering",
+      "text": "Sätt i ordning hur ett program med en sensor fungerar, steg för steg:",
+      "options": ["Edison känner av med en sensor", "Den kollar om villkoret stämmer", "Den gör något, till exempel svänger"],
+      "correctAnswer": [0, 1, 2] },
+    { "role": "child", "type": "text",
+      "text": "Bra jobbat! Nu vet du att Edison har sinnen och kan svara på sin omvärld själv. Prova nästa gång att bygga ett program där roboten reagerar på ett klapp eller ett hinder." }
+  ]
+};
