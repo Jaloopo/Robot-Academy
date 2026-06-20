@@ -12,6 +12,8 @@ det som inte är committat och pushat försvinner).
 - **Mobil + desktop** klart: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
   canvas, samt tunn framstegsstapel.
 - En enda kanonisk innehållskälla: `content/kapitel-1.js` (`window.KAPITEL`).
+- Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
+  redan laddade lokala script och fungerar på `file://`.
 
 ## Roller (vem gör vad)
 - **Samordnare / planerare (Claude Code, Opus):** äger denna roadmap, granskar
@@ -37,9 +39,11 @@ det som inte är committat och pushat försvinner).
    Resultat: desktop-blocket är helt additivt (`@media (min-width: 720px)`), inga externa
    beroenden/fonter/fetch, riktiga `<button>`, fokusring, `lang="sv"` och ikon+text (inte
    enbart färg). Genomklick verifierad via committat jsdom-test (se steg 5).
-1. **Flerkapitelstöd:** avhårdkoda `CHAPTER_ID` i `js/app.js`; kapitelval via `?kapitel=N`
-   (funkar på `file://`) + enkel landningsvy som listar `window.KAPITEL`; "klart →
-   nästa/tillbaka". — Opus (logik). Klar: kan växla kapitel, funkar `file://` + Pages.
+1. **(✓ KLAR)** **Flerkapitelstöd:** avhårdkoda `CHAPTER_ID` i `js/app.js`; kapitelval via
+   `?kapitel=N` (funkar på `file://`) + enkel landningsvy som listar `window.KAPITEL`;
+   "klart → nästa/tillbaka". — Opus (logik). Resultat: landningsvy listar laddade kapitel,
+   `?kapitel=N` route:ar utan fetch/server, sista steget länkar till nästa kapitel eller
+   kapitelöversikt. Verifierat med jsdom-genomklick av två kapitel + Chrome `file://`.
 2. **Layout B – chapter-rail** på desktop (≥900 px): ny `<aside class="chapter-rail">`
    (kontext, ej dubblerad nav). Tas först när steg 1 finns. — Claude Code/Claude Design.
 3. **Kapitel 2-innehåll** (EdBlocks / första programmet). — Opus (pedagogik; Edison-fakta
