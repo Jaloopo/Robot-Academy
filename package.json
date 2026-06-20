@@ -4,6 +4,7 @@
   "private": true,
   "description": "Dev-testverktyg för Edison Hemguide. Endast utvecklingsberoenden – den publicerade sajten är fortfarande ren statisk HTML/CSS/JS utan beroenden och utan build.",
   "scripts": {
+    "validate": "node tools/validate-content.js",
     "test": "node --test \"test/**/*.test.js\""
   },
   "devDependencies": {
