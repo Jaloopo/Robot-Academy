@@ -147,6 +147,28 @@ body {
   font-weight: 700;
 }
 
+/* Framstegsmärke på landningsvyn (text bär betydelsen – inte enbart färg) */
+.chapter-status {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.chapter-status--done {
+  color: var(--color-correct-text);
+  background: var(--color-correct-bg);
+  border: 1px solid var(--color-correct);
+}
+
+.chapter-status--started {
+  color: var(--color-retry-text);
+  background: var(--color-retry-bg);
+  border: 1px solid var(--color-retry);
+}
+
 /* Framstegsstapel – komplement till "Steg X av N"-texten (texten bär a11y) */
 .progressbar {
   height: 6px;
@@ -395,6 +417,35 @@ body {
   outline-offset: 2px;
 }
 
+/* "Börja om kapitlet" – diskret länkliknande knapp under stegnavigeringen */
+.chapter-reset {
+  margin: var(--spacing-sm) 0 0;
+  text-align: center;
+}
+
+.linklike {
+  min-height: var(--touch-min);
+  padding: 0.4rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.linklike:hover {
+  color: var(--color-text);
+}
+
+.linklike:focus-visible {
+  outline: 2px solid var(--color-edison-orange);
+  outline-offset: 2px;
+}
+
 #step-card:focus-visible {
   outline: 2px solid var(--color-edison-orange);
   outline-offset: 2px;
@@ -518,6 +569,17 @@ body {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-text-muted);
+  }
+  .rail-status {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-correct-text);
+    background: var(--color-correct-bg);
+    border: 1px solid var(--color-correct);
+    border-radius: 999px;
   }
   .rail-overview {
     display: inline-block;

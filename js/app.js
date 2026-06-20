@@ -89,6 +89,93 @@
     return "./index.html";
   }
 
+  // ---- Progress persistence (localStorage, graceful on file://) ----
+  // The site stays dependency-free; this only uses the platform localStorage and
+  // degrades to a no-op when it is missing or blocked (e.g. some file:// setups,
+  // private mode). The data model (window.KAPITEL) is never touched.
+
+  var STORAGE_PREFIX = "edison-hemguide:";
+  var STORAGE_VERSION = 1;
+  var storageChecked = false;
+  var storageRef = null;
+
+  // Feature-detect a usable localStorage. Wrapped in try/catch because accessing
+  // window.localStorage itself can throw (file://) and setItem can throw (quota /
+  // private mode). Result is cached for the session.
+  function getStorage() {
+    if (storageChecked) return storageRef;
+    storageChecked = true;
+    try {
+      var s = root.localStorage;
+      var probeKey = STORAGE_PREFIX + "__probe__";
+      s.setItem(probeKey, "1");
+      s.removeItem(probeKey);
+      storageRef = s;
+    } catch (e) {
+      storageRef = null; // unavailable / blocked → silently skip persistence
+    }
+    return storageRef;
+  }
+
+  function chapterStorageKey(chapterId) {
+    return STORAGE_PREFIX + chapterId;
+  }
+
+  // Returns the saved payload for a chapter, or null. Validates version and that
+  // the saved step count matches the current content (so editing a chapter's
+  // steps safely discards stale progress instead of mis-restoring it).
+  function loadChapterProgress(chapterId, expectedLen) {
+    var s = getStorage();
+    if (!s) return null;
+    try {
+      var raw = s.getItem(chapterStorageKey(chapterId));
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || data.v !== STORAGE_VERSION) return null;
+      if (!Array.isArray(data.steps) || data.steps.length !== expectedLen) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveChapterProgress(chapterId, data) {
+    var s = getStorage();
+    if (!s) return;
+    try {
+      s.setItem(chapterStorageKey(chapterId), JSON.stringify(data));
+    } catch (e) {
+      // quota / serialization error → degrade silently
+    }
+  }
+
+  function clearChapterProgress(chapterId) {
+    var s = getStorage();
+    if (!s) return;
+    try {
+      s.removeItem(chapterStorageKey(chapterId));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // "none" | "started" | "done" for the landing/rail badges.
+  function chapterProgressStatus(chapterId, chapter) {
+    var stepsArr = (chapter && chapter.steps) || [];
+    var data = loadChapterProgress(chapterId, stepsArr.length);
+    if (!data) return "none";
+    if (data.completed) return "done";
+    if (data.current > 0) return "started";
+    for (var i = 0; i < data.steps.length; i++) {
+      var rec = data.steps[i];
+      var stp = stepsArr[i];
+      if (!rec || !stp) continue;
+      if ((stp.type === "question_single_choice" || stp.type === "ordering") && rec.done) return "started";
+      if (stp.type === "ordering" && rec.picks && rec.picks.length) return "started";
+    }
+    return "none";
+  }
+
   // ---- App (DOM) ----
 
   function initApp(doc) {
@@ -156,9 +243,17 @@
         chapterIds.forEach(function (id) {
           var chapter = chapters[id];
           var nr = chapterNumberFromId(id);
+          var status = chapterProgressStatus(id, chapter);
+          var statusHtml = "";
+          if (status === "done") {
+            statusHtml = "<span class=\"chapter-status chapter-status--done\">Klart</span>";
+          } else if (status === "started") {
+            statusHtml = "<span class=\"chapter-status chapter-status--started\">Påbörjat</span>";
+          }
           html += "<li><a class=\"chapter-link\" href=\"" + chapterHref(id) + "\">" +
             "<span class=\"chapter-kicker\">" + (nr === null ? "Kapitel" : "Kapitel " + nr) + "</span>" +
             "<span class=\"chapter-title\">" + escapeHtml(chapter.titel || id) + "</span>" +
+            statusHtml +
           "</a></li>";
         });
         html += "</ol></main>";
@@ -186,6 +281,7 @@
     var current = 0;
     var state = steps.map(makeStepState);
     var pendingMascotNudge = false;
+    restoreProgress();
 
     function makeStepState(step) {
       if (step.type === "question_single_choice") {
@@ -200,6 +296,85 @@
         };
       }
       return { done: true }; // text / adult
+    }
+
+    // Restore saved per-step answers + resumed step from a previous session.
+    // Display order for ordering steps is intentionally NOT restored (it is
+    // reshuffled each load); picks map by option index so badges still line up.
+    function restoreProgress() {
+      var saved = loadChapterProgress(requestedChapterId, totalSteps);
+      if (!saved) return;
+      saved.steps.forEach(function (rec, i) {
+        if (!rec) return;
+        var step = steps[i];
+        var st = state[i];
+        if (step.type === "question_single_choice") {
+          if (rec.done) {
+            st.done = true;
+            if (typeof rec.chosen === "number") st.chosen = rec.chosen;
+            st.feedback = { kind: "ok", msg: "Rätt! Bra jobbat." };
+          } else if (Array.isArray(rec.wrongTried)) {
+            st.wrongTried = rec.wrongTried.slice();
+          }
+        } else if (step.type === "ordering") {
+          if (rec.done) {
+            st.done = true;
+            if (Array.isArray(rec.picks)) st.picks = rec.picks.slice();
+            st.feedback = { kind: "ok", msg: "Perfekt ordning! Edison är redo." };
+          }
+        }
+      });
+      if (typeof saved.current === "number" && saved.current >= 0 && saved.current < totalSteps) {
+        current = saved.current;
+      }
+    }
+
+    // Serialize current progress for this chapter. Only stores answer flags +
+    // resumed step (never the data model). completed = all steps done AND the
+    // last step reached, which drives the "Klart" badge on the landing/rail.
+    function persistProgress() {
+      var allDone = true;
+      var stepRecords = steps.map(function (step, i) {
+        var st = state[i];
+        if (step.type === "question_single_choice") {
+          if (!st.done) allDone = false;
+          var qRec = { done: !!st.done };
+          if (typeof st.chosen === "number") qRec.chosen = st.chosen;
+          if (st.wrongTried && st.wrongTried.length) qRec.wrongTried = st.wrongTried.slice();
+          return qRec;
+        }
+        if (step.type === "ordering") {
+          if (!st.done) allDone = false;
+          var oRec = { done: !!st.done };
+          if (st.picks && st.picks.length) oRec.picks = st.picks.slice();
+          return oRec;
+        }
+        return { done: true }; // text / adult
+      });
+      saveChapterProgress(requestedChapterId, {
+        v: STORAGE_VERSION,
+        current: current,
+        completed: allDone && current === totalSteps - 1,
+        steps: stepRecords
+      });
+    }
+
+    function hasResettableProgress() {
+      if (current > 0) return true;
+      for (var i = 0; i < totalSteps; i++) {
+        var step = steps[i];
+        var st = state[i];
+        if (step.type === "question_single_choice" && st.done) return true;
+        if (step.type === "ordering" && (st.done || (st.picks && st.picks.length))) return true;
+      }
+      return false;
+    }
+
+    function resetChapter() {
+      clearChapterProgress(requestedChapterId);
+      state = steps.map(makeStepState);
+      current = 0;
+      render("card");
     }
 
     // ---- Rendering ----
@@ -302,6 +477,8 @@
           "<span class=\"rail-title\">" + escapeHtml(ch.titel || id) + "</span>";
         if (isCurrent) {
           html += "<span class=\"rail-progress\">Steg " + (current + 1) + " av " + totalSteps + "</span>";
+        } else if (chapterProgressStatus(id, ch) === "done") {
+          html += "<span class=\"rail-status\">Klart</span>";
         }
         html += "</a></li>";
       });
@@ -346,6 +523,12 @@
       if (isLastStep && st.done && nextChapterId) {
         navHtml += "<p class=\"chapter-finish\"><a href=\"" + landingHref() + "\">Till kapitelöversikt</a></p>";
       }
+      if (hasResettableProgress()) {
+        navHtml += "<p class=\"chapter-reset\">" +
+          "<button type=\"button\" class=\"linklike\" id=\"btn-reset-chapter\">Börja om kapitlet</button></p>";
+      }
+
+      persistProgress(); // remember resumed step + answers for next visit
 
       appEl.className = "has-rail"; // enables two-column desktop layout (≥900px)
       appEl.innerHTML =
@@ -381,6 +564,8 @@
       doc.getElementById("btn-prev").addEventListener("click", goPrev);
       var nextBtn = doc.getElementById("btn-next");
       if (nextBtn) nextBtn.addEventListener("click", goNext);
+      var resetChapterBtn = doc.getElementById("btn-reset-chapter");
+      if (resetChapterBtn) resetChapterBtn.addEventListener("click", resetChapter);
 
       if (step.type === "question_single_choice") {
         forEachEl(appEl.querySelectorAll(".option[data-idx]"), function (btn) {
@@ -489,6 +674,9 @@
     shuffleDisplayOrder: shuffleDisplayOrder,
     chapterIdFromSearch: chapterIdFromSearch,
     sortedChapterIds: sortedChapterIds,
+    getStorage: getStorage,
+    loadChapterProgress: loadChapterProgress,
+    chapterProgressStatus: chapterProgressStatus,
     initApp: initApp
   };
 

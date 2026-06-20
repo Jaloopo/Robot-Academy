@@ -68,13 +68,18 @@ const testChapter2 = {
 };
 
 // Bygg en jsdom-värld med file://-URL, ladda innehåll + app och rendera.
+// options.url byter bas-URL: file:// (default) saknar localStorage i jsdom – exakt
+// degraderingsfallet – medan en http(s)-URL ger fungerande localStorage så att
+// framstegssparandet kan testas. options.prepare(window) körs efter att innehållet
+// laddats men innan appen körs (t.ex. för att seed:a localStorage).
 function bootstrap(options = {}) {
   const search = options.search || "";
   const extraChapters = options.extraChapters || [];
+  const base = options.url || "file:///workspace/index.html";
   const dom = new JSDOM(
     '<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"></head>' +
       '<body><div id="app"></div></body></html>',
-    { runScripts: "outside-only", url: "file:///workspace/index.html" + search }
+    { runScripts: "outside-only", url: base + search }
   );
   const { window } = dom;
   // allContent: ladda ALLA riktiga kapitel; annars bara kapitel-1 (+ ev. syntetiska).
@@ -82,8 +87,18 @@ function bootstrap(options = {}) {
   extraChapters.forEach((chapter) => {
     window.KAPITEL[chapter.id] = chapter;
   });
+  if (typeof options.prepare === "function") options.prepare(window);
   window.eval(appSrc); // IIFE: kör initApp(document) och exponerar window.EdisonApp
   return window;
+}
+
+// http(s)-bas: jsdom ger då en fungerande localStorage (file:// gör inte det).
+const STORE_URL = "https://example.org/index.html";
+
+// Simulera en sidomladdning: kör om renderaren i SAMMA fönster, så att fönstrets
+// localStorage (och därmed sparat framsteg) finns kvar mellan körningarna.
+function reload(window) {
+  window.eval(appSrc);
 }
 
 function appEl(window) {
@@ -306,4 +321,112 @@ test("Föregående bevarar besvarad fråga (rätt alternativ kvar grönt)", () =
 
   assert.ok(appEl(window).querySelector(".option--correct"), "rätt svar är fortfarande markerat");
   assert.strictEqual(nextBtn(window).disabled, false, "Nästa är fortfarande aktiverat");
+});
+
+// ---- Framstegssparande (localStorage) ----
+
+const PROGRESS_KEY = "edison-hemguide:kapitel-1";
+
+test("localStorage saknas på file:// → degraderar snällt (ingen krasch, inget sparande)", () => {
+  const window = bootstrap({ search: "?kapitel=1" }); // file:// – jsdom saknar localStorage
+  assert.strictEqual(window.EdisonApp.getStorage(), null, "getStorage() är null när storage saknas");
+
+  // Genomklick fungerar ändå (täcks även av andra tester) och en simulerad omladdning
+  // återställer INGET (inget sparas), dvs vi börjar om från steg 1.
+  const steps = window.KAPITEL["kapitel-1"].steps;
+  const qIndex = steps.findIndex((s) => s.type === "question_single_choice");
+  for (let i = 0; i < qIndex; i++) nextBtn(window).click();
+  appEl(window).querySelector('.option[data-idx="' + steps[qIndex].correctAnswer + '"]').click();
+  assert.ok(appEl(window).querySelector(".option--correct"), "svar markeras i sessionen");
+
+  reload(window); // omladdning utan fungerande storage
+  assert.match(progressText(window), /Steg 1 av/, "utan storage börjar man om från steg 1");
+  assert.strictEqual(appEl(window).querySelector(".option--correct"), null, "inget sparat svar återställs");
+});
+
+test("sparar svar + steg och återupptar efter omladdning (localStorage)", () => {
+  const window = bootstrap({ search: "?kapitel=1", url: STORE_URL });
+  assert.ok(window.EdisonApp.getStorage(), "storage finns på http(s)");
+
+  const steps = window.KAPITEL["kapitel-1"].steps;
+  const qIndex = steps.findIndex((s) => s.type === "question_single_choice");
+
+  for (let i = 0; i < qIndex; i++) nextBtn(window).click();
+  appEl(window).querySelector('.option[data-idx="' + steps[qIndex].correctAnswer + '"]').click();
+  nextBtn(window).click(); // gå vidare ett steg efter frågan
+  const resumedStep = qIndex + 2; // 1-baserat steg vi nu står på
+
+  reload(window); // simulerad sidomladdning – storage finns kvar
+  assert.match(
+    progressText(window),
+    new RegExp("Steg " + resumedStep + " av "),
+    "återupptar på samma steg efter omladdning"
+  );
+
+  // Bakåt till frågan: det sparade rätta svaret ska vara kvar grönt och Nästa aktiv.
+  window.document.getElementById("btn-prev").click();
+  assert.match(progressText(window), new RegExp("Steg " + (qIndex + 1) + " av "));
+  assert.ok(appEl(window).querySelector(".option--correct"), "sparat rätt svar återställs grönt");
+  assert.strictEqual(nextBtn(window).disabled, false, "Nästa är aktiv för det sparade svaret");
+});
+
+test("avklarat kapitel visar 'Klart' på landningsvyn; påbörjat visar 'Påbörjat'", () => {
+  // Klart: genomför hela kapitel 1 i ett fönster och flytta sparningen till ett
+  // landningsfönster (samma localStorage-format, ingen hårdkodning av formatet).
+  const playthrough = bootstrap({ search: "?kapitel=1", url: STORE_URL, allContent: true });
+  completeChapter(playthrough, "kapitel-1", {
+    label: "Nästa kapitel",
+    href: "?kapitel=2"
+  });
+  const doneRaw = playthrough.localStorage.getItem(PROGRESS_KEY);
+  assert.ok(doneRaw, "framsteg sparades för det avklarade kapitlet");
+
+  const landingDone = bootstrap({
+    url: STORE_URL,
+    allContent: true,
+    prepare: (w) => w.localStorage.setItem(PROGRESS_KEY, doneRaw)
+  });
+  const doneLink = landingDone.document.querySelector('.chapter-link[href="?kapitel=1"]');
+  assert.match(doneLink.textContent, /Klart/, "avklarat kapitel märks 'Klart' på landningsvyn");
+
+  // Påbörjat: navigera bara en bit in i kapitlet (inget avklarat).
+  const partial = bootstrap({ search: "?kapitel=1", url: STORE_URL, allContent: true });
+  nextBtn(partial).click();
+  nextBtn(partial).click();
+  const partialRaw = partial.localStorage.getItem(PROGRESS_KEY);
+
+  const landingStarted = bootstrap({
+    url: STORE_URL,
+    allContent: true,
+    prepare: (w) => w.localStorage.setItem(PROGRESS_KEY, partialRaw)
+  });
+  const startedLink = landingStarted.document.querySelector('.chapter-link[href="?kapitel=1"]');
+  assert.match(startedLink.textContent, /Påbörjat/, "påbörjat kapitel märks 'Påbörjat'");
+});
+
+test("'Börja om kapitlet' nollställer sparat framsteg", () => {
+  const window = bootstrap({ search: "?kapitel=1", url: STORE_URL });
+  const steps = window.KAPITEL["kapitel-1"].steps;
+  const qIndex = steps.findIndex((s) => s.type === "question_single_choice");
+
+  for (let i = 0; i < qIndex; i++) nextBtn(window).click();
+  appEl(window).querySelector('.option[data-idx="' + steps[qIndex].correctAnswer + '"]').click();
+  assert.ok(window.localStorage.getItem(PROGRESS_KEY), "framsteg sparat innan nollställning");
+
+  const resetBtn = window.document.getElementById("btn-reset-chapter");
+  assert.ok(resetBtn, "'Börja om kapitlet' visas när det finns framsteg");
+  resetBtn.click();
+
+  assert.match(progressText(window), /Steg 1 av/, "nollställning hoppar till steg 1");
+  assert.strictEqual(appEl(window).querySelector(".option--correct"), null, "inget svar kvar efter reset");
+  assert.strictEqual(
+    window.EdisonApp.chapterProgressStatus("kapitel-1", window.KAPITEL["kapitel-1"]),
+    "none",
+    "sparat framsteg är nollställt (status 'none')"
+  );
+
+  reload(window); // omladdning efter reset → fortfarande färskt
+  assert.match(progressText(window), /Steg 1 av/, "efter omladdning är kapitlet färskt igen");
+  assert.strictEqual(window.document.getElementById("btn-reset-chapter"), null,
+    "ingen 'Börja om'-knapp på ett färskt steg 1");
 });
