@@ -5,7 +5,7 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · bild-/mediastöd (ny `image`-stegtyp + kap 1:s knapp-SVG)
+Senast uppdaterad: 2026-06-20 · UI/UX- & a11y-granskning (spår B): kontrastfix + reduced-motion + `docs/a11y.md`
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -45,8 +45,29 @@ Senast uppdaterad: 2026-06-20 · bild-/mediastöd (ny `image`-stegtyp + kap 1:s 
 - **Ny stegtyp `image`** i renderaren: lokal bild (`src`) + `alt`, texten bär betydelsen. Första
   bilden `assets/edison-knappar.svg` (original-SVG: rund/triangel/fyrkant) i kapitel 1. Validatorn
   kräver lokal `src` + `alt`; CSS `.step-image` (responsiv). `npm test` är nu **15 tester**.
+- **UI/UX- & a11y-granskning klar (spår B).** Strukturerad genomgång av `docs/design.md` mot
+  bygget dokumenterad i nya `docs/a11y.md` (kontrasttabell + checklista). **WCAG-fix:** `.app-title`
+  var `#F26B1D` på `#FAF7F2` ≈ 2,85:1 (under AA för stor text) → nu `--color-edison-orange-dark`
+  (`#C8540F`, ≈ 4,1:1). `#F26B1D` kvar för kant/fokusring/maskot (dekor). **Reduced-motion** utökad:
+  förutom maskot-nudge stängs nu `transition` på progressstapel/knappar/alternativ/rail-länkar av.
+  Badges, fokus, touch-mål, responsivitet, "text bär betydelse" verifierade som AA-OK. Datamodellen
+  orörd; sajten beroendefri. `npm test` fortsatt **15 tester**.
 
 ## Vad senaste sessionen gjorde
+- **UI/UX- & a11y-granskning (spår B – nu KLAR).**
+  - `style.css`: `.app-title` → `--color-edison-orange-dark` (AA-kontrast); `prefers-reduced-motion`
+    stänger nu även av `transition` på `.progressbar > span`, `.btn`, `.option`, `.chapter-link`,
+    `.rail-link`. Båda additiva, inga mobilvärden i övrigt ändrade.
+  - `docs/a11y.md` (ny): kontrasttabell (FÖRE/EFTER), checklista för fokus/tangentbord, touch-mål,
+    responsivitet, reduced-motion, semantik, samt "noterat ej åtgärdat" (subtila vilolägeskanter
+    `#e0dbd3` < 3:1 enligt 1.4.11 – medveten lugn-design-avvägning, förstärks av hover/fokus).
+  - `docs/design.md`: tokens-notisen uppdaterad – `#C8540F` används nu för rubriktext, med skäl.
+  - Bockade av spår B i `docs/roadmap.md`.
+- Verifierat: `node --check` ✓, `npm run validate` ✓, `npm test` ✓ (**15 tester**), samt
+  `file://`-genomklick i Chrome (computerUse): landning, kapitel 1, fel→rätt-feedback, bild-steg –
+  titel mörkt orange/läsbar, inget trasigt. Demo-video + skärmdumpar bifogade i PR/artefakter.
+
+## Föregående session gjorde
 - **Bild-/mediastöd (roadmap-spår A/B).** Ny additiv stegtyp `image` – befintliga steg orörda:
   - `js/app.js`: `renderImage(step)` (rendrar `step.text` + `<img class="step-image" src alt>`,
     båda escapade) + `case "image"` i `renderStepContent`. State för bild-steg = default
@@ -75,6 +96,14 @@ Senast uppdaterad: 2026-06-20 · bild-/mediastöd (ny `image`-stegtyp + kap 1:s 
 - **Hårdkodade färger i SVG:n.** En `<img>`-laddad SVG är sandlådad och kan inte läsa sidans
   `--color-*`-variabler, så brand-färgerna är inskrivna i filen.
 - **Inga bilder ur EdBlocks-PDF/app** (Microbrics IP) – egna SVG/foton, lokalt i `assets/`.
+- **`.app-title` mörkare orange (`#C8540F`) i stället för `#F26B1D`.** `#F26B1D` som *text* på
+  `#FAF7F2` når bara ~2,85:1 (under WCAG AA även för stor text). Den mörka brand-varianten finns
+  redan som token och når ~4,1:1 – behåller orange känsla utan att skapa en ny färg. `#F26B1D`
+  är kvar för icke-textbärande dekor (kant, fokusring, maskot).
+- **Subtila vilolägeskanter lämnas orörda (medvetet).** `#e0dbd3`-kanten på alternativ/kort når
+  inte 3:1 (WCAG 1.4.11 icke-text), men affordansen förstärks av hover/`:focus-visible` (orange)
+  och elementen bär text. Att skärpa kanten skulle ändra det lugna uttrycket – noterat i
+  `docs/a11y.md` som kandidat, inte ändrat nu.
 
 ## Källor (faktagranskning, föregående pass)
 - https://meetedison.com/edison-robots-sensors/ (sensorer/knappar)
@@ -103,19 +132,18 @@ Senast uppdaterad: 2026-06-20 · bild-/mediastöd (ny `image`-stegtyp + kap 1:s 
   URL:en och klicka igenom ett kapitel.
 
 ## Nästa steg (exakt ETT)
-Bild-/mediastödet är klart. Rekommenderat nästa: **spår B – UI/UX- & a11y-granskning**. Gör en
-strukturerad genomgång av `docs/design.md` mot bygget nu när två renderfunktioner tillkommit
-(`Klart`/`Påbörjat`-badges + `image`): kontrast (WCAG AA) på badges och den nya bilden, fokusring/
-tab-ordning, touch-mål ≥44 px, responsivitet mobil→rail (≥900 px), och "text bär betydelse".
-OBS: själva pixel-/visuella verifieringen sker i webbläsare (`file://` i Chrome) och är ÄGARENS
-steg – härifrån blir det en kod-/spec-granskning + a11y-resonemang. (Alternativ: fler bilder för
-kap 2 (block-snäpp) / kap 3 (robotsiluetter) – samma `image`-typ, enklare modell; eller ny
-modul/kapitel – Opus; eller nice-to-have ljud/animation.)
+UI/UX- & a11y-granskningen (spår B) är klar. Rekommenderat nästa (välj ETT):
+- **Innehållstäckning / nytt kapitel eller modul** (t.ex. sensorer, loopar, felsökning) – beslut
+  bredd vs djup. Opus (pedagogik + Edison-fakta, samma datamodell/mall `content/_mall.js`). ELLER
+- **Fler bilder** med befintliga `image`-typen: block-snäpp i kap 2 / robotsiluetter i kap 3 –
+  bara nya lokala assets + ett bild-steg per kapitel. Enklare modell (Sonnet) mot spec. ELLER
+- **Owner-/processteg:** gör CI till *required* check + bekräfta GitHub Pages (se "Owner-steg").
+Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan computerUse köra den.
 
 ## Modellrekommendation för nästa steg
-- UI/UX- & a11y-granskning → **Opus** (a11y-bedömning, kontrast/fokus/semantik).
+- Nytt kapitel/modul eller innehåll → **Opus** (pedagogik + Edison-fakta).
 - Fler bilder (nya assets till befintlig `image`-typ) → **enklare modell (Sonnet)** mot spec.
-- Ny modul/innehåll → **Opus** (pedagogik + Edison-fakta).
+- Ev. ytterligare a11y-skärpning (vilolägeskanter) → **Opus** (avvägning lugn design vs 1.4.11).
 
 ## Copy-paste för nästa session
 ```text
@@ -123,23 +151,22 @@ Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Ac
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): UI/UX- & a11y-granskning (spår B). Gör en strukturerad genomgång av
-docs/design.md mot bygget (js/app.js + style.css), särskilt det som tillkommit: Klart/Påbörjat-
-badges (.chapter-status, .rail-status), den nya image-stegtypen (.step-image + assets-SVG), samt
-"Börja om"-knappen. Kontrollera: kontrast WCAG AA (badge-färger mot bakgrund, .step-image vid
-behov), fokusring/tab-ordning, touch-mål ≥44 px, responsivitet mobil→720px→rail 900px, och att
-text bär betydelsen (inte enbart färg). Föreslå/gör små additiva CSS-/markup-fixar; rör inte
-datamodellen. Skriv fynd + ev. åtgärder i docs (t.ex. en kort a11y-checklista). OBS: pixel-/
-visuell verifiering sker i webbläsare (file:// i Chrome) – det är ägarens steg; härifrån blir det
-kod-/spec-granskning + a11y-resonemang. Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på
-file:// och GitHub Pages. All UI-text på svenska.
+UPPGIFT (ett steg): VÄLJ ETT. (a) Nytt kapitel/modul (sensorer, loopar el. felsökning) – Opus,
+pedagogik + Edison-fakta, utgå från content/_mall.js + ny <script>-rad i index.html FÖRE
+js/app.js. (b) Fler bilder via befintliga image-stegtypen (block-snäpp kap 2 / robotsiluetter
+kap 3) – egna lokala SVG i assets/, ett bild-steg per kapitel, ingen logikändring. (c) Owner-/
+processteg (CI required check + bekräfta GitHub Pages). A11y- & UI/UX-granskningen (spår B) är
+redan klar – se docs/a11y.md (kontrasttabell + checklista) om du rör CSS/markup, och håll AA.
+Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages. All UI-text
+på svenska. Rör inte datamodellen vid design-/UI-arbete.
 
 VERKTYG: npm install (en gång) → npm run validate (schema) → npm test (15, genomklickar alla
 kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. Bild-steg: type
 "image" med lokal src + alt (se kap 1). CI (Node 22) kör node --check + npm run validate + npm test
 på varje PR/push – håll grön.
 
-VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome vid CSS/logik-ändring.
+VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome vid CSS/logik-ändring
+(i Cloud: computerUse). Vid a11y-känsliga färgändringar: kontrollera AA-kontrast mot docs/a11y.md.
 
 AVSLUTA enligt handoff: uppdatera docs/status.md (nuläge, gjort, beslut, varningar, nästa steg,
 modellrek) + bocka av i docs/roadmap.md, committa och pusha till main (eller branch+PR i Cloud).

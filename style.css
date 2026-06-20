@@ -68,7 +68,9 @@ body {
   margin: 0 0 var(--spacing-xs);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-edison-orange);
+  /* Darker orange so the title clears WCAG AA on the #FAF7F2 page/ark
+     background (4.1:1). #F26B1D would only reach ~2.85:1. */
+  color: var(--color-edison-orange-dark);
 }
 
 .progress {
@@ -478,6 +480,15 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .mascot.is-happy { animation: none; }
+  /* Honour reduced-motion for the rest of the UI too: no width/colour
+     tweening on the progress bar or interactive surfaces. */
+  .progressbar > span,
+  .btn,
+  .option,
+  .chapter-link,
+  .rail-link {
+    transition: none;
+  }
 }
 
 /* Chapter-rail (Layout B) – döljs som standard, visas först ≥ 900 px.

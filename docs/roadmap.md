@@ -126,13 +126,18 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   IP) – egna SVG/foton, lokalt i `assets/`. Fler bild-kandidater finns (block-snäpp i kap 2,
   robotsiluetter i kap 3) – samma stegtyp, bara nya assets.
 
-### B. UI/UX- & a11y-granskning
-- **Strukturerad genomgång av `docs/design.md` mot bygget:** responsivitet (mobil→desktop,
-  rail ≥900 px), touch-mål ≥44 px, fokusring, "text bär betydelse"-principen.
-- **WCAG-kontroll:** kontrast på nya badges (`Klart`/`Påbörjat`), tab-ordning, skärmläsar-
-  genomgång av kapitelflödet. Ev. liten a11y-smoke i testet.
-- **Reduced-motion:** maskot-nudge + ev. kommande animation ska respektera
-  `prefers-reduced-motion`; verifiera.
+### B. UI/UX- & a11y-granskning (✓ KLAR 2026-06-20)
+- **Strukturerad genomgång av `docs/design.md` mot bygget:** gjord – findings + kontrasttabell
+  i `docs/a11y.md`. Responsivitet (mobil→720→rail 900), touch-mål ≥44 px, fokusring och
+  "text bär betydelse" verifierade ✓.
+- **WCAG-kontroll:** badges (`Klart`/`Påbörjat`) klarar AA (~6,7–6,9:1). **Fynd + fix:**
+  `.app-title` i `#F26B1D` på `#FAF7F2` nådde bara ~2,85:1 (under AA för stor text) → flyttad
+  till `--color-edison-orange-dark` (`#C8540F`, ~4,1:1). `#F26B1D` kvar för kant/fokus/maskot.
+- **Reduced-motion:** maskot-nudge respekterade redan `prefers-reduced-motion`; nu stängs även
+  `transition` på progressstapel/knappar/alternativ/rail-länkar av under reduced-motion.
+- **Noterat (ej åtgärdat):** vilolägets subtila kanter (`#e0dbd3`) når inte 3:1 (WCAG 1.4.11);
+  förstärks av hover/fokus + text. Se `docs/a11y.md`. Verifierat: `node --check`, `npm run
+  validate`, `npm test` (15) + `file://`-genomklick i Chrome (landning, kapitel 1, fel→rätt, bild).
 
 > **Grund-/processpass (✓ KLAR 2026-06-20):** delar av C och D nedan är nu gjorda – se
 > markeringar. Återstår mest manuella/owner-steg (required check) och de utforskande spåren
