@@ -1,0 +1,40 @@
+// Innehåll för Kapitel 3. Laddas via <script> före js/app.js (ingen fetch – funkar på file://).
+window.KAPITEL = window.KAPITEL || {};
+window.KAPITEL["kapitel-3"] = {
+  "id": "kapitel-3",
+  "titel": "Robotar i världen",
+  "steps": [
+    { "role": "child", "type": "text",
+      "text": "Edison är en robot – men det finns många fler sorters robotar i världen. Här ska du få utforska några av dem. Inget program behöver byggas, bara saker att upptäcka." },
+    { "role": "adult", "type": "text",
+      "text": "Det här kapitlet är till för att prata och spana tillsammans. Fråga barnet var det tror att robotar finns i vardagen och fyll på med egna exempel." },
+    { "role": "child", "type": "text",
+      "text": "Vad är då en robot? Det är en maskin som kan känna av saker runt sig, följa ett program och göra något – precis som Edison kan köra, känna ljus och se hinder." },
+    { "role": "child", "type": "text",
+      "text": "I stora fabriker finns robotarmar. En robotarm är en kraftig arm som gör samma rörelse om och om igen, väldigt exakt – till exempel när bilar sätts ihop." },
+    { "role": "child", "type": "question_single_choice",
+      "text": "Vad är en robotarm i en fabrik bra på?",
+      "options": ["Att göra samma exakta rörelse många gånger", "Att äta lunch", "Att hitta på egna idéer"],
+      "correctAnswer": 0 },
+    { "role": "child", "type": "text",
+      "text": "En annan robot är robotdammsugaren, till exempel en som kallas Roomba. Den kör runt på golvet alldeles själv och dammsuger medan den åker." },
+    { "role": "child", "type": "text",
+      "text": "Hur undviker den att krocka eller åka utför trappan? Den har sensorer som känner av väggar, möbler och kanter – ungefär som Edison känner av hinder framför sig." },
+    { "role": "child", "type": "question_single_choice",
+      "text": "Vad hjälper en robotdammsugare att inte ramla nerför trappan?",
+      "options": ["Sensorer som känner av kanten", "Att den blundar", "Att någon bär den hela tiden"],
+      "correctAnswer": 0 },
+    { "role": "child", "type": "text",
+      "text": "Det finns också robotar som flyger! En drönare är en liten flygande robot med snurrande propellrar. Den kan till exempel filma uppifrån eller titta på platser dit det är svårt att gå." },
+    { "role": "adult", "type": "text",
+      "text": "Allt som rör sig är inte en robot – en leksaksbil som man bara skjuter på följer inget eget program. Prata om vad som skiljer en riktig robot från en vanlig maskin." },
+    { "role": "child", "type": "text",
+      "text": "Märker du något gemensamt? Alla robotarna känner av sin omvärld, följer ett program och gör sedan något – steg för steg, precis som Edison." },
+    { "role": "child", "type": "ordering",
+      "text": "Sätt i ordning vad en robot gör, steg för steg:",
+      "options": ["Känner av sin omvärld", "Följer sitt program", "Gör något, till exempel rör sig"],
+      "correctAnswer": [0, 1, 2] },
+    { "role": "child", "type": "text",
+      "text": "Bra utforskat! Nu vet du att robotar finns på många ställen – i fabriker, hemma och i luften. Håll utkik, så hittar du säkert fler robotar runt dig." }
+  ]
+};
