@@ -40,6 +40,11 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
 - Kör `npm install` en gång, sedan `npm test`. Verifiera fortfarande även `file://` i Chrome.
 - Testet läser `correctAnswer` ur `window.KAPITEL` (hårdkodar inga svar) – fungerar för nya
   kapitel utan ändring.
+- Genomklicket laddar AUTOMATISKT alla `content/kapitel-*.js` och klickar igenom var och en
+  (gating, fel→rätt, blandad ordning, rätt avslutslänk). Ett NYTT kapitel testas alltså bara
+  genom att lägga till filen – ingen teständring behövs. Trasig kapiteldata (t.ex.
+  `correctAnswer` utanför index) får `npm test` att faila. Manuell `file://`-koll behövs då
+  främst för PR:ar som rör `js/app.js` eller `style.css` (logik/visuellt), inte rent innehåll.
 
 ## Innehåll & laddning
 - ALL UI-text på svenska. Kodkommentarer får vara på engelska.

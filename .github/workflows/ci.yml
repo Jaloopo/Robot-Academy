@@ -1,0 +1,26 @@
+# CI för Edison Hemguide – kör dev-testet på varje PR och vid push till main.
+# Detta påverkar INTE sajten: workflow-filen körs bara i GitHub Actions och laddas
+# aldrig av index.html. Sajten är fortsatt beroendefri (jsdom är ett DEV-beroende).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Installera DEV-beroenden (jsdom)
+        run: npm install
+      - name: Syntaxkolla renderaren och alla kapitelfiler
+        run: |
+          node --check js/app.js
+          for f in content/kapitel-*.js; do node --check "$f"; done
+      - name: Genomklick (jsdom) av alla riktiga kapitel
+        run: npm test

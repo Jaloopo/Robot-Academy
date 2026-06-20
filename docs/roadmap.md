@@ -77,6 +77,10 @@ det som inte är committat och pushat försvinner).
    fel→rätt-feedback, blandad ordning/"Börja om" och bakåtnavigering. `jsdom` är ett
    DEV-beroende (`package.json`, `node_modules/` är git-ignorerat) – **sajten själv är fortsatt
    beroendefri** och laddas oförändrad via `file://` och GitHub Pages.
+   **Utbyggt:** testet genomklickar nu AUTOMATISKT alla riktiga `content/kapitel-*.js` (inte
+   bara kapitel 1 + ett syntetiskt inline-kapitel). Nytt kapitel = bara ny fil, ingen
+   teständring; trasig kapiteldata får `npm test` att faila. Möjligt nästa processteg:
+   GitHub Actions-CI som kör `node --check` + `npm test` på varje PR.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
