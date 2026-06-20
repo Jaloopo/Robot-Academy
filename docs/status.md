@@ -5,7 +5,7 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · grund-/processpass (grön CI, schema-validator, kapitelmall)
+Senast uppdaterad: 2026-06-20 · innehålls-/faktapass (Edison-faktagranskning kap 1–3 + pedagogik)
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -39,38 +39,43 @@ Senast uppdaterad: 2026-06-20 · grund-/processpass (grön CI, schema-validator,
 - **Schema-validator finns:** `npm run validate` (`tools/validate-content.js`) fäller bygget
   på trasig kapiteldata (id↔filnamn, `role`/`type`, `text`, `options` ≥2, `correctAnswer` i
   range/permutation). **Kapitelmall finns:** `content/_mall.js` (kopiera → `kapitel-N.js`).
+- **Innehållet är faktagranskat mot meetedison.com** (kap 1–3): sensorer/knappar/WebUSB/V3-flöde
+  verifierade; två rättningar gjorda (kap 1 runda knappen = "programknapp" inte "laddar in";
+  kap 2 USB-C-adapter för MacBook). **Pedagogik-riktlinjer:** `docs/pedagogik.md`.
 
 ## Vad senaste sessionen gjorde
-- **Granskade + mergade PR #11 (framstegssparande via `localStorage`, roadmap-steg 5).** Läste
-  diffen, körde testerna själv (14/14), godkände på meriter. Squash-mergad till `main` (`a4c400f`).
-- **Hittade + fixade en falskt röd CI.** CI:n (från #10) hade varit röd på *varje* körning,
-  inklusive push till `main`, eftersom den var pinnad på Node 20 där `node --test
-  "test/**/*.test.js"` inte expanderar globben. Lokalt (Node 22) såg det grönt ut → osynligt.
-  Åtgärd: CI → Node 22. Repots första genuint gröna körning, både på PR #11 och på `main`.
-- **Grund-/processpass (delar av roadmap-spår C + D):**
-  - `tools/validate-content.js` + `npm run validate`: schema-validator som fäller bygget på
-    trasig kapiteldata (id↔filnamn, `role`/`type`, `text`, `options` ≥2, `correctAnswer` i
-    range/permutation). Wired in i CI före `npm test`. Rent Node (`vm`-sandlåda, samma
-    `window.KAPITEL`-mönster som sajten) – ingen jsdom, inget sajtberoende.
-  - `content/_mall.js`: kapitelmall + checklista för snabb, säker innehållsproduktion (även
-    från mobilen). Laddas aldrig av sajt/test/validator (matchar inte `kapitel-<siffra>.js`).
-  - Dokumentation i synk: `CLAUDE.md` + `.cursorrules` (validator, mall, Node 22, required-check),
-    `docs/roadmap.md` (markerat C/D-poster klara), denna `docs/status.md`.
-- Verifierade: `node --check` (renderare + kapitel + validator + mall) ✓, `npm run validate` ✓
-  (och bekräftat fail-loud: en tillfälligt trasig `correctAnswer` gav exit 1, grönt efter
-  återställning), `npm test` ✓ (**14 tester**). CI grön på `main` efter merge.
+- **Innehålls-/faktapass (roadmap-spår A).** Faktagranskade kapitel 1–3 mot meetedison.com och
+  rättade två saker i innehållet (datamodell/renderare orörda, stegantal oförändrade):
+  - **Kap 1, knappsteget:** "Den runda knappen laddar in ett program" → "Den runda knappen är
+    robotens programknapp". På dator/USB (det antagna MacBook-flödet) sköts nedladdningen av
+    appens *Program*-knapp över sladden; runda knappen används för iPad/ljus-flash-läget, inte
+    för att ladda på en Mac. Triangel = start, fyrkant = stopp (oförändrat, korrekt).
+  - **Kap 2, adult-tipset:** lade till att Edisons sladd har USB-A-kontakt → en MacBook (bara
+    USB-C) behöver en USB-C-till-USB-A-adapter.
+  - Verifierat och OFÖRÄNDRAT för att det redan stämmer: sensorer (ljus, ljud/klapp, IR-hinder),
+    "svarar med ljud och små lampor" (summer + 2 röda LED), WebUSB-webbläsarna, V3-flödet
+    bygg→skicka→play, samt kapitel 3:s allmänna robotfakta (robotarm, robotdammsugare, drönare).
+- **Skrev `docs/pedagogik.md`** – korta riktlinjer (gör-tillsammans, konkret före abstrakt,
+  gissa→testa→prata, stöttning, snäll feedback, skrivregler, a11y i text).
+- **Kartlade bild-behov** (för kommande media-steg): bästa faktastödda kandidat är kap 1:s tre
+  knappar som original-SVG. Upphovsrätt: lyft ALDRIG bilder ur EdBlocks-PDF/appen – egna SVG/foton.
+- Bockade av i `docs/roadmap.md` (spår A: pedagogik-research + faktagranskning) och uppdaterade
+  denna `docs/status.md`.
+- Verifierade: `npm run validate` ✓, `npm test` ✓ (**14 tester**), `node --check` ✓.
+  Deep research kördes via webbsök mot meetedison.com (källor nedan).
+
+## Källor (faktagranskning)
+- https://meetedison.com/edison-robots-sensors/ (sensorer/knappar)
+- https://meetedison.com/robot-programming-software/edblocks/ + https://www.edblocksapp.com/v3/ (WebUSB, V3)
+- "Getting started with Edison V3" / EdBlocks getting-started (nedladdningsflöde dator vs iPad, USB-A/adapter)
 
 ## Beslut (varför)
-- **Fixa CI före merge av #11.** Funktionen var verifierad, men att merga med röd CI (och lämna
-  `main` röd) bryter mot "håll CI grön". En-rads-fixen (Node 22) lades på #11:s branch så det
-  blev en ren merge med grön check.
-- **Validatorn är rent Node (ingen jsdom).** Den kör en `vm`-sandlåda med samma
-  `window.KAPITEL`-mönster som `index.html` – snabbt, utan extra beroende, och oberoende av
-  testharnessen. Fel → exit 1 (fäller CI); "Vuxen:"-prefix m.m. är varning (fäller inte).
-- **Mall som `_mall.js`, inte ett extra dokument.** Checklistan bor där man kopierar ifrån, och
-  underscore-namnet gör den automatiskt osynlig för sajt/test/validator.
-- **Required check kunde inte sättas härifrån.** Ingen branch-protection-API i denna MCP-scope →
-  lämnat som tydligt owner-steg i roadmap/status i stället för att låtsas att det är gjort.
+- **Rättade i stället för att flagga** där källan var entydig (runda knappen, USB-C-adapter) –
+  CLAUDE.md säger flagga "att verifiera" bara vid osäkerhet, inte när fakta är bekräftad.
+- **Behöll "att verifiera" på exakta blocknamn/placering** i kap 2 – de varierar mellan
+  app-versioner och kunde inte verifieras säkert.
+- **Inga bilder från EdBlocks-PDF/app.** Microbrics IP; samma princip som "kopiera aldrig text".
+  Egna inline-SVG (vi ritar) eller egna foton är vägen – börja med kap 1:s knapp-trio.
 
 ## Varningar / blockers
 - `npm test` täcker logik + datakorrekthet, INTE det visuella. CSS/layout måste fortfarande
@@ -94,17 +99,17 @@ Senast uppdaterad: 2026-06-20 · grund-/processpass (grön CI, schema-validator,
   URL:en och klicka igenom ett kapitel.
 
 ## Nästa steg (exakt ETT)
-Grund-/processpasset är klart. Rekommenderat nästa: **roadmap-spår A – Innehåll & pedagogik**,
-och börja med **Edison-faktagranskning av kapitel 1–3** mot källa (EdBlocks V3) + korta
-pedagogik-riktlinjer i `docs/`. Lyft allt osäkert som "att verifiera" – hitta ALDRIG på fakta.
-Extern deep research (t.ex. Perplexity) eller egna sökningar FÅR användas för faktakoll/research;
-skriv alltid om med egna svenska ord (kopiera aldrig). (Alternativt nice-to-have: lätt
-ljud/animation, `prefers-reduced-motion` – enklare modell, Opus granskar a11y.)
+Innehålls-/faktapasset är klart. Rekommenderat nästa: **bild-/mediastöd (roadmap-spår A/B)** –
+en additiv, escapad media-stegtyp i `js/app.js` + **kap 1:s knapp-trio (rund/triangel/fyrkant)
+som original inline-SVG**. A11y: varje bild behöver text-alternativ; texten måste fortfarande
+bära betydelsen. INGA bilder ur EdBlocks-PDF/app (Microbrics IP) – egna SVG/foton. Verifiera
+`file://` + Pages, `npm run validate` + `npm test`. (Alternativ: ny modul/kapitel, eller spår B
+UI/UX & a11y-granskning, eller nice-to-have ljud/animation.)
 
 ## Modellrekommendation för nästa steg
-- Innehåll & pedagogik / Edison-faktagranskning → **Opus** (omdöme, pedagogik, faktasäkerhet).
-- Ljud/animation (om det väljs i stället) → **enklare modell (Sonnet)** när scope är låst; Opus
-  granskar a11y.
+- Media-stegtyp (renderarändring + a11y/alt-text) → **Opus** (klurig renderingslogik + a11y).
+- SVG-rita knapparna när stegtypen finns → kan göras av **enklare modell (Sonnet)** mot spec.
+- Ny modul/innehåll → **Opus** (pedagogik + Edison-fakta).
 
 ## Copy-paste för nästa session
 ```text
@@ -112,21 +117,21 @@ Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Ac
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): Roadmap-spår A – Innehåll & pedagogik. Börja med en Edison-faktagranskning
-av kapitel 1–3 (content/kapitel-1..3.js) mot källa (EdBlocks V3, https://www.edblocksapp.com/v3/):
-gå igenom varje påstående, lyft osäkert som "att verifiera" i ett adult-tips, rätta inget på
-gissning. Lägg gärna korta pedagogik-riktlinjer (åldersanpassning 7–10 år, scaffolding,
-gör-tillsammans) i docs/. Extern deep research (Perplexity) eller egna sökningar FÅR användas för
-faktakoll – skriv ALLTID om med egna svenska ord, kopiera aldrig. Rör inte datamodellen/renderaren
-i onödan; ändrar du steg-antal i ett kapitel, kör npm run validate + npm test.
+UPPGIFT (ett steg): Bild-/mediastöd. Lägg till en additiv, escapad media-stegtyp i js/app.js
+(t.ex. type "image" med fält för källa/SVG + alt-text) som INTE bryter datamodellen för befintliga
+steg, och använd den för kap 1:s tre knappar (rund/triangel/fyrkant) som EGEN inline-SVG. A11y:
+varje bild måste ha text-alternativ och texten ska fortfarande bära betydelsen (bild = komplement).
+INGA bilder/skärmdumpar ur EdBlocks-PDF:en eller appen (Microbrics IP) – bara egna SVG/foton, lokalt
+(ingen CDN/fetch). Uppdatera content/_mall.js + validatorn + docs om du inför ett nytt fält.
 Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages. All UI-text
-på svenska.
+på svenska. (Faktagranskning av kap 1–3 är redan gjord; se docs/pedagogik.md för ton/skrivregler.)
 
-VERKTYG: npm install (en gång) → npm run validate (schema) → npm test (14, genomklickar alla
+VERKTYG: npm install (en gång) → npm run validate (schema) → npm test (14+, genomklickar alla
 kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. CI (Node 22) kör
 node --check + npm run validate + npm test på varje PR/push – håll grön.
 
-VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome vid CSS/logik-ändring.
+VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome (bild syns, alt-text
+finns, layout/responsivitet håller) – särskilt vid renderar-/CSS-ändring.
 
 AVSLUTA enligt handoff: uppdatera docs/status.md (nuläge, gjort, beslut, varningar, nästa steg,
 modellrek) + bocka av i docs/roadmap.md, committa och pusha till main (eller branch+PR i Cloud).

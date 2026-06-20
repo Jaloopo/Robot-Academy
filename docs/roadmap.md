@@ -104,14 +104,24 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
 ✓ KLAR / pågående efter hand. Ordningen är inte huggen i sten.
 
 ### A. Innehåll & pedagogik
-- **Pedagogik-research:** kort omvärldskoll (åldersanpassning 7–10 år, scaffolding,
-  "gör tillsammans"-modellen) → konkreta riktlinjer i `docs/`. Påverkar ton/steglängd.
-- **Edison-faktagranskning:** gå igenom kapitel 1–3 mot källa (EdBlocks V3), lyft allt som
-  är "att verifiera". Hitta ALDRIG på fakta (se CLAUDE.md).
+- **Pedagogik-research (✓ KLAR):** korta riktlinjer i `docs/pedagogik.md` (gör-tillsammans,
+  konkret före abstrakt, gissa→testa→prata, stöttning, snäll feedback, skrivregler, a11y i text).
+- **Edison-faktagranskning (✓ KLAR 2026-06-20):** kapitel 1–3 granskade mot meetedison.com.
+  Verifierat: sensorer (ljus topp v/h, ljud+summer vid runda knappen, IR-hinder, linjeföljare,
+  2 röda LED, 2 motorer) ✓; knappnamn rund/triangel/fyrkant ✓; WebUSB i Chrome/Edge/Opera, inte
+  Safari/Firefox ✓; V3-flöde bygg→skicka via USB→play ✓. **Två rättningar gjorda:** (1) kap 1
+  sa att runda knappen "laddar in ett program" – på dator/USB sköts nedladdningen av appens
+  *Program*-knapp (runda knappen används i iPad/ljus-flash-läget), så texten ändrad till
+  "robotens programknapp". (2) kap 2: Edisons sladd är USB-A → MacBook (bara USB-C) behöver
+  USB-C-till-USB-A-adapter; tillagt i adult-tipset. Kvarstående "att verifiera": exakta
+  blocknamn/placering i EdBlocks (varierar per version) – medvetet kvar som adult-flagga.
 - **Innehållstäckning:** är 3 kapitel rätt scope? Kandidater till nytt kapitel/modul
   (t.ex. sensorer, loopar, felsökning) eller referenssida. Beslut om bredd vs djup.
 - **Bilder/media:** kapitel 3 flaggade att `<img>`/inbäddade länkar kräver en additiv,
-  escapad mediastegtyp – utred om det är värt det (lokala assets, ingen CDN).
+  escapad mediastegtyp – utred om det är värt det (lokala assets, ingen CDN). **OBS upphovsrätt:**
+  lyft ALDRIG bilder/skärmdumpar ur EdBlocks-PDF:en eller appen (Microbrics IP) till sajten –
+  använd egna inline-SVG (vi ritar) eller egna foton. **Bästa första bild-kandidat (faktastödd):**
+  kap 1:s tre knappar (rund/triangel/fyrkant) som original-SVG – pyttesmå, förstärker exakt texten.
 
 ### B. UI/UX- & a11y-granskning
 - **Strukturerad genomgång av `docs/design.md` mot bygget:** responsivitet (mobil→desktop,
