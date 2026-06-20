@@ -7,7 +7,7 @@ window.KAPITEL["kapitel-2"] = {
     { "role": "child", "type": "text",
       "text": "Nu ska du lära Edison att göra något själv. Du gör det med ett program – och programmet bygger du av block i en app som heter EdBlocks." },
     { "role": "adult", "type": "text",
-      "text": "Öppna EdBlocks-appen för V3 på datorn och koppla in Edison med USB-sladden. Programmering sker via WebUSB, så använd Chrome, Edge eller Opera – inte Safari eller Firefox." },
+      "text": "Öppna EdBlocks-appen för V3 på datorn och koppla in Edison med USB-sladden. Programmering sker via WebUSB, så använd Chrome, Edge eller Opera – inte Safari eller Firefox. Edisons sladd har en USB-A-kontakt – har datorn bara USB-C (t.ex. en MacBook) behövs en USB-C-till-USB-A-adapter." },
     { "role": "child", "type": "text",
       "text": "Ett block är en pusselbit med en order, till exempel ”kör framåt”. Du drar blocken till varandra så att de sitter ihop uppifrån och ner." },
     { "role": "child", "type": "text",

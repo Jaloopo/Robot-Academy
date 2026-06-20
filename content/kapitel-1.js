@@ -15,7 +15,7 @@ window.KAPITEL["kapitel-1"] = {
     { "role": "adult", "type": "text",
       "text": "Fråga barnet vad som händer om man kastar om två steg i en profetia. Roboten gör precis det du säger – inte det du menar." },
     { "role": "child", "type": "text",
-      "text": "På Edison finns några knappar. Den runda knappen laddar in ett program. Triangel-knappen (play) startar programmet, och fyrkant-knappen stoppar det." },
+      "text": "På Edison finns tre knappar. Triangel-knappen (play) startar programmet och fyrkant-knappen stoppar det. Den runda knappen är robotens programknapp." },
     { "role": "child", "type": "question_single_choice",
       "text": "Vilken knapp tror du att du trycker på för att STARTA programmet?",
       "options": ["Den runda knappen", "Triangel-knappen (play)", "Fyrkant-knappen"],
