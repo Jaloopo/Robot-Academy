@@ -5,11 +5,18 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · Kap 4 mergad (#16); owner-steg klara (CI required + Pages); beslut: nästa = kapitel 5 "Loopar"; EdBlocks-lärarguide tillagd som idébank
+Senast uppdaterad: 2026-06-20 · Kap 5 "Loopar" byggt (PR #18); beslut: nästa = brygg-/befästningspass eller felsökning/referenssida; EdBlocks-lärarguide kvar som idébank
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
 - Kapitel 2 "Ditt första program" klart (11 steg) i `content/kapitel-2.js`.
+- **Kapitel 5 "Loopar – göra om och om igen" är nu byggt** i `content/kapitel-5.js` (12 steg: text +
+  vuxen-tips, två flervalsfrågor om loop/oändlig-loop och en ordningsfråga kör fram → vänta tills
+  hinder → sväng → loopen börjar om). Loop som nästa kärnkoncept efter villkor (sekvens → program →
+  villkor → loop). Exempel: blinka LED i loop, köra en fyrkant (kör fram + sväng × 4), kör-för-alltid
+  tills runda knappen, loop + sensor. Laddas via ny `<script>`-rad i `index.html` före `js/app.js`.
+  Befintliga stegtyper, inga bilder; renderare/datamodell/CSS orörda. Kapitel 5 är nu sista kapitlet
+  (numerisk sortering), så kap 4 länkar till kap 5 och kap 5 länkar till "Till kapitelöversikt".
 - **Kapitel 4 "Roboten som känner" är nu byggt** i `content/kapitel-4.js` (13 steg: text +
   vuxen-tips, två flervalsfrågor om hindersensor/villkor och en ordningsfråga känn av → kolla
   villkor → gör något). Introducerar sensorer (ljus/hinder/ljud/linje) och idén om villkor
@@ -60,6 +67,25 @@ Senast uppdaterad: 2026-06-20 · Kap 4 mergad (#16); owner-steg klara (CI requir
   orörd; sajten beroendefri. `npm test` fortsatt **15 tester**.
 
 ## Vad senaste sessionen gjorde
+- **Nytt kapitel 5 "Loopar – göra om och om igen" (upprepa).**
+  - `content/kapitel-5.js` (nytt, 12 steg): intro (knyter till kap 4) → vuxen-tips (loop som
+    nyckelbegrepp) → vad en loop är (block runt andra block) → blinka LED i loop → flervalsfråga
+    (vad gör loopen med blocken inuti) → köra en fyrkant (kör fram + sväng × 4) → vuxen-tips
+    (EdBlocks loop-grupp, blocknamn "att verifiera") → kör-för-alltid → flervalsfråga (när slutar
+    en oändlig loop) → loop + sensor → ordningsfråga (kör fram → vänta tills hinder → sväng →
+    loopen börjar om) → avslut.
+  - `index.html`: ny `<script src="./content/kapitel-5.js">`-rad före `js/app.js`.
+  - Loop-fakta omskrivna med egna ord ur "Verifierade loop-fakta" nedan (EdBlocks-lärarguiden,
+    idébank). Befintliga stegtyper, inga bilder; renderare/datamodell/CSS orörda. Frivillig
+    brygglektion FÖRE loopar hoppades över (tempot bedömdes ok – kap 4 introducerade redan om-då).
+  - Bockade av "Loopar" i `docs/roadmap.md`.
+- Verifierat: `node --check js/app.js` + `content/kapitel-5.js` ✓, `npm run validate` ✓ (5 kapitel-
+  filer), `npm test` ✓ (**15 tester**, genomklicket täcker kap 5 automatiskt), samt `file://`-
+  genomklick i Chrome (computerUse): landning listar kap 5, gating, fel→rätt-feedback, andra
+  flervalsfrågan, ordningsfråga löst, sista steget länkar till "Till kapitelöversikt". Demo-video +
+  skärmdumpar bifogade i PR #18 / artefakter.
+
+## Föregående session gjorde (kap 4)
 - **Nytt kapitel 4 "Roboten som känner" (sensorer + om-då).**
   - `content/kapitel-4.js` (nytt, 13 steg): intro → ljussensorer → hindersensor → flervalsfråga
     (hindersensorn) → ljudsensor/klapp → villkor "om-då" → vuxen-tips (villkor/förgrening,
@@ -172,21 +198,25 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
 - **GitHub Pages är på och publicerar** (bekräftat av ägaren) – sajten är live från `main`/root.
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
-## Nästa steg (exakt ETT) – BESLUTAT
-**Kapitel 5 "Loopar / upprepa"** (nästa kärnkoncept efter villkor: sekvens → program → villkor →
-loop). Eget kapitel med BEFINTLIGA stegtyper, inga bilder, ingen logik-/datamodell-/CSS-ändring.
-Utgå från `content/_mall.js` + ny `<script>`-rad i `index.html` FÖRE `js/app.js`. Faktabas finns
-i "Verifierade loop-fakta" ovan (skriv om med egna ord; flagga app-specifika blocknamn "att verifiera").
-- **Frivilligt (ägarens flagga):** om tempot känns för högt EFTER kap 4 går det bra att lägga in en
-  kort **brygg-/befästningslektion FÖRE loopar** – t.ex. ett praktiskt "bygg ett om-då-program steg
-  för steg" (kör framåt → vänta tills hinder → sväng), som också är en perfekt upptakt till loopar.
-  Det är inget krav; loopar är ändå det planerade nästa passet. "Inga problem att lägga in saker före."
+## Nästa steg (exakt ETT) – FÖRSLAG (ej hugget i sten)
+Loop-passet (kap 5) är nu klart, så de fem kärnkapitlen (lära känna → första program → robotar i
+världen → villkor → loop) finns. Förslag på nästa pass, välj ETT:
+- **Kapitel 6 "Felsökning / hitta buggar"** (debugging) – när programmet inte gör som man tänkt:
+  läs blocken vänster→höger, prova en bit i taget, ändra och testa igen. Naturlig fortsättning efter
+  loopar. Eget kapitel, befintliga stegtyper, inga bilder.
+- **ELLER en referens-/översiktssida** som samlar begreppen (sekvens, villkor, loop) – kan kräva
+  liten renderar-/CSS-fundering, så utred först.
+- **ELLER fler bilder** (nya assets till befintlig `image`-typ): block-snäpp i kap 2, robotsiluetter
+  i kap 3, en loop-illustration i kap 5 (enklare modell mot spec).
+Form: eget kapitel med BEFINTLIGA stegtyper, inga bilder, ingen logik-/datamodell-/CSS-ändring.
+Utgå från `content/_mall.js` + ny `<script>`-rad i `index.html` FÖRE `js/app.js`. Hitta ALDRIG på
+Edison-fakta; flagga app-specifika blocknamn "att verifiera" i ett vuxen-steg.
 Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan computerUse köra den.
 
 ## Modellrekommendation för nästa steg
 - Nytt kapitel/modul eller innehåll → **Opus** (pedagogik + Edison-fakta).
 - Fler bilder (nya assets till befintlig `image`-typ) → **enklare modell (Sonnet)** mot spec.
-- Ev. ytterligare a11y-skärpning (vilolägeskanter) → **Opus** (avvägning lugn design vs 1.4.11).
+- Referenssida (om den kräver renderar-/CSS-logik) → **Opus** (avvägning).
 
 ## Copy-paste för nästa session
 ```text
@@ -195,33 +225,34 @@ Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/stat
 Kör npm install EN gång först (färsk container saknar node_modules → annars failar npm test
 falskt på "Cannot find module 'jsdom'"). Ange kort nuläge + planerad åtgärd innan du kör verktyg.
 
-UPPGIFT (exakt ETT steg): Bygg Kapitel 5 "Loopar / upprepa" som INNEHÅLL. Loop är nästa
-kärnkoncept efter villkor (kap 4): sekvens → första program → villkor → loop. Knyt till Edison:
-upprepa en rörelse (kör en fyrkant), blinka LED, eller kör framåt → vänta tills hinder → sväng,
-om och om (loopen startar om). Se "Verifierade loop-fakta" i docs/status.md (källa: EdBlocks-
-lärarguiden i docs/reference/ – idébank, KOPIERA ALDRIG, skriv om med egna svenska ord).
-- Ny content/kapitel-5.js: utgå från content/_mall.js. Befintliga stegtyper (text, vuxen-tips,
+LÄGE: Kap 1–5 finns (lära känna → första program → robotar i världen → villkor → loop). Kap 5
+"Loopar – göra om och om igen" är klart (content/kapitel-5.js, 12 steg, PR #18).
+
+UPPGIFT (exakt ETT steg): Välj ett från "Nästa steg" i docs/status.md – förslag: Kapitel 6
+"Felsökning / hitta buggar" (debugging: läs blocken vänster→höger, prova en bit i taget, ändra
+och testa igen) som INNEHÅLL. Alternativ: referens-/översiktssida eller fler bilder. Bekräfta valet
+kort innan du bygger.
+- Nytt content/kapitel-N.js: utgå från content/_mall.js. Befintliga stegtyper (text, vuxen-tips,
   question_single_choice, ordering). INGEN renderar-/datamodell-/CSS-ändring, inga bilder.
-- Lägg <script src="./content/kapitel-5.js"></script> i index.html FÖRE js/app.js. Kap 5 blir
-  sista kapitlet (numerisk sortering): kap 4 länkar då till kap 5 och kap 5 till "Till kapitel-
-  översikt". Verifiera kedjan i genomklicket.
+- Lägg <script src="./content/kapitel-N.js"></script> i index.html FÖRE js/app.js. Nya sista
+  kapitlet (numerisk sortering): föregående kapitel länkar då till det nya, och det nya till "Till
+  kapitelöversikt". Verifiera kedjan i genomklicket.
 - Pedagogik: tilltala barnet direkt, max 2-3 meningar/steg, adult-steg utan "Vuxen:"-prefix,
   minst en flervalsfråga + en ordningsfråga. Exakta EdBlocks-blocknamn varierar per version →
   flagga "att verifiera" i ett vuxen-steg (hitta inte på).
-- FRIVILLIGT: om tempot känns högt får du lägga en kort brygglektion (praktiskt "bygg ett om-då-
-  program") FÖRE loopar – inget krav, loopar är ändå det planerade passet.
 
 HÅRDA KRAV: endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages.
 All UI-text på svenska. Rör inte datamodellen (window.KAPITEL / correctAnswer). Inga CDN/fetch.
 
-VERKTYG: npm install (en gång) → npm run validate (schema, bör säga 5 kapitelfiler) → npm test
-(genomklickar alla kapitel automatiskt – nytt kapitel kräver ingen teständring) → node --check
-js/app.js. CI (Node 22) är nu en REQUIRED check (node --check + validate + test) – håll grön.
+VERKTYG: npm install (en gång) → npm run validate (schema, bör säga 6 kapitelfiler om du la till
+ett kapitel) → npm test (genomklickar alla kapitel automatiskt – nytt kapitel kräver ingen
+teständring) → node --check js/app.js. CI (Node 22) är en REQUIRED check (node --check + validate
++ test) – håll grön.
 
 VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome (i Cloud: computerUse)
-– landning listar kap 5, gating, fel→rätt-feedback, ordningsfråga, avslutslänk "Till kapitelöversikt".
+– landning listar nya kapitlet, gating, fel→rätt-feedback, ordningsfråga, avslutslänk "Till kapitelöversikt".
 
 AVSLUTA enligt handoff: uppdatera docs/status.md (nuläge, gjort, beslut, varningar, nästa steg,
-modellrek) + bocka av "loopar" i docs/roadmap.md, committa (branch+PR/auto-merge i Cloud; öppna
-ingen PR om användaren inte ber om det). Skriv en ny copy-paste längst ned. Modell: Opus.
+modellrek) + bocka av i docs/roadmap.md, committa (branch+PR i Cloud; öppna ingen PR om användaren
+inte ber om det). Skriv en ny copy-paste längst ned. Modell: Opus.
 ```

@@ -119,10 +119,15 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   sensorer + villkor (om-då) i `content/kapitel-4.js` (13 steg) + ny `<script>`-rad i `index.html`.
   Befintliga stegtyper, inga bilder, datamodell/renderare/CSS orörda. Faktagranskat mot
   meetedison.com; appspecifika blocknamn flaggade "att verifiera".
-  **BESLUTAT nästa: Kapitel 5 "Loopar / upprepa"** (nästa kärnkoncept: sekvens → program → villkor
-  → loop). Faktabas (egna ord) + källa finns i `docs/status.md` ("Verifierade loop-fakta", ur
-  EdBlocks-lärarguiden). Frivillig brygglektion (praktiskt "bygg ett om-då-program") får läggas
-  FÖRE loopar om tempot känns högt. Senare kandidater: felsökning, referenssida, fler bilder.
+  **Kapitel 5 "Loopar – göra om och om igen" (✓ KLAR 2026-06-20, PR #18)** – loop som nästa
+  kärnkoncept efter villkor (sekvens → program → villkor → loop) i `content/kapitel-5.js` (12 steg:
+  text + vuxen-tips, två flervalsfrågor om loop/oändlig-loop och en ordningsfråga kör fram → vänta
+  tills hinder → sväng → loopen börjar om) + ny `<script>`-rad i `index.html` före `js/app.js`.
+  Befintliga stegtyper, inga bilder, datamodell/renderare/CSS orörda. Loop-fakta omskrivna med egna
+  ord ur EdBlocks-lärarguiden (blinka LED, köra en fyrkant, kör-för-alltid, loop + sensor);
+  appspecifika blocknamn flaggade "att verifiera". Kap 5 är nu sista kapitlet (numerisk sortering),
+  så kap 4 länkar till kap 5 och kap 5 till "Till kapitelöversikt".
+  Senare kandidater: felsökning, referenssida, fler bilder.
 - **EdBlocks-lärarguide som idébank (✓ tillagd 2026-06-20):** "EdBlocks lesson activities –
   Teachers guide & answer key (Edison V3)" (Microbric/Emma Dewar, CC BY-SA 4.0) ligger i
   `docs/reference/` (PDF, git-ignorerad – committas ALDRIG, se `.gitignore`). KOPIERA ALDRIG
