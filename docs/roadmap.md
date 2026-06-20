@@ -13,7 +13,7 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
   canvas, samt tunn framstegsstapel. Desktop ≥900 px har dessutom en chapter-rail
   (kontextspalt) i kapitelvyn.
 - Innehåll i `content/kapitel-1.js`–`content/kapitel-5.js` (`window.KAPITEL`; kapitel 5
-  ligger i PR #18 tills den mergas).
+  mergades via PR #18).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
   redan laddade lokala script och fungerar på `file://`.
 

@@ -5,7 +5,7 @@ igång med Edison-roboten V3 och EdBlocks – tillsammans med en vuxen.
 
 ## Status
 Fem kapitel finns: lär känna Edison, första programmet, robotar i världen, sensorer och
-villkor samt loopar. Kapitel 5 ligger på den aktiva arbetsbranchen/PR #18 tills den mergas.
+villkor samt loopar. Kapitel 5 mergades till `main` via PR #18.
 
 ## Köra lokalt
 Öppna `index.html` i en webbläsare (Chrome rekommenderas). Ingen installation.

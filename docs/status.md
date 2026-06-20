@@ -5,7 +5,7 @@ Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs
 granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
 lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-20 · Agentharness städad och slutgranskad ovanpå PR #18
+Senast uppdaterad: 2026-06-20 · Kapitel 5 + agentharness mergade till main via PR #18
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -29,12 +29,12 @@ Senast uppdaterad: 2026-06-20 · Agentharness städad och slutgranskad ovanpå P
 - Designsystem + mobil + desktop-ark (≥720 px) + chapter-rail (≥900 px) + tunn
   framstegsstapel ligger på `main`.
 - `js/app.js` väljer kapitel via `?kapitel=N`; utan query visas en landningsvy som listar
-  alla laddade kapitel. På PR #18:s branch listas kapitel 1–5 och kapitel 5 är sist.
+  alla laddade kapitel. På `main` listas kapitel 1–5 och kapitel 5 är sist.
 - Committat testverktyg: `npm test` kör en jsdom-genomklick (`test/clickthrough.test.js`,
   **16 tester**). `jsdom` är DEV-beroende; `node_modules/` är git-ignorerat. Sajten själv är
   fortsatt beroendefri.
 - **Testet genomklickar nu ALLA riktiga `content/kapitel-*.js` automatiskt** (kapitel 1–5 på
-  PR #18:s branch). Ett nytt kapitel testas
+  `main`). Ett nytt kapitel testas
   alltså bara genom att lägga till filen; trasig kapiteldata får `npm test` att faila.
 - **GitHub Actions-CI** (`.github/workflows/ci.yml`) kör `node --check` (renderaren + alla
   kapitelfiler) + `npm test` på varje PR och vid push till `main`. Workflow-filen påverkar inte
@@ -236,8 +236,8 @@ Läs FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/stat
 Kör npm install EN gång först (färsk container saknar node_modules → annars failar npm test
 falskt på "Cannot find module 'jsdom'"). Ange kort nuläge + planerad åtgärd innan du kör verktyg.
 
-LÄGE: Kap 1–5 finns (lära känna → första program → robotar i världen → villkor → loop). Kap 5
-"Loopar – göra om och om igen" är klart (content/kapitel-5.js, 12 steg, PR #18).
+LÄGE: Kap 1–5 finns på main (lära känna → första program → robotar i världen → villkor → loop).
+Kap 5 "Loopar – göra om och om igen" mergades via PR #18 (content/kapitel-5.js, 12 steg).
 
 UPPGIFT (exakt ETT steg): Välj ett från "Nästa steg" i docs/status.md – förslag: Kapitel 6
 "Felsökning / hitta buggar" (debugging: läs blocken vänster→höger, prova en bit i taget, ändra
