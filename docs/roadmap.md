@@ -198,6 +198,16 @@ källor: `docs/reference/cs-curriculum.md`. Sammanfattning:
   block med befintliga stegtyper) kan fortsätta oberoende. Det interaktiva spåret tas i en
   egen, avgränsad session (eller deep research för detaljerad curriculum-design) och börjar
   med "Sekvens vs loop"-spiken ovan.
+- **Arkitektur FÖRST (mot spagetti/jättefil):** teknisk plan + beroende-policy +
+  beslutslogg i `docs/architecture.md`. Kärnval: modularisera via **namespace-script-filer**
+  (som `window.KAPITEL`), INTE ES-moduler (`import` funkar ej på `file://`); **renderar-
+  registry** så `app.js` inte sväller; deklarativ konfig i datan (kod-i-data förbjudet);
+  inga runtime-beroenden i sajten (dev-beroenden ok). **Ordning, en step i taget:**
+  (1) arkitektur-/kontraktssession (ingen kod) → (2) säker refaktor `app.js` → renderar-
+  registry (beteende oförändrat, tester gröna) → (3) "Sekvens vs loop"-spik mot kontraktet
+  → (4) utvärdera & skala.
+
+> **Att göra i annan session (ej här):** review av PR #18 (kapitel 5 "Loopar", annan branch).
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
