@@ -5,7 +5,7 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · innehålls-/faktapass (Edison-faktagranskning kap 1–3 + pedagogik)
+Senast uppdaterad: 2026-06-20 · bild-/mediastöd (ny `image`-stegtyp + kap 1:s knapp-SVG)
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -42,40 +42,44 @@ Senast uppdaterad: 2026-06-20 · innehålls-/faktapass (Edison-faktagranskning k
 - **Innehållet är faktagranskat mot meetedison.com** (kap 1–3): sensorer/knappar/WebUSB/V3-flöde
   verifierade; två rättningar gjorda (kap 1 runda knappen = "programknapp" inte "laddar in";
   kap 2 USB-C-adapter för MacBook). **Pedagogik-riktlinjer:** `docs/pedagogik.md`.
+- **Ny stegtyp `image`** i renderaren: lokal bild (`src`) + `alt`, texten bär betydelsen. Första
+  bilden `assets/edison-knappar.svg` (original-SVG: rund/triangel/fyrkant) i kapitel 1. Validatorn
+  kräver lokal `src` + `alt`; CSS `.step-image` (responsiv). `npm test` är nu **15 tester**.
 
 ## Vad senaste sessionen gjorde
-- **Innehålls-/faktapass (roadmap-spår A).** Faktagranskade kapitel 1–3 mot meetedison.com och
-  rättade två saker i innehållet (datamodell/renderare orörda, stegantal oförändrade):
-  - **Kap 1, knappsteget:** "Den runda knappen laddar in ett program" → "Den runda knappen är
-    robotens programknapp". På dator/USB (det antagna MacBook-flödet) sköts nedladdningen av
-    appens *Program*-knapp över sladden; runda knappen används för iPad/ljus-flash-läget, inte
-    för att ladda på en Mac. Triangel = start, fyrkant = stopp (oförändrat, korrekt).
-  - **Kap 2, adult-tipset:** lade till att Edisons sladd har USB-A-kontakt → en MacBook (bara
-    USB-C) behöver en USB-C-till-USB-A-adapter.
-  - Verifierat och OFÖRÄNDRAT för att det redan stämmer: sensorer (ljus, ljud/klapp, IR-hinder),
-    "svarar med ljud och små lampor" (summer + 2 röda LED), WebUSB-webbläsarna, V3-flödet
-    bygg→skicka→play, samt kapitel 3:s allmänna robotfakta (robotarm, robotdammsugare, drönare).
-- **Skrev `docs/pedagogik.md`** – korta riktlinjer (gör-tillsammans, konkret före abstrakt,
-  gissa→testa→prata, stöttning, snäll feedback, skrivregler, a11y i text).
-- **Kartlade bild-behov** (för kommande media-steg): bästa faktastödda kandidat är kap 1:s tre
-  knappar som original-SVG. Upphovsrätt: lyft ALDRIG bilder ur EdBlocks-PDF/appen – egna SVG/foton.
-- Bockade av i `docs/roadmap.md` (spår A: pedagogik-research + faktagranskning) och uppdaterade
-  denna `docs/status.md`.
-- Verifierade: `npm run validate` ✓, `npm test` ✓ (**14 tester**), `node --check` ✓.
-  Deep research kördes via webbsök mot meetedison.com (källor nedan).
+- **Bild-/mediastöd (roadmap-spår A/B).** Ny additiv stegtyp `image` – befintliga steg orörda:
+  - `js/app.js`: `renderImage(step)` (rendrar `step.text` + `<img class="step-image" src alt>`,
+    båda escapade) + `case "image"` i `renderStepContent`. State för bild-steg = default
+    `{ done: true }` (ingen gating), så genomklicket går vidare med Nästa precis som text-steg.
+  - `assets/edison-knappar.svg`: original-SVG (rund knapp m. orange punkt, triangel = play,
+    fyrkant = stopp), hårdkodade brand-färger (img-SVG kan inte läsa sidans CSS-variabler).
+  - `content/kapitel-1.js`: nytt bild-steg direkt efter knapp-intron (src `./assets/edison-knappar.svg`
+    + alt + bildtext). Kap 1 har nu ett steg till.
+  - `style.css`: `.step-image` (responsiv, `max-width:320px`, centrerad).
+  - `tools/validate-content.js`: `image` tillagd i giltiga typer; kräver lokal `src` (felar på
+    http/CDN) + `alt` (sträng; varnar vid tom alt). `content/_mall.js` + `CLAUDE.md`/`.cursorrules`
+    (datamodell + rendering) uppdaterade och i synk.
+  - **Test:** nytt dedikerat test ("bild-steg renderar lokal bild med alt-text och låser inte
+    Nästa") – totalt **15 tester**, alla gröna. Det datadrivna genomklicket täcker dessutom det nya
+    steget automatiskt (kap 1).
+- Bockade av "Bilder/media" i `docs/roadmap.md` (spår A) och uppdaterade denna `docs/status.md`.
+- Verifierade: `node --check` ✓, `npm run validate` ✓, `npm test` ✓ (**15 tester**).
+  OBS: själva bildvisningen i webbläsare (att SVG:n syns/skalar) behöver fortfarande en
+  `file://`-koll i Chrome – jsdom laddar inte bilder, testet kollar bara attributen.
 
-## Källor (faktagranskning)
+## Beslut (varför)
+- **`image` med lokal `src` + `alt`, inte rå inline-SVG i datan.** Håller datamodellen ren och
+  mobil-redigerbar (bara strängar), undviker att injicera rå HTML, och validatorn kan tvinga
+  "lokal sökväg, ingen CDN". SVG:n bor som egen fil i `assets/`.
+- **Texten bär fortfarande betydelsen; bilden är komplement** (a11y). Varje bild kräver `alt`.
+- **Hårdkodade färger i SVG:n.** En `<img>`-laddad SVG är sandlådad och kan inte läsa sidans
+  `--color-*`-variabler, så brand-färgerna är inskrivna i filen.
+- **Inga bilder ur EdBlocks-PDF/app** (Microbrics IP) – egna SVG/foton, lokalt i `assets/`.
+
+## Källor (faktagranskning, föregående pass)
 - https://meetedison.com/edison-robots-sensors/ (sensorer/knappar)
 - https://meetedison.com/robot-programming-software/edblocks/ + https://www.edblocksapp.com/v3/ (WebUSB, V3)
 - "Getting started with Edison V3" / EdBlocks getting-started (nedladdningsflöde dator vs iPad, USB-A/adapter)
-
-## Beslut (varför)
-- **Rättade i stället för att flagga** där källan var entydig (runda knappen, USB-C-adapter) –
-  CLAUDE.md säger flagga "att verifiera" bara vid osäkerhet, inte när fakta är bekräftad.
-- **Behöll "att verifiera" på exakta blocknamn/placering** i kap 2 – de varierar mellan
-  app-versioner och kunde inte verifieras säkert.
-- **Inga bilder från EdBlocks-PDF/app.** Microbrics IP; samma princip som "kopiera aldrig text".
-  Egna inline-SVG (vi ritar) eller egna foton är vägen – börja med kap 1:s knapp-trio.
 
 ## Varningar / blockers
 - `npm test` täcker logik + datakorrekthet, INTE det visuella. CSS/layout måste fortfarande
@@ -99,16 +103,18 @@ Senast uppdaterad: 2026-06-20 · innehålls-/faktapass (Edison-faktagranskning k
   URL:en och klicka igenom ett kapitel.
 
 ## Nästa steg (exakt ETT)
-Innehålls-/faktapasset är klart. Rekommenderat nästa: **bild-/mediastöd (roadmap-spår A/B)** –
-en additiv, escapad media-stegtyp i `js/app.js` + **kap 1:s knapp-trio (rund/triangel/fyrkant)
-som original inline-SVG**. A11y: varje bild behöver text-alternativ; texten måste fortfarande
-bära betydelsen. INGA bilder ur EdBlocks-PDF/app (Microbrics IP) – egna SVG/foton. Verifiera
-`file://` + Pages, `npm run validate` + `npm test`. (Alternativ: ny modul/kapitel, eller spår B
-UI/UX & a11y-granskning, eller nice-to-have ljud/animation.)
+Bild-/mediastödet är klart. Rekommenderat nästa: **spår B – UI/UX- & a11y-granskning**. Gör en
+strukturerad genomgång av `docs/design.md` mot bygget nu när två renderfunktioner tillkommit
+(`Klart`/`Påbörjat`-badges + `image`): kontrast (WCAG AA) på badges och den nya bilden, fokusring/
+tab-ordning, touch-mål ≥44 px, responsivitet mobil→rail (≥900 px), och "text bär betydelse".
+OBS: själva pixel-/visuella verifieringen sker i webbläsare (`file://` i Chrome) och är ÄGARENS
+steg – härifrån blir det en kod-/spec-granskning + a11y-resonemang. (Alternativ: fler bilder för
+kap 2 (block-snäpp) / kap 3 (robotsiluetter) – samma `image`-typ, enklare modell; eller ny
+modul/kapitel – Opus; eller nice-to-have ljud/animation.)
 
 ## Modellrekommendation för nästa steg
-- Media-stegtyp (renderarändring + a11y/alt-text) → **Opus** (klurig renderingslogik + a11y).
-- SVG-rita knapparna när stegtypen finns → kan göras av **enklare modell (Sonnet)** mot spec.
+- UI/UX- & a11y-granskning → **Opus** (a11y-bedömning, kontrast/fokus/semantik).
+- Fler bilder (nya assets till befintlig `image`-typ) → **enklare modell (Sonnet)** mot spec.
 - Ny modul/innehåll → **Opus** (pedagogik + Edison-fakta).
 
 ## Copy-paste för nästa session
@@ -117,21 +123,23 @@ Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Ac
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): Bild-/mediastöd. Lägg till en additiv, escapad media-stegtyp i js/app.js
-(t.ex. type "image" med fält för källa/SVG + alt-text) som INTE bryter datamodellen för befintliga
-steg, och använd den för kap 1:s tre knappar (rund/triangel/fyrkant) som EGEN inline-SVG. A11y:
-varje bild måste ha text-alternativ och texten ska fortfarande bära betydelsen (bild = komplement).
-INGA bilder/skärmdumpar ur EdBlocks-PDF:en eller appen (Microbrics IP) – bara egna SVG/foton, lokalt
-(ingen CDN/fetch). Uppdatera content/_mall.js + validatorn + docs om du inför ett nytt fält.
-Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages. All UI-text
-på svenska. (Faktagranskning av kap 1–3 är redan gjord; se docs/pedagogik.md för ton/skrivregler.)
+UPPGIFT (ett steg): UI/UX- & a11y-granskning (spår B). Gör en strukturerad genomgång av
+docs/design.md mot bygget (js/app.js + style.css), särskilt det som tillkommit: Klart/Påbörjat-
+badges (.chapter-status, .rail-status), den nya image-stegtypen (.step-image + assets-SVG), samt
+"Börja om"-knappen. Kontrollera: kontrast WCAG AA (badge-färger mot bakgrund, .step-image vid
+behov), fokusring/tab-ordning, touch-mål ≥44 px, responsivitet mobil→720px→rail 900px, och att
+text bär betydelsen (inte enbart färg). Föreslå/gör små additiva CSS-/markup-fixar; rör inte
+datamodellen. Skriv fynd + ev. åtgärder i docs (t.ex. en kort a11y-checklista). OBS: pixel-/
+visuell verifiering sker i webbläsare (file:// i Chrome) – det är ägarens steg; härifrån blir det
+kod-/spec-granskning + a11y-resonemang. Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på
+file:// och GitHub Pages. All UI-text på svenska.
 
-VERKTYG: npm install (en gång) → npm run validate (schema) → npm test (14+, genomklickar alla
-kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. CI (Node 22) kör
-node --check + npm run validate + npm test på varje PR/push – håll grön.
+VERKTYG: npm install (en gång) → npm run validate (schema) → npm test (15, genomklickar alla
+kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. Bild-steg: type
+"image" med lokal src + alt (se kap 1). CI (Node 22) kör node --check + npm run validate + npm test
+på varje PR/push – håll grön.
 
-VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome (bild syns, alt-text
-finns, layout/responsivitet håller) – särskilt vid renderar-/CSS-ändring.
+VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome vid CSS/logik-ändring.
 
 AVSLUTA enligt handoff: uppdatera docs/status.md (nuläge, gjort, beslut, varningar, nästa steg,
 modellrek) + bocka av i docs/roadmap.md, committa och pusha till main (eller branch+PR i Cloud).

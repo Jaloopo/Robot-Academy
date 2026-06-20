@@ -21,7 +21,7 @@ const ROOT = path.join(__dirname, "..");
 const CONTENT_DIR = path.join(ROOT, "content");
 
 const VALID_ROLES = ["child", "adult"];
-const VALID_TYPES = ["text", "question_single_choice", "ordering"];
+const VALID_TYPES = ["text", "image", "question_single_choice", "ordering"];
 
 function chapterNumber(name) {
   const m = String(name).match(/\d+/);
@@ -73,9 +73,21 @@ function validateStep(step, at, errors, warnings) {
     warnings.push(at + ': adult-steg ska INTE inleda texten med "Vuxen:" (renderaren sätter etiketten).');
   }
 
-  if (step.type === "text") {
-    if ("options" in step) warnings.push(at + ': text-steg bör inte ha "options".');
-    if ("correctAnswer" in step) warnings.push(at + ': text-steg bör inte ha "correctAnswer".');
+  if (step.type === "text" || step.type === "image") {
+    if (step.type === "image") {
+      if (!isNonEmptyString(step.src)) {
+        errors.push(at + ': "image" kräver en "src" (lokal sökväg till bild).');
+      } else if (/^(https?:)?\/\//i.test(step.src)) {
+        errors.push(at + ': "src" måste vara en lokal sökväg (ingen http(s)/CDN).');
+      }
+      if (typeof step.alt !== "string") {
+        errors.push(at + ': "image" kräver "alt" (text-alternativ; "" om bilden är rent dekorativ).');
+      } else if (step.alt.trim() === "") {
+        warnings.push(at + ': tom "alt" – använd bara om bilden är rent dekorativ.');
+      }
+    }
+    if ("options" in step) warnings.push(at + ": " + step.type + '-steg bör inte ha "options".');
+    if ("correctAnswer" in step) warnings.push(at + ": " + step.type + '-steg bör inte ha "correctAnswer".');
     return;
   }
 

@@ -430,3 +430,21 @@ test("'Börja om kapitlet' nollställer sparat framsteg", () => {
   assert.strictEqual(window.document.getElementById("btn-reset-chapter"), null,
     "ingen 'Börja om'-knapp på ett färskt steg 1");
 });
+
+// ---- Bild-steg (media) ----
+
+test("bild-steg renderar lokal bild med alt-text och låser inte Nästa", () => {
+  const window = bootstrap({ search: "?kapitel=1" });
+  const steps = window.KAPITEL["kapitel-1"].steps;
+  const imgIndex = steps.findIndex((s) => s.type === "image");
+  assert.ok(imgIndex !== -1, "kapitel 1 har ett bild-steg");
+
+  for (let i = 0; i < imgIndex; i++) nextBtn(window).click();
+
+  const img = appEl(window).querySelector("img.step-image");
+  assert.ok(img, "bilden renderas");
+  assert.strictEqual(img.getAttribute("src"), steps[imgIndex].src, "rätt lokal src");
+  assert.strictEqual(img.getAttribute("alt"), steps[imgIndex].alt, "alt-text finns");
+  assert.ok(!/^(https?:)?\/\//.test(img.getAttribute("src")), "src är lokal (ingen CDN/fetch)");
+  assert.strictEqual(nextBtn(window).disabled, false, "bild-steg blockerar inte Nästa");
+});

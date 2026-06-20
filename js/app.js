@@ -391,6 +391,16 @@
       return "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
     }
 
+    // Local image/illustration step. The text still carries the meaning (a11y);
+    // the image is a complement with its own alt text. src must be a local path
+    // (no fetch/CDN) so it works on file:// and GitHub Pages alike.
+    function renderImage(step) {
+      var html = "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
+      html += "<img class=\"step-image\" src=\"" + escapeHtml(step.src) +
+        "\" alt=\"" + escapeHtml(step.alt || "") + "\">";
+      return html;
+    }
+
     function renderSingleChoice(step, st) {
       var html = "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
       html += "<ul class=\"options\" role=\"list\">";
@@ -450,6 +460,8 @@
       switch (step.type) {
         case "text":
           return renderText(step);
+        case "image":
+          return renderImage(step);
         case "question_single_choice":
           return renderSingleChoice(step, st);
         case "ordering":

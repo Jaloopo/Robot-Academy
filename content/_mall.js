@@ -11,11 +11,14 @@
 // Datamodell (se CLAUDE.md för detaljer):
 //   role:          "child" | "adult"   (adult = kort tips till den vuxne)
 //   type:          "text" | "question_single_choice" | "ordering"
+//   type:          ... eller "image" – en lokal illustration (komplement, texten bär betydelsen)
 //   text:          svensk text, max 2–3 meningar. Tilltala barnet direkt ("Du", "din robot").
 //                  adult-steg: skriv INTE "Vuxen:" – renderaren sätter etiketten automatiskt.
 //   options:       endast för question_single_choice och ordering (minst 2 alternativ)
 //   correctAnswer: question_single_choice = 0-baserat index i options (t.ex. 1)
 //                  ordering = array av index i RÄTT ordning, en permutation (t.ex. [0, 1, 2])
+//   src/alt:       endast för "image". src = LOKAL sökväg (./assets/...), ingen CDN/fetch.
+//                  alt = text-alternativ (a11y). Lyft ALDRIG bilder ur EdBlocks-PDF/app – egna SVG/foton.
 //
 // Checklista innan commit:
 //   [ ] id matchar filnamnet ("kapitel-N")
@@ -33,6 +36,11 @@ window.KAPITEL["kapitel-N"] = {
   "steps": [
     { "role": "child", "type": "text",
       "text": "Inledande text som tilltalar barnet direkt och förklarar vad ni ska göra." },
+    // Exempel på ett bild-steg (egen lokal SVG/bild – avkommentera och byt src/alt/text):
+    // { "role": "child", "type": "image",
+    //   "src": "./assets/din-bild.svg",
+    //   "alt": "Kort beskrivning av bilden för skärmläsare.",
+    //   "text": "Bildtext som förklarar vad barnet ser." },
     { "role": "adult", "type": "text",
       "text": "Kort tips till den vuxne (utan \"Vuxen:\"-prefix)." },
     { "role": "child", "type": "question_single_choice",
