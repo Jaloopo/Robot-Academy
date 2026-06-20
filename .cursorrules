@@ -45,6 +45,14 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
   genom att lägga till filen – ingen teständring behövs. Trasig kapiteldata (t.ex.
   `correctAnswer` utanför index) får `npm test` att faila. Manuell `file://`-koll behövs då
   främst för PR:ar som rör `js/app.js` eller `style.css` (logik/visuellt), inte rent innehåll.
+- `npm run validate` (`tools/validate-content.js`) validerar datamodellen i alla
+  `content/kapitel-*.js`: id matchar filnamn, `role`/`type` giltiga, `text` finns, `options`
+  ≥2, `correctAnswer` i range (flerval) resp. permutation (ordering). Exit 1 vid fel. Körs i CI
+  före `npm test`. Rent Node (ingen jsdom), inget sajtberoende.
+- CI (`.github/workflows/ci.yml`) kör på **Node 22** (krävs för glob i `node --test`). Bör vara
+  en **required check** i repo-inställningarna så att grönt faktiskt gatear merge.
+- Nytt kapitel: utgå från mallen `content/_mall.js` (kopiera → `content/kapitel-N.js`, fyll i,
+  lägg till `<script>`-rad i `index.html`). Mallen laddas aldrig av sajt/test/validator.
 
 ## Innehåll & laddning
 - ALL UI-text på svenska. Kodkommentarer får vara på engelska.

@@ -121,22 +121,29 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
 - **Reduced-motion:** maskot-nudge + ev. kommande animation ska respektera
   `prefers-reduced-motion`; verifiera.
 
+> **Grund-/processpass (✓ KLAR 2026-06-20):** delar av C och D nedan är nu gjorda – se
+> markeringar. Återstår mest manuella/owner-steg (required check) och de utforskande spåren
+> A och B.
+
 ### C. Författarflöde & grundfiler (effektivitet)
-- **Kapitelmall + checklista:** en `content/_mall.js` + kort guide så nya kapitel kan
-  skrivas snabbt (även från GitHub-mobilappen) utan att röra logiken.
-- **Schema-validator i CI:** validera datamodellen (`correctAnswer` i range, `ordering` =
-  permutation av index, `options` finns för rätt typer). Fångar trasig kapiteldata tidigt.
-  ("Backend"-känslan utan server: ren Node-validering, inget nytt sajtberoende.)
-- **Skärp `CLAUDE.md`/`.cursorrules`:** håll i synk, förtydliga sessionsprotokoll/handoff
-  utifrån vad som faktiskt fungerat. Ev. kort PR-checklista.
+- **Kapitelmall + checklista (✓ KLAR):** `content/_mall.js` – kopiera → `content/kapitel-N.js`,
+  fyll i, lägg till `<script>`-rad i `index.html`. Innehåller datamodell + checklista. Laddas
+  aldrig av sajt/test/validator (bara `kapitel-<siffra>.js`).
+- **Schema-validator i CI (✓ KLAR):** `tools/validate-content.js` (`npm run validate`) validerar
+  id↔filnamn, `role`/`type`, `text`, `options` ≥2, `correctAnswer` i range (flerval) /
+  permutation (ordering). Exit 1 vid fel; körs i CI före `npm test`. Rent Node, inget sajtberoende.
+- **Skärp `CLAUDE.md`/`.cursorrules` (delvis):** validator + mall + Node 22 dokumenterade och i
+  synk. Kvar (valfritt): en kort PR-checklista.
 
 ### D. Test- & CI-robusthet
-- **CI som verklig grind:** (Node-pinningen åtgärdad ovan.) Överväg att göra CI obligatorisk
-  för merge och lägga till `node --check` på fler filer / länk-/sökvägskoll.
-- **Fler tester:** schema-validering (se C), ev. liten a11y-/struktur-smoke. `file://`-
+- **CI som verklig grind (delvis):** Node-pinningen åtgärdad + validator tillagd. **KVAR (owner):**
+  gör CI till en **required status check** i repo-inställningarna (Settings → Branches → branch
+  protection rule för `main` → Require status checks → välj "test"). Kan inte sättas via API här.
+- **Fler tester:** schema-validering klar (se C). Ev. liten a11y-/struktur-smoke kvar. `file://`-
   genomklick förblir manuell grind för CSS/visuellt.
-- **GitHub Pages-verifiering:** bekräfta att deploy från `main` (root) fungerar och att
-  relativa sökvägar (`./…`) håller på Pages som på `file://`.
+- **GitHub Pages-verifiering (delvis):** `index.html` är filnivå-ren (enbart relativa `./`-sökvägar,
+  ingen CDN/fetch) → Pages-redo. KVAR: bekräfta att Pages faktiskt är på och publicerar från
+  `main` (root) – ett owner-steg i repo-inställningarna.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**

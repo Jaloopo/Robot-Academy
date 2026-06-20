@@ -25,5 +25,7 @@ jobs:
         run: |
           node --check js/app.js
           for f in content/kapitel-*.js; do node --check "$f"; done
+      - name: Validera innehållsschema (datamodell)
+        run: npm run validate
       - name: Genomklick (jsdom) av alla riktiga kapitel
         run: npm test
