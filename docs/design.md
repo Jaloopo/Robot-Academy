@@ -40,8 +40,33 @@ klassvärden ändras inte. Kortets textmått hålls ~640–660 px. Tillagt block
 }
 ```
 
-Layout B (tvådelad vy med kontextspalt/chapter-rail) är FRAMTIDA – den kräver ett nytt
-`<aside>`-element och tas först när fler kapitel finns. Implementeras inte nu.
+### Desktop (≥900 px)
+Layout B (tvådelad vy med kontextspalt/chapter-rail) är IMPLEMENTERAD. Ett nytt
+`<aside class="chapter-rail">` renderas av `js/app.js` i kapitelvyn (inte på landningsvyn)
+och `#app` får klassen `has-rail`. Spalten är ren KONTEXT – den listar kapitlen, markerar
+det aktiva (`aria-current="step"`) och visar dess "Steg X av N", plus en "Alla kapitel"-länk.
+Den primära steg-navigeringen (Föregående/Nästa) ligger kvar i `.nav` och dubbleras INTE.
+Allt är ADDITIVT via `@media (min-width: 900px)`; mobilen och 720 px-arket är orörda. Under
+900 px är `.chapter-rail { display: none }` så vyn förblir en kolumn. Tillagt block i
+`style.css`:
+
+```css
+.chapter-rail { display: none; }            /* dold som standard */
+
+@media (min-width: 900px) {
+  #app.has-rail {
+    max-width: 1060px; display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    column-gap: 2.75rem; align-items: start;
+  }
+  .has-rail .chapter-rail {
+    display: block; position: sticky; top: 3rem;
+    align-self: start; padding-right: 2rem; border-right: 1px solid #ece5da;
+  }
+  .step-main { min-width: 0; }
+  /* .rail-link/.rail-link--current/.rail-kicker/.rail-title/.rail-progress/.rail-overview … */
+}
+```
 
 ## Designtokens (i synk med `style.css`)
 - Bakgrund: `#FAF7F2` (varm off-white)

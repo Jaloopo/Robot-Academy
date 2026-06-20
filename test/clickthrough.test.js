@@ -223,6 +223,37 @@ test("genomklick av två kapitel: routing, gating, fel→rätt och ordning", () 
   );
 });
 
+// ---- Chapter-rail (Layout B, desktop-kontext) ----
+
+test("chapter-rail finns i kapitelvyn, markerar aktivt kapitel och dess steg", () => {
+  const window = bootstrap({ search: "?kapitel=1", extraChapters: [testChapter2] });
+  const app = appEl(window);
+
+  assert.strictEqual(app.className, "has-rail", "#app får has-rail i kapitelvyn");
+  const rail = app.querySelector(".chapter-rail");
+  assert.ok(rail, "chapter-rail renderas");
+
+  const railLinks = Array.from(rail.querySelectorAll(".rail-link"));
+  assert.strictEqual(railLinks.length, 2, "railen listar alla kapitel");
+
+  const current = rail.querySelector(".rail-link--current");
+  assert.ok(current, "aktivt kapitel markeras i railen");
+  assert.strictEqual(current.getAttribute("aria-current"), "step", "aktivt kapitel har aria-current");
+  assert.strictEqual(current.getAttribute("href"), "?kapitel=1", "aktivt kapitel pekar på rätt kapitel");
+  assert.match(current.textContent, /Steg 1 av/, "railen visar kapitlets progress");
+
+  // Steg-navigeringen (Föregående/Nästa) får inte dubbleras in i railen.
+  assert.strictEqual(rail.querySelector("#btn-next"), null, "railen dubblerar inte stegnavigeringen");
+  assert.strictEqual(rail.querySelector("#btn-prev"), null, "railen dubblerar inte stegnavigeringen");
+});
+
+test("chapter-rail visas inte på landningsvyn (en kolumn)", () => {
+  const window = bootstrap({ extraChapters: [testChapter2] });
+  const app = appEl(window);
+  assert.strictEqual(app.querySelector(".chapter-rail"), null, "ingen rail på landningsvyn");
+  assert.notStrictEqual(app.className, "has-rail", "#app saknar has-rail på landningsvyn");
+});
+
 // ---- Bakåtnavigering bevarar tillstånd ----
 
 test("Föregående bevarar besvarad fråga (rätt alternativ kvar grönt)", () => {

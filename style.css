@@ -419,6 +419,12 @@ body {
   .mascot.is-happy { animation: none; }
 }
 
+/* Chapter-rail (Layout B) – döljs som standard, visas först ≥ 900 px.
+   Ny klass = additivt; rör inte mobilens befintliga värden. */
+.chapter-rail {
+  display: none;
+}
+
 /* ADDITIVT — påverkar bara skärmar ≥ 720 px. Mobilen oförändrad. */
 @media (min-width: 720px) {
   body {
@@ -437,4 +443,96 @@ body {
   .app-title { font-size: 1.75rem; }
   .btn       { min-height: 48px; }   /* lite större träffytor med mus */
   .nav       { gap: 1rem; }
+}
+
+/* ADDITIVT — Layout B (chapter-rail) först ≥ 900 px. Mobil + 720 px-arket orört.
+   Bara kapitelvyn (#app.has-rail) blir tvåkolumns; landningsvyn behåller en kolumn. */
+@media (min-width: 900px) {
+  #app.has-rail {
+    max-width: 1060px;
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    column-gap: 2.75rem;
+    align-items: start;
+  }
+  .has-rail .chapter-rail {
+    display: block;
+    position: sticky;
+    top: 3rem;
+    align-self: start;
+    padding-right: 2rem;
+    border-right: 1px solid #ece5da;
+  }
+  .step-main {
+    min-width: 0;                     /* tillåt att grid-spalten krymper rätt */
+  }
+  .rail-eyebrow {
+    margin: 0 0 var(--spacing-md);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  .rail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rail-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.6rem 0.75rem;
+    color: var(--color-text);
+    text-decoration: none;
+    border: 2px solid transparent;
+    border-radius: 10px;
+  }
+  .rail-link:hover,
+  .rail-link:focus-visible {
+    background: var(--color-card);
+    border-color: var(--color-border);
+  }
+  .rail-link:focus-visible {
+    outline: 2px solid var(--color-edison-orange);
+    outline-offset: 2px;
+  }
+  .rail-link--current {
+    background: var(--color-card);
+    border-color: var(--color-edison-orange);
+  }
+  .rail-kicker {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--color-edison-orange-fill);
+  }
+  .rail-title {
+    font-weight: 700;
+  }
+  .rail-progress {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+  .rail-overview {
+    display: inline-block;
+    margin-top: var(--spacing-md);
+    color: var(--color-edison-orange-fill);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .rail-overview:hover,
+  .rail-overview:focus-visible {
+    text-decoration: underline;
+  }
+  .rail-overview:focus-visible {
+    outline: 2px solid var(--color-edison-orange);
+    outline-offset: 2px;
+  }
 }
