@@ -134,6 +134,7 @@
       '</svg></div>';
 
     function renderLanding(message) {
+      appEl.className = ""; // single-column landing (no chapter-rail)
       var html =
         "<header class=\"app-header app-header--landing\">" +
           "<div>" +
@@ -283,6 +284,33 @@
       }
     }
 
+    // Desktop-only context column (Layout B). Lists chapters and marks the
+    // current one + its progress. NOT the primary step-nav (that stays in .nav).
+    // Hidden below 900px via CSS, so it never duplicates the mobile flow.
+    function chapterRailHtml() {
+      var html = "<aside class=\"chapter-rail\" aria-label=\"Kapitelöversikt\">";
+      html += "<p class=\"rail-eyebrow\">Edison Hemguide</p>";
+      html += "<nav aria-label=\"Kapitel\"><ol class=\"rail-list\">";
+      chapterIds.forEach(function (id) {
+        var ch = chapters[id];
+        var nr = chapterNumberFromId(id);
+        var isCurrent = id === requestedChapterId;
+        var cls = "rail-link" + (isCurrent ? " rail-link--current" : "");
+        var ariaCurrent = isCurrent ? " aria-current=\"step\"" : "";
+        html += "<li><a class=\"" + cls + "\" href=\"" + chapterHref(id) + "\"" + ariaCurrent + ">" +
+          "<span class=\"rail-kicker\">" + (nr === null ? "Kapitel" : "Kapitel " + nr) + "</span>" +
+          "<span class=\"rail-title\">" + escapeHtml(ch.titel || id) + "</span>";
+        if (isCurrent) {
+          html += "<span class=\"rail-progress\">Steg " + (current + 1) + " av " + totalSteps + "</span>";
+        }
+        html += "</a></li>";
+      });
+      html += "</ol></nav>";
+      html += "<a class=\"rail-overview\" href=\"" + landingHref() + "\">Alla kapitel</a>";
+      html += "</aside>";
+      return html;
+    }
+
     function render(focus) {
       var step = steps[current];
       var st = state[current];
@@ -319,21 +347,25 @@
         navHtml += "<p class=\"chapter-finish\"><a href=\"" + landingHref() + "\">Till kapitelöversikt</a></p>";
       }
 
+      appEl.className = "has-rail"; // enables two-column desktop layout (≥900px)
       appEl.innerHTML =
-        "<header class=\"app-header\">" +
-          "<div>" +
-            "<h1 class=\"app-title\">" + escapeHtml(chapter.titel) + "</h1>" +
-            "<p class=\"progress\">Steg " + (current + 1) + " av " + totalSteps + "</p>" +
-          "</div>" +
-          MASCOT_HTML +
-        "</header>" +
-        "<div class=\"progressbar\" aria-hidden=\"true\"><span style=\"width:" + pct + "%\"></span></div>" +
-        "<article class=\"" + cardClass + "\" id=\"step-card\" tabindex=\"-1\">" +
-          labelHtml +
-          renderStepContent(step, st) +
-        "</article>" +
-        hintHtml +
-        navHtml;
+        chapterRailHtml() +
+        "<div class=\"step-main\">" +
+          "<header class=\"app-header\">" +
+            "<div>" +
+              "<h1 class=\"app-title\">" + escapeHtml(chapter.titel) + "</h1>" +
+              "<p class=\"progress\">Steg " + (current + 1) + " av " + totalSteps + "</p>" +
+            "</div>" +
+            MASCOT_HTML +
+          "</header>" +
+          "<div class=\"progressbar\" aria-hidden=\"true\"><span style=\"width:" + pct + "%\"></span></div>" +
+          "<article class=\"" + cardClass + "\" id=\"step-card\" tabindex=\"-1\">" +
+            labelHtml +
+            renderStepContent(step, st) +
+          "</article>" +
+          hintHtml +
+          navHtml +
+        "</div>";
 
       // Trigger mascot nudge on correct answer
       if (pendingMascotNudge) {
