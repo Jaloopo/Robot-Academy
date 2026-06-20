@@ -16,6 +16,9 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
   mergades via PR #18).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
   redan laddade lokala script och fungerar på `file://`.
+- Stegtypsarkitekturen är nu beslutad i `docs/architecture.md`: ett fullständigt
+  plugin-kontrakt för state, persistence, progress, gating, HTML och events – inte bara
+  ett renderar-registry. Ingen produktkod är ännu refaktorerad.
 
 ## Roller (vem gör vad)
 - **Samordnare / planerare (stark resonemangsmodell):** äger denna roadmap, granskar
@@ -137,7 +140,7 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   (`renderImage`: `src` lokal sökväg + `alt`, escapad; texten bär fortfarande betydelsen).
   Validatorn kräver lokal `src` (ingen http/CDN) + `alt`. Första bilden: `assets/edison-knappar.svg`
   (original-SVG: rund/triangel/fyrkant) i kapitel 1. CSS `.step-image` (responsiv). Mall +
-  CLAUDE.md/.cursorrules uppdaterade. Dedikerat test (`img.step-image`, src/alt, ej blockerande).
+  gemensamma regler i `AGENTS.md` uppdaterade. Dedikerat test (`img.step-image`, src/alt, ej blockerande).
   **OBS upphovsrätt:** lyft ALDRIG bilder/skärmdumpar ur EdBlocks-PDF:en eller appen (Microbrics
   IP) – egna SVG/foton, lokalt i `assets/`. Fler bild-kandidater finns (block-snäpp i kap 2,
   robotsiluetter i kap 3) – samma stegtyp, bara nya assets.
@@ -180,6 +183,39 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
 - **GitHub Pages-verifiering (✓ KLAR 2026-06-20):** Pages är på och publicerar från `main`/root
   (bekräftat av ägaren) – sajten är live. `index.html` var redan filnivå-ren (relativa `./`-
   sökvägar, ingen CDN/fetch).
+
+## Vision / epos: interaktivt CS-curriculum (utforskande – EJ schemalagt)
+Kartlagt och anonymiserat 2026-06-20. Detta är **riktning, inte beslutade innehållssteg**.
+Full idébank och källor finns i `docs/reference/cs-curriculum.md`; tekniskt kontrakt och
+beroende-policy finns i `docs/architecture.md`.
+
+- **Idé:** utveckla guiden från läs-och-svara till korta interaktiva moduler där barnet
+  gissar, kör, ändrar och ser ett programflöde – och sedan provar konceptet med Edison.
+  Webben lär konceptet; roboten är labbet.
+- **Pedagogik:** använd Use–Modify–Create och PRIMM (Predict–Run–Investigate–Modify–Make).
+  Visa högnivåmönstret och designa mot kända missuppfattningar, särskilt loop-i-loop
+  kontra två loopar efter varandra.
+- **Minsta första spik:** "Sekvens vs loop" – tre staplade kör-instruktioner jämförs med
+  en loop som upprepar samma instruktion tre gånger. Samma resultat, olika uttryck.
+- **Datagräns:** kapitelfiler förblir deklarativa och mobil-redigerbara; ingen kod, HTML
+  eller simulatorlogik i `window.KAPITEL`.
+- **Arkitekturbeslut (✓ FAS 1 KLAR):** fullständigt stegtyps-plugin-kontrakt är spikat i
+  `docs/architecture.md`. Kärnan äger routing/storage/nav, pluginet äger hela steglivscykeln
+  och Node-validatorn äger innehållsschemat. Namespace byggs additivt på
+  `window.EdisonApp`; klassiska script laddas registry → plugins → kapiteldata → app.
+- **Fas 2 – nästa exakta steg:** beteendebevarande registry-refaktor av dagens fyra typer.
+  Behåll HTML-sträng → `innerHTML` → bind, befintlig datamodell, storage-envelope, markup,
+  CSS och UI-beteende. Ingen interaktiv spik i samma pass.
+- **Fas 3:** bygg endast "Sekvens vs loop" mot det verifierade kontraktet, med textbärande
+  betydelse, tangentbord, cleanup, persistence och reduced-motion-stöd.
+- **Fas 4:** användartesta och utvärdera innan fler interaktiva stegtyper eller ett rikare
+  programformat planeras. Återöppna beroende-/buildfrågan bara vid ett konkret hinder.
+
+Fas 2 är klar endast när kärnan saknar konkreta stegtypvillkor i state, restore,
+serialize, progress, gating, rendering och event-bindning; namespace är additivt;
+validatorn är grön; minst dagens **16 tester** är gröna; och en manuell `file://`-
+genomklick i Chrome bekräftar oförändrat beteende. Sajten förblir fri från runtime-
+beroenden, nätverksanrop, ES-moduler och buildsteg.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, aldrig direkt på `main`. Committa, pusha, öppna/stäng PR eller

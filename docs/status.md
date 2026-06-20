@@ -5,7 +5,7 @@ Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs
 granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
 lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-20 · Kapitel 5 + agentharness mergade till main via PR #18
+Senast uppdaterad: 2026-06-20 · Arkitektur-/kontraktssession genomförd; nästa steg är en beteendebevarande plugin-refaktor
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -30,6 +30,10 @@ Senast uppdaterad: 2026-06-20 · Kapitel 5 + agentharness mergade till main via 
   framstegsstapel ligger på `main`.
 - `js/app.js` väljer kapitel via `?kapitel=N`; utan query visas en landningsvy som listar
   alla laddade kapitel. På `main` listas kapitel 1–5 och kapitel 5 är sist.
+- **Arkitektur-/kontraktet är dokumenterat men inte implementerat:**
+  `docs/architecture.md` definierar ett stegtyps-plugin-kontrakt och en fasad migration;
+  `docs/reference/cs-curriculum.md` beskriver den anonymiserade, utforskande riktningen
+  för en senare interaktiv "Sekvens vs loop"-spik.
 - Committat testverktyg: `npm test` kör en jsdom-genomklick (`test/clickthrough.test.js`,
   **16 tester**). `jsdom` är DEV-beroende; `node_modules/` är git-ignorerat. Sajten själv är
   fortsatt beroendefri.
@@ -64,12 +68,32 @@ Senast uppdaterad: 2026-06-20 · Kapitel 5 + agentharness mergade till main via 
   Badges, fokus, touch-mål, responsivitet, "text bär betydelse" verifierade som AA-OK. Datamodellen
   orörd; sajten beroendefri. `npm test` har nu **16 tester**.
 
+## Denna arkitektur-/kontraktssession gjorde
+- Portade och omarbetade `docs/architecture.md` från källbranchens skiss efter dagens
+  faktiska `js/app.js`. Kontraktet täcker `createState`, `restore`, `serialize`,
+  `hasProgress`, `isDone`, `render` och `bind`, så att state, persistence, progress,
+  gating, rendering och events kan flyttas från kärnans typvillkor.
+- Beslutade additiv bootstrap för `window.EdisonApp`, registry → plugins → kapiteldata →
+  app som file://-säker scriptordning, målfilstruktur, felhantering för okänd/dubbel
+  registrering och uppdelat a11y-/reduced-motion-ansvar.
+- Skrev en fasad migration: kontrakt → beteendebevarande registry-refaktor → en enda
+  "Sekvens vs loop"-spik → utvärdering. Första refaktorn behåller HTML-sträng →
+  `innerHTML` → bind och ändrar ingen produktfunktion.
+- Portade `docs/reference/cs-curriculum.md` och generaliserade den tidigare personliga
+  barnprofilen till en anonym målgrupp. Inga boktitlar, exakta räkneexempel eller
+  förmågepåståenden om ett enskilt barn finns kvar.
+- Portade vision/epos selektivt till `docs/roadmap.md` på aktuell `main` och behöll
+  kapitel 5, AGENTS.md-processen, 16 tester och varningen om branch protection.
+- Berörda filer i detta pass: `docs/architecture.md`, `docs/reference/cs-curriculum.md`,
+  `docs/roadmap.md` och `docs/status.md`. Inga produkt-, test-, content- eller package-
+  filer är rörda.
+
 ## Vad detta processpass gjorde
 - Gjorde `AGENTS.md` till gemensam källa för agentregler.
 - Gjorde `CLAUDE.md` till en liten `@AGENTS.md`-wrapper och `.cursorrules` till en
   kompatibilitetshänvisning, i stället för tre kopior av samma regler.
-- Rättade README/handoff, tog bort direkt-push till `main` som standard och gjorde
-  modellrollerna verktygsneutrala.
+- Anpassade README/handoff till branch-baserat, lokalt arbete och gjorde modellrollerna
+  verktygsneutrala.
 - Rättade Kapitel 5:s stoppknapp från rund programknapp till fyrkantig stoppknapp och lade
   till ett regressionstest för faktainvarianten. Totalt 16 tester.
 
@@ -133,8 +157,8 @@ Senast uppdaterad: 2026-06-20 · Kapitel 5 + agentharness mergade till main via 
     + alt + bildtext). Kap 1 har nu ett steg till.
   - `style.css`: `.step-image` (responsiv, `max-width:320px`, centrerad).
   - `tools/validate-content.js`: `image` tillagd i giltiga typer; kräver lokal `src` (felar på
-    http/CDN) + `alt` (sträng; varnar vid tom alt). `content/_mall.js` + `CLAUDE.md`/`.cursorrules`
-    (datamodell + rendering) uppdaterade och i synk.
+    http/CDN) + `alt` (sträng; varnar vid tom alt). `content/_mall.js` uppdaterad; datamodell-
+    och renderingsregler är senare centraliserade i `AGENTS.md`.
   - **Test:** nytt dedikerat test ("bild-steg renderar lokal bild med alt-text och låser inte
     Nästa") – totalt **15 tester**, alla gröna. Det datadrivna genomklicket täcker dessutom det nya
     steget automatiskt (kap 1).
@@ -144,6 +168,22 @@ Senast uppdaterad: 2026-06-20 · Kapitel 5 + agentharness mergade till main via 
   `file://`-koll i Chrome – jsdom laddar inte bilder, testet kollar bara attributen.
 
 ## Beslut (varför)
+- **Ett helt stegtypsplugin, inte bara ett renderar-registry.** Dagens typkunskap finns i
+  state-fabrik, restore, serialize, progress, gating, rendering och event-bindning. Varje
+  plugin ska därför äga hela livscykeln via `createState`, `restore`, `serialize`,
+  `hasProgress`, `isDone`, `render` och `bind`; kärnan äger bara appflöde och envelope.
+- **Additivt `window.EdisonApp`.** `root.EdisonApp = {...}` måste ersättas i nästa refaktor,
+  annars skrivs tidigare registrerade plugins över. Klassiska scripts laddas i ordningen
+  namespace/registry → plugins → kapiteldata → app, utan ES-moduler eller buildsteg.
+- **HTML-sträng → `innerHTML` → bind behålls i första refaktorn.** Det är dagens bevisade
+  file://-säkra mönster. Ett DOM-paradigmskifte skulle öka risken utan att lösa kontraktets
+  egentliga problem.
+- **Okänd/dubbel typ är ett fel, aldrig en tyst fallback.** Validatorn stoppar okända typer i
+  CI; browsern visar en låst, textbärande felvy om de ändå når dit. Dubbel registrering ska
+  kasta direkt. Det förhindrar att trasig data blir automatiskt klar eller kan sparas som rätt.
+- **Curriculumriktningen är bred målgrupp, inte en profil av ett enskilt barn.**
+  Fördjupning ska vara valfri och kärnflödet fungera med text, tydlig visuell förändring och
+  vuxensamtal oavsett läsflyt eller räknevana.
 - **`image` med lokal `src` + `alt`, inte rå inline-SVG i datan.** Håller datamodellen ren och
   mobil-redigerbar (bara strängar), undviker att injicera rå HTML, och validatorn kan tvinga
   "lokal sökväg, ingen CDN". SVG:n bor som egen fil i `assets/`.
@@ -198,72 +238,98 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
   (I denna Cloud-miljö installeras det via setup-skript; kör annars `npm install`.)
 - `node_modules/` saknas i en färsk Cloud-container → `npm test` failar då falskt på
   "Cannot find module 'jsdom'". Kör **`npm install` först** (se nedan).
-- GitHub-skrivåtgärderna från processpasset återstår: PR #2 och #4 är fortfarande öppna,
-  eftersom denna tråd saknade fungerande autentiserad browser/GitHub-connector. Ingen osäker
-  API-genväg användes.
+- Branchstädning klar 2026-06-20: de gamla brancherna för PR #2, #4 och mergade #18 är
+  raderade; #2/#4 stängdes utan merge och inga öppna PR:er återstår.
+- Källbranchens arkitekturskiss (`origin/claude/chapter-5-loops-merge-75czrp`, `e0a9aee`)
+  är selektivt portad. Merg eller cherry-picka den fortfarande aldrig i sin helhet: dess
+  roadmap har gamla processregler och pre-merge-status.
 
 ## Owner-steg
 - **Branch protection måste åter verifieras.** GitHubs publika API rapporterade 2026-06-20
   `main` som `protected: false` och inga aktiva rulesets. Kontrollera att checken `test`
-  verkligen är required innan PR #18 mergas.
+  verkligen är required innan nästa merge till `main`.
 - **GitHub Pages är på och publicerar** (bekräftat av ägaren) – sajten är live från `main`/root.
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
-## Nästa steg (exakt ETT) – FÖRSLAG (ej hugget i sten)
-Loop-passet (kap 5) är nu klart, så de fem kärnkapitlen (lära känna → första program → robotar i
-världen → villkor → loop) finns. Förslag på nästa pass, välj ETT:
-- **Kapitel 6 "Felsökning / hitta buggar"** (debugging) – när programmet inte gör som man tänkt:
-  läs blocken vänster→höger, prova en bit i taget, ändra och testa igen. Naturlig fortsättning efter
-  loopar. Eget kapitel, befintliga stegtyper, inga bilder.
-- **ELLER en referens-/översiktssida** som samlar begreppen (sekvens, villkor, loop) – kan kräva
-  liten renderar-/CSS-fundering, så utred först.
-- **ELLER fler bilder** (nya assets till befintlig `image`-typ): block-snäpp i kap 2, robotsiluetter
-  i kap 3, en loop-illustration i kap 5 (enklare modell mot spec).
-Form: eget kapitel med BEFINTLIGA stegtyper, inga bilder, ingen logik-/datamodell-/CSS-ändring.
-Utgå från `content/_mall.js` + ny `<script>`-rad i `index.html` FÖRE `js/app.js`. Hitta ALDRIG på
-Edison-fakta; flagga app-specifika blocknamn "att verifiera" i ett vuxen-steg.
-Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan computerUse köra den.
+## Nästa steg (exakt ETT) – BESLUTAT
+**Beteendebevarande stegtyps-plugin-refaktor.** Implementera endast fas 2 i
+`docs/architecture.md`: flytta dagens fyra stegtyper till registry + klassiska pluginfiler
+utan att ändra data, markup, CSS, copy eller användarflöde. Detta är medvetet inte samma
+pass som den första interaktiva "Sekvens vs loop"-spiken.
+
+**Icke-mål:** ingen ny stegtyp, ingen ändring av `content/`, ingen CSS-redesign, ingen
+ändring av storage-envelope eller kapitelrouting, inga ES-moduler, ingen bundler och inga
+runtime-beroenden.
 
 ## Modellrekommendation för nästa steg
-- Nytt kapitel/modul eller innehåll → **stark resonemangsmodell** (pedagogik + Edison-fakta).
-- Fler bilder till befintlig `image`-typ → **enklare/snabbare modell** mot spec.
-- Referenssida med renderar-/CSS-logik → **stark resonemangsmodell** (avvägning).
+- Plugin-refaktorn → **stark resonemangsmodell** (beteendeparitet, persistence, gating,
+  focus/a11y och file://-scriptordning måste hållas samtidigt).
 
 ## Copy-paste för nästa session
 ```text
-Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Academy, main).
-Läs FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
-Kör npm install EN gång först (färsk container saknar node_modules → annars failar npm test
-falskt på "Cannot find module 'jsdom'"). Ange kort nuläge + planerad åtgärd innan du kör verktyg.
+Du tar över fas 2: den beteendebevarande stegtyps-plugin-refaktorn för "Edison Hemguide"
+(repo Jaloopo/Robot-Academy). Implementera EXAKT ett roadmap-steg; bygg inte den interaktiva
+"Sekvens vs loop"-spiken ännu.
 
-LÄGE: Kap 1–5 finns på main (lära känna → första program → robotar i världen → villkor → loop).
-Kap 5 "Loopar – göra om och om igen" mergades via PR #18 (content/kapitel-5.js, 12 steg).
+LÄS FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md och
+docs/architecture.md. Kontrollera git status, aktuell branch och senaste main. Ange kort
+nuläge, exakt filscope och nästa åtgärd innan du kör fler verktyg. Arbeta på branch och håll
+allt lokalt; committa, pusha eller öppna PR bara på uttrycklig begäran.
 
-UPPGIFT (exakt ETT steg): Välj ett från "Nästa steg" i docs/status.md – förslag: Kapitel 6
-"Felsökning / hitta buggar" (debugging: läs blocken vänster→höger, prova en bit i taget, ändra
-och testa igen) som INNEHÅLL. Alternativ: referens-/översiktssida eller fler bilder. Bekräfta valet
-kort innan du bygger.
-- Nytt content/kapitel-N.js: utgå från content/_mall.js. Befintliga stegtyper (text, vuxen-tips,
-  question_single_choice, ordering). INGEN renderar-/datamodell-/CSS-ändring, inga bilder.
-- Lägg <script src="./content/kapitel-N.js"></script> i index.html FÖRE js/app.js. Nya sista
-  kapitlet (numerisk sortering): föregående kapitel länkar då till det nya, och det nya till "Till
-  kapitelöversikt". Verifiera kedjan i genomklicket.
-- Pedagogik: tilltala barnet direkt, max 2-3 meningar/steg, adult-steg utan "Vuxen:"-prefix,
-  minst en flervalsfråga + en ordningsfråga. Exakta EdBlocks-blocknamn varierar per version →
-  flagga "att verifiera" i ett vuxen-steg (hitta inte på).
+MÅL: Flytta dagens fyra typer (`text`, `image`, `question_single_choice`, `ordering`) från
+typvillkor i `js/app.js` till ett additivt `window.EdisonApp`-registry. Behåll dagens
+HTML-sträng → innerHTML → bind-mönster, nuvarande UI-markup/klassnamn/copy, routing, storage-
+envelope, reset, feedback, fokus, chapter-rail och file://-beteende.
 
-HÅRDA KRAV: endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages.
-All UI-text på svenska. Rör inte datamodellen (window.KAPITEL / correctAnswer). Inga CDN/fetch.
+KONTRAKT (se docs/architecture.md för exakt semantik): varje plugin implementerar
+`createState`, `restore`, `serialize`, `hasProgress`, `isDone`, `render` och `bind`.
+Kärnan känner efter refaktorn inte till konkreta typnamn i state, restore, serialize,
+progress, gating, rendering eller event-bindning.
 
-VERKTYG: npm install (en gång) → npm run validate (schema, bör säga 6 kapitelfiler om du la till
-ett kapitel) → npm test (genomklickar alla kapitel automatiskt – nytt kapitel kräver ingen
-teständring) → node --check js/app.js. CI (Node 22) kör node --check + validate + test – håll
-den grön och verifiera branch protection i GitHub; anta inte att checken är required.
+EXAKT FILSCOPE:
+- Skapa: js/edison-app.js
+- Skapa: js/step-types/text.js
+- Skapa: js/step-types/image.js
+- Skapa: js/step-types/question-single-choice.js
+- Skapa: js/step-types/ordering.js
+- Ändra: js/app.js
+- Ändra: index.html (scriptordning: registry → plugins → kapiteldata → app)
+- Ändra: tools/validate-content.js (ett separat Node-registry eller motsvarande
+  typspecifik validering; ladda inte browser-DOM-kod i Node)
+- Ändra: test/clickthrough.test.js (ladda script i produktionsordning och täck registry-
+  kontraktet, okänd typ och dubbelregistrering)
+- Ändra vid avslut: docs/roadmap.md och docs/status.md
+- RÖR INTE: style.css, content/*, package.json, package-lock.json eller nya beroenden.
 
-VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome (i Cloud: computerUse)
-– landning listar nya kapitlet, gating, fel→rätt-feedback, ordningsfråga, avslutslänk "Till kapitelöversikt".
+VIKTIGA DETALJER:
+- Bootstrap ska vara additiv: `window.EdisonApp = window.EdisonApp || {}`. Ersätt inte
+  namespaceobjektet när appen exponerar testbara hjälpfunktioner.
+- Vanliga scriptfiler, inga `type="module"`, `import`, fetch, async eller buildsteg.
+- Dubbelregistrerad typ kastar synkront. Okänd eller trasig typ ger en svensk, textbärande,
+  låst felvy; den får inte räknas som klar eller sparas som lyckad.
+- `bind` returnerar vid behov cleanup som kärnan kör före omrendering. Plugins äger sin
+  semantik, events, typspecifika fokus och reduced-motion; kärnan äger routing, storage-
+  envelope, skal/nav och säkert fokusfallback.
+- Behåll dagens fördelning: localStorage degraderar tyst på file://; text och bild är
+  omedelbart klara; flerval och ordning gatear Nästa enligt samma regler som idag.
 
-AVSLUTA enligt handoff om du faktiskt genomförde ett roadmap-steg: uppdatera docs/status.md och
-docs/roadmap.md. Håll ändringar lokala; committa, pusha eller öppna PR endast på uttrycklig begäran.
-Skriv bara en ny copy-paste när en verklig handoff behövs. Modell: stark resonemangsmodell.
+ARBETSSÄTT: Skriv eller uppdatera relevanta tester före respektive kodflytt. Gör små,
+reversibla delsteg (namespace/registry → plugins → tunn kärna → validator/testharness) och
+kör testsviten efter varje meningsfullt delsteg. Ingen big-bang och ingen produktändring.
+
+BINÄRA ACCEPTANSKRITERIER:
+- `rg`/kodgranskning bekräftar att appkärnan saknar konkreta stegtypvillkor i de sju
+  livscykelområdena ovan.
+- Befintlig datamodell och sparad kapitel-envelope fungerar; lagrade framsteg återställs,
+  reset fungerar och text-/bildsteg är fortfarande omedelbart klara.
+- Befintliga 16 tester är gröna, plus kontraktstester för registry, okänd typ och dubbel
+  registrering. `npm run validate`, `npm test` och `node --check` för varje ändrad/ny JS-fil
+  är gröna.
+- Manuell Chrome-genomklick via file://: landning, text, bild, fel→rätt, ordering, bakåt,
+  omladdad progress, reset och avslutslänk. Inga konsolfel utöver dokumenterad file://-varning
+  och inga nätverksanrop.
+- Ingen CSS-, copy- eller layoutförändring och inga nya runtime-beroenden.
+
+Dokumentera resultat, avvikelser och nästa exakta steg i roadmap/status. Håll ändringarna lokala.
+Modell: stark resonemangsmodell.
 ```
