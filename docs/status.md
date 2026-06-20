@@ -316,6 +316,13 @@ VIKTIGA DETALJER:
 ARBETSSÄTT: Skriv eller uppdatera relevanta tester före respektive kodflytt. Gör små,
 reversibla delsteg (namespace/registry → plugins → tunn kärna → validator/testharness) och
 kör testsviten efter varje meningsfullt delsteg. Ingen big-bang och ingen produktändring.
+Subagenter är ok för avgränsad plan/research, implementation och review, men kör inte
+parallell implementation på samma branch/filer. Om koordinatorn körs på GPT-5.5 Extra High
+eller annan dyr toppmodell: låt inte alla subagenter ärva den slentrianmässigt. Använd Opus
+4.8 High / high-thinking Opus-klass för UI/UX, ny interaktion, a11y och visuell produktkänsla;
+använd en stark standard-/high-modell som mellannivå för integrationsarbete och medelsvår
+debug; använd Composer 2.5 (inte Fast) för implementerare som följer tydlig spec; använd
+enklare/snabbare modell för readonly research, sökning, testkörning och enkel QA.
 
 BINÄRA ACCEPTANSKRITERIER:
 - `rg`/kodgranskning bekräftar att appkärnan saknar konkreta stegtypvillkor i de sju
@@ -331,5 +338,6 @@ BINÄRA ACCEPTANSKRITERIER:
 - Ingen CSS-, copy- eller layoutförändring och inga nya runtime-beroenden.
 
 Dokumentera resultat, avvikelser och nästa exakta steg i roadmap/status. Håll ändringarna lokala.
-Modell: stark resonemangsmodell.
+Modell: stark resonemangsmodell för koordinatorn; välj subagentmodell efter uppgift enligt
+AGENTS.md och docs/roadmap.md, inte automatiskt dyraste möjliga.
 ```
