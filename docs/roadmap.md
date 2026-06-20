@@ -30,12 +30,32 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
 - En branch + en PR i taget. Aldrig parallellt arbete på samma filer.
 
 ## Modellval (tumregel)
-- **Stark resonemangsmodell** när uppgiften kräver omdöme/avvägning/säkerhet: samordning, granskning,
-  renderings-/routing-logik, datamodell, innehåll med pedagogik och Edison-faktakänsla,
-  a11y-bedömning.
-- **Enklare/snabb modell** när uppgiften är "följ specen exakt": CSS från mockup,
-  mekanisk refaktor, lägga till `content/kapitel-N.js` + en `<script>`-rad enligt mall,
-  textjusteringar.
+- **Stark koordinator** när uppgiften är oklar, flerstegsbetonad eller behöver samordning
+  mellan plan, implementation och review. GPT-5.5 Extra High (om tillgänglig i Cursor) kan
+  vara rimlig här, men ska inte automatiskt användas för varje subagent eller delsteg.
+- **Opus 4.8 High / high-thinking Opus-klass** vid ny UI/UX, ny interaktion, visuell
+  produktkänsla, a11y-bedömning, designbeslut, pedagogiskt innehåll med omdöme och review
+  av layout-/renderingsrisk.
+- **Annan stark resonemangsmodell** när uppgiften kräver omdöme/avvägning/säkerhet:
+  renderings-/routing-logik, datamodell, komplex debug, persistence/gating/fokus och
+  Edison-faktakänsla.
+- **Enklare/snabb modell** när uppgiften är "följ specen exakt": mekanisk refaktor, lägga
+  till `content/kapitel-N.js` + en `<script>`-rad enligt mall, textjusteringar, enkla
+  assets eller tydligt avgränsad test-/validatorändring.
+- **Subagenter:** ange modell medvetet när verktyget tillåter det. Låt subagenten ärva en
+  dyr koordinatormodell bara när subagenten också behöver den resonemangsnivån; välj annars
+  en billigare/snabbare modell för smal implementation, sökning, testkörning eller QA.
+- **Praktisk rollmatris för Cursor-subagenter:**
+  - Koordinator/orchestrator: GPT-5.5 Extra High eller motsvarande toppmodell endast för
+    oklara, riskfyllda eller flerstegsbetonade pass.
+  - UI/UX/a11y/design-review: Opus 4.8 High / high-thinking Opus-klass.
+  - Mellannivå: stark standard-/high-modell (t.ex. GPT-5.x High om den finns) för
+    integrationsarbete, medelsvår debug och review som är för riskfyllt för Composer men
+    inte kräver Extra High.
+  - Implementerare från tydlig spec: Composer 2.5 (inte Fast) som standardval för kostnad/
+    kvalitet, om uppgiften inte kräver starkare resonemang.
+  - Readonly research, sökning, testkörning och enkel QA: billigare/snabbare modell räcker
+    normalt; eskalera bara vid svår bedömning eller blockers.
 - Kort: *bedömning → stark modell; mekanik → enklare/snabbare modell.*
 
 ## Roadmap (ordnad)

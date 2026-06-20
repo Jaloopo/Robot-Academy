@@ -8,11 +8,39 @@ tillägg i respektive wrapper – duplicera inte dessa regler.
 ## Arbetsdelning (uppgiftstyp)
 - Använd en stark resonemangsmodell för planering, dokumentation, datamodell, pedagogiskt
   innehåll, UI/UX, tillgänglighet och klurig renderingslogik (t.ex. ordering/feedback).
+- Vid ny UI/UX, ny interaktion, visuell produktkänsla eller a11y-känsliga beslut: använd
+  i första hand Opus 4.8 High eller motsvarande stark high-thinking-modell. För övergripande
+  samordning av oklara/flerstegsuppgifter kan en stark GPT-koordinator (t.ex. GPT-5.5 Extra
+  High om tillgänglig) vara rimlig, men använd den inte slentrianmässigt för alla delsteg.
 - En snabbare modell passar rutinmässig, väldefinierad implementation utifrån en tydlig spec.
 - Codex, Claude Code och Cursor får alla arbeta i projektet; uppgiftens risk och komplexitet
   styr modellvalet, inte ett hårdkodat verktygsnamn.
 - En branch + en PR i taget. Aldrig parallellt arbete på samma filer.
   Namnge alltid berörda filer och sammanfatta diffen; visa hela filen om användaren ber om det.
+
+## Subagenter & modellkostnad
+- En koordinator får använda subagenter för tydligt avgränsad research/planering,
+  implementation, review och verifiering. Ge varje subagent exakt scope, filgränser,
+  acceptanskriterier och förväntad återrapport.
+- Undvik parallell implementation på samma branch eller samma filer. Parallellism är främst
+  för readonly-research, review, QA eller isolerade experiment.
+- Anta inte att subagenter automatiskt väljer billigaste rimliga modell. Om verktyget låter
+  subagenten ärva koordinatorns modell kan en dyr Extra High-session göra enkla delsteg
+  onödigt dyra. Ange därför modell medvetet när uppgiften är mekanisk.
+- Lämna modellvalet starkt när subagenten ska bedöma UI/UX, a11y, arkitektur, datamodell,
+  komplex debug eller slutreview. Välj enklare/snabbare modell för smala, välbeskrivna
+  kodflyttar, textändringar, testkörning och rutinmässig kapitel-/asset-implementation.
+- Praktisk subagentmatris:
+  - **Koordinator:** GPT-5.5 Extra High eller annan toppmodell bara när uppgiften är oklar,
+    riskfylld eller flerstegsbetonad.
+  - **UI/UX/a11y/design-review:** Opus 4.8 High / high-thinking Opus-klass.
+  - **Mellannivå:** använd en stark standard-/high-modell (t.ex. GPT-5.x High om den finns)
+    för integrationsarbete, medelsvår debug och review som är för riskfyllt för Composer
+    men inte kräver Extra High.
+  - **Implementerare för tydlig spec:** Composer 2.5 (inte Fast) eller motsvarande billigare
+    kodmodell; håll scope till få filer och tydliga acceptanskriterier.
+  - **Readonly research, sökning, testkörning, enkel QA:** enklare/snabbare modell räcker
+    normalt; använd inte Extra High om inte resultatet kräver svår bedömning.
 
 ## Sessioner & handoff
 - Källor till sanning: durabla regler i denna fil; **levande tillstånd i `docs/status.md`**;
