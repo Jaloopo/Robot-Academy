@@ -68,6 +68,30 @@ Kärnan får inte innehålla `switch`, `if` eller selektorer som nämner en konk
 Ett plugin känner inte till routing, kapitel-listor, storage-nycklar eller
 landningsvyn. Det får bara begära en omrendering genom det avgränsade context-API:t.
 
+### Framtida domänlogik
+
+En framtida mini-runner, tidsregel eller sensorsimulering är inte en del av appkärnan
+och inte heller en ny väg in i `window.KAPITEL`. När en aktivitet behöver sådan logik
+ska den ligga i en liten, ren domänmodul med deklarativ indata och JSON-säker utdata.
+Den får inte nå DOM, `localStorage`, `window`, timers eller events. Stegpluginet är då
+den tunna adaptern mellan domänmodulen och stegets state, rendering, events och cleanup.
+
+Fas 2 skapar ingen generell domän-API eller tom mappstruktur för detta; ett konkret
+behov ska först motivera den. Det håller kärnan fri från aktivitetssemantik och
+förhindrar kod-i-data även när en aktivitet senare blir mer avancerad.
+
+### Frivilligt WebUSB-stöd
+
+WebUSB är I/O, inte domänlogik. Om det senare behövs ska en separat hårdvaruadapter äga
+feature-detection, uttryckligt användarinitiativ för anslutning, behörighet, session och
+frånkoppling. Ett stegplugin får bara använda en liten, då uttryckligen införd capability
+från contextet; det får aldrig anropa `navigator.usb` direkt. Kärnan får injicera den
+valfria capabilityn men får inte låta en lyckad anslutning styra pedagogisk gating.
+
+Aktiviteten måste alltså fungera utan hårdvara, på mobil och när WebUSB saknas. Riktigt
+robotflöde verifieras manuellt i en Chromium-webbläsare med roboten ansluten; jsdom kan
+endast testa adapterns ersättbara gränssnitt och den säkra otillgänglighetsvägen.
+
 ### Node-validatorn äger
 
 - den publicerbara innehållsformen för varje `type`;
@@ -131,7 +155,8 @@ Alla sju metoder är obligatoriska. Det ger ett enhetligt kontrakt även för en
   en opålitlig JSON-post. Saknade eller ogiltiga fält faller tillbaka säkert; metoden
   muterar inte kapiteldata eller den inlästa posten.
 - `serialize(step, state, ctx) -> savedRecord` returnerar en ny, JSON-säker post utan
-  DOM-noder, funktioner eller cirkulära referenser. Kärnan äger envelope och version.
+  DOM-noder, funktioner, timer-id:n eller cirkulära referenser. Kärnan äger envelope
+  och version; pluginet äger vid behov en liten egen postversion och dess säkra fallback.
 - `hasProgress(step, savedRecord, ctx) -> boolean` avgör om posten ska ge statusen
   Påbörjat och om kapitlet har något att nollställa. Metoden arbetar på pluginets
   serialiserade form, så kärnan kan använda samma regel för lagrat och levande state.
@@ -142,7 +167,9 @@ Alla sju metoder är obligatoriska. Det ger ett enhetligt kontrakt även för en
   appnav, chapter-rail eller skriva direkt i DOM.
 - `bind(container, step, state, ctx) -> cleanup | undefined` binder events efter att
   HTML-strängen satts. `container` är det aktuella stegkortet. En returnerad cleanup-
-  funktion anropas före nästa render eller när kapitelvyn lämnas.
+  funktion anropas före nästa render eller när kapitelvyn lämnas. Den ska vara
+  idempotent, inte mutera det logiska state:t och frigöra egna lyssnare, timers,
+  observers, animationsramar och andra externa resurser.
 
 `hasProgress` får inte härleda avslut från typnamn, och `isDone` får inte ersättas av
 ett gemensamt `state.done`-antagande. Plugins får gärna använda `done` internt, men det
@@ -174,6 +201,10 @@ aktuella stegkortet och faller tillbaka till kortet. `celebrate` ber kärnan akt
 maskotens befintliga, reduced-motion-säkra respons. Contextet ger inte direkt åtkomst
 till `localStorage`, kapitel-state eller globala DOM-sökningar.
 
+Kärnan kopplar varje `bind` till den aktuella rendergenerationen och invaliderar den
+innan cleanup körs. Ett sent anrop från en städad timer, observer eller callback får
+alltså inte orsaka en ny render eller skriva över nyare state.
+
 ## Livscykel och dataflöde
 
 1. Kärnan slår upp pluginet för varje steg innan kapitelvyn startar.
@@ -190,6 +221,24 @@ till `localStorage`, kapitel-state eller globala DOM-sökningar.
 Kärnan får kasta en enskild trasig sparad post och använda `createState` för det
 steget. Om hela envelopen har fel version eller steglängd behålls dagens beteende:
 hela kapitlets sparning ignoreras.
+
+Sparning innehåller bara logiskt, återställbart tillstånd. En framtida tidsaktivitet
+kan spara exempelvis fas och konfigurerad varaktighet, men aldrig ett handtag till en
+pågående timer; `restore` avgör alltid säkert och deterministiskt vilket läge som ska
+återskapas.
+
+## Framtida förgrening (utanför fas 2)
+
+Fas 2 behåller den linjära `steps`-listan och dagens numeriska Föregående/Nästa. Ett
+plugin får inte välja stegindex, skriva en route eller gömma förgreningslogik i sin
+sparade post. Om innehåll senare behöver val ska det vara en egen, deklarativ
+datamodellsmigrering: pluginet avger endast ett semantiskt utfall via ett då tillagt,
+avgränsat context-anrop, medan kärnan validerar och löser utfallet mot deklarerade
+övergångar.
+
+Den migreringen behöver samtidigt definiera historik för Föregående, persistence av
+aktuell nod och Node-validering av mål, nåbar avslutning och tillåtna cykler. Den får
+inte smygas in som ett extra fält eller specialfall i fas 2.
 
 ## Scriptordning och målfilstruktur
 
@@ -265,7 +314,8 @@ utan produktkod.
 Inför namespace/registry och fyra plugins för dagens typer. Flytta typkunskapen ur
 kärnan utan att ändra kapiteldata, storage-envelope, markup/klassnamn, text, CSS eller
 interaktion. Utöka testharnessen så filerna laddas i produktionsordning och lägg till
-kontraktstester för okänd och dubbelregistrerad typ.
+kontraktstester för registryt, okänd/dubbelregistrerad typ samt cleanup vid omrendering
+och när kapitelvyn lämnas.
 
 Binära acceptanskriterier:
 
@@ -273,7 +323,11 @@ Binära acceptanskriterier:
   gating, rendering eller event-bindning;
 - befintlig UI-markup, feedback, fokus, routing och persistence beter sig oförändrat;
 - `window.EdisonApp` byggs additivt och plugins överlever appens bootstrap;
-- validatorn är grön och `npm test` visar minst dagens **16 tester** gröna;
+- jsdom laddar exakt produktionsordningen; kontraktstester täcker obligatoriska
+  pluginmetoder, dubbelregistrering, okänd typ, låst svensk felvy och att cleanup körs
+  en gång före omrendering och när vyn lämnas;
+- validatorn är grön, fäller en okänd typ utan att ladda browser-DOM-kod och `npm test`
+  visar minst dagens **16 tester** gröna;
 - `node --check` är grön för alla nya/ändrade JS-filer;
 - manuell `file://`-genomklick i Chrome täcker landning, text, bild, fel→rätt,
   ordering, bakåtnavigering, omladdad progress, reset och avslutslänk;
@@ -300,6 +354,12 @@ endast om ett konkret, dokumenterat hinder inte går att lösa i vanilla JS.
 - **AD-5:** Innehåll är deklarativt och strängvänligt; kod-i-data är förbjudet.
 - **AD-6:** Runtime-plugin och Node-validator har separata registryer och ansvar.
 - **AD-7:** Migrationen sker fasvis och måste bevisa oförändrat beteende före ny funktion.
+- **AD-8:** Ett nytt dev-verktyg får föreslås först när ett namngivet, reproducerbart
+  verifieringsgap inte täcks av befintlig Node/jsdom-testning och manuell `file://`-
+  kontroll. Förslaget ska beskriva vilket fel det fångar, varför nuvarande kontroll inte
+  räcker, vilket lokalt/CI-kommando som kör det och hur verktyget hålls utanför
+  `index.html` och produktens runtime. Ett verktyg av bekvämlighetsskäl räcker inte;
+  visuell `file://`- och framtida WebUSB-kontroll är fortsatt manuella grinden.
 
 Den pedagogiska riktningen bakom den första interaktiva spiken finns i
 `docs/reference/cs-curriculum.md`.
