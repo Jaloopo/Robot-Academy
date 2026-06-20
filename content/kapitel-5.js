@@ -21,7 +21,7 @@ window.KAPITEL["kapitel-5"] = {
     { "role": "adult", "type": "text",
       "text": "I EdBlocks finns en hel grupp loop-block. Exakt hur de heter och ser ut kan skilja sig mellan versioner (att verifiera) – utforska blockmenyn tillsammans och prova att dra en loop runt en blockkedja." },
     { "role": "child", "type": "text",
-      "text": "En del loopar kör för alltid. Då fortsätter roboten tills du trycker på den runda knappen eller stänger av den. Det är perfekt om du vill att Edison spelar musik ända tills någon stoppar den." },
+      "text": "En del loopar kör för alltid. Då fortsätter roboten tills du trycker på stoppknappen (fyrkanten) eller stänger av den. Det är perfekt om du vill att Edison spelar musik ända tills någon stoppar den." },
     { "role": "child", "type": "question_single_choice",
       "text": "Du lägger Edisons musik i en loop som kör för alltid. När slutar roboten spela?",
       "options": ["Efter precis en sekund", "Aldrig av sig själv – först när du stoppar den", "Så fort musiken börjar"],

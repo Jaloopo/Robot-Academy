@@ -448,3 +448,18 @@ test("bild-steg renderar lokal bild med alt-text och låser inte Nästa", () => 
   assert.ok(!/^(https?:)?\/\//.test(img.getAttribute("src")), "src är lokal (ingen CDN/fetch)");
   assert.strictEqual(nextBtn(window).disabled, false, "bild-steg blockerar inte Nästa");
 });
+
+// ---- Faktainvariant: Edison-knappar ----
+
+test("kapitel 5 använder fyrkantsknappen som stoppknapp för en oändlig loop", () => {
+  const window = bootstrap({ allContent: true });
+  const foreverStep = window.KAPITEL["kapitel-5"].steps.find((step) =>
+    step.text.includes("loopar kör för alltid")
+  );
+
+  assert.ok(foreverStep, "kapitel 5 har ett steg om oändliga loopar");
+  assert.match(foreverStep.text, /stoppknappen \(fyrkanten\)/,
+    "oändlig loop stoppas med Edisons fyrkantsknapp");
+  assert.doesNotMatch(foreverStep.text, /runda knappen/,
+    "programknappen beskrivs inte som stoppknapp");
+});

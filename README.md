@@ -4,7 +4,8 @@ En liten, interaktiv webbsida på svenska som hjälper barn (ca 7+) att komma
 igång med Edison-roboten V3 och EdBlocks – tillsammans med en vuxen.
 
 ## Status
-v1 under uppbyggnad: Kapitel 1 "Lär känna Edison".
+Fem kapitel finns: lär känna Edison, första programmet, robotar i världen, sensorer och
+villkor samt loopar. Kapitel 5 ligger på den aktiva arbetsbranchen/PR #18 tills den mergas.
 
 ## Köra lokalt
 Öppna `index.html` i en webbläsare (Chrome rekommenderas). Ingen installation.
@@ -15,13 +16,15 @@ Publiceras via GitHub Pages (main) – testbar på telefon och surfplatta.
 ## Struktur
 - `index.html`, `style.css` – sida och utseende
 - `js/app.js` – render- och navigationslogik
-- `content/kapitel-1.js` – allt innehåll (`window.KAPITEL`, redigerbart även från mobilen)
+- `content/kapitel-N.js` – kapitelinnehåll (`window.KAPITEL`, redigerbart även från mobilen)
 - `docs/plan.md` – kort PRD
 - `docs/design.md` – visuell spec / designsystem
 - `docs/roadmap.md` – ordnad backlog + roller/modellval
-- `docs/status.md` – levande handoff mellan sessioner (uppdateras varje session)
-- `CLAUDE.md` / `.cursorrules` – regler för AI-assistenter (hålls i synk)
+- `docs/status.md` – levande handoff som uppdateras vid implementation och viktiga beslut
+- `AGENTS.md` – gemensamma regler för AI-assistenter
+- `CLAUDE.md` – Claude Code-wrapper som importerar `AGENTS.md`
+- `.cursorrules` – kort kompatibilitetshänvisning till `AGENTS.md`
 
 ## Bygg-arbetsflöde
-Planering, dokumentation och känsligt/komplext arbete (UI/UX, a11y): Claude Code.
-Rutinbygge utifrån spec: Cursor. Aldrig parallellt – en branch + en PR i taget.
+Välj modell efter uppgiftens risk och komplexitet. Arbeta aldrig parallellt på samma filer:
+en branch + en PR i taget, och ingen push eller merge utan uttrycklig begäran.

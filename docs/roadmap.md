@@ -1,9 +1,9 @@
 # Roadmap & samordning – Edison Hemguide
 
 Detta dokument är den **bestående riktningen** för projektet och definierar den
-**samordnande rollen**. En ny session ska läsa detta + `CLAUDE.md`, `docs/plan.md` och
-`docs/design.md` innan den börjar. Allt arbete sker mot `main` (containrar är flyktiga –
-det som inte är committat och pushat försvinner).
+**samordnande rollen**. En ny session ska läsa `AGENTS.md`, detta dokument,
+`docs/plan.md`, `docs/design.md` och `docs/status.md` innan den börjar. Arbeta på en
+branch och håll ändringar lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
 ## Var vi är (status)
 - Kapitel 1 "Lär känna Edison" är **funktionellt komplett**: text-steg, vuxen-tips,
@@ -12,27 +12,28 @@ det som inte är committat och pushat försvinner).
 - **Mobil + desktop** klart: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
   canvas, samt tunn framstegsstapel. Desktop ≥900 px har dessutom en chapter-rail
   (kontextspalt) i kapitelvyn.
-- Innehåll i `content/kapitel-1.js` och `content/kapitel-2.js` (`window.KAPITEL`).
+- Innehåll i `content/kapitel-1.js`–`content/kapitel-5.js` (`window.KAPITEL`; kapitel 5
+  ligger i PR #18 tills den mergas).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
   redan laddade lokala script och fungerar på `file://`.
 
 ## Roller (vem gör vad)
-- **Samordnare / planerare (Claude Code, Opus):** äger denna roadmap, granskar
+- **Samordnare / planerare (stark resonemangsmodell):** äger denna roadmap, granskar
   byggarbete, fattar datamodell- och a11y-beslut, skriver klurig logik (rendering,
   flerkapitels-routing, ordering/feedback), författar innehåll (pedagogik + Edison-fakta).
-- **Byggare (Cursor / enklare modell):** väldefinierad rutinimplementation utifrån spec
+- **Byggare (snabbare modell vid låg risk):** väldefinierad rutinimplementation utifrån spec
   och mockup (CSS, skelett, ett nytt kapitel enligt mall).
-- **Design (Claude Design):** mockups och A/B-beslut; levererar additiva token-/CSS-deltan.
+- **Designverktyg vid behov:** mockups och A/B-beslut; levererar additiva token-/CSS-deltan.
 - En branch + en PR i taget. Aldrig parallellt arbete på samma filer.
 
 ## Modellval (tumregel)
-- **Opus** när uppgiften kräver omdöme/avvägning/säkerhet: samordning, granskning,
+- **Stark resonemangsmodell** när uppgiften kräver omdöme/avvägning/säkerhet: samordning, granskning,
   renderings-/routing-logik, datamodell, innehåll med pedagogik och Edison-faktakänsla,
   a11y-bedömning.
 - **Enklare/snabb modell** när uppgiften är "följ specen exakt": CSS från mockup,
   mekanisk refaktor, lägga till `content/kapitel-N.js` + en `<script>`-rad enligt mall,
   textjusteringar.
-- Kort: *bedömning → Opus; mekanik → enklare.*
+- Kort: *bedömning → stark modell; mekanik → enklare/snabbare modell.*
 
 ## Roadmap (ordnad)
 0. **(✓ KLAR)** **Granska byggarbetet** (UI-grunden mobil + desktop) mot `docs/design.md`,
@@ -154,9 +155,9 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   förstärks av hover/fokus + text. Se `docs/a11y.md`. Verifierat: `node --check`, `npm run
   validate`, `npm test` (15) + `file://`-genomklick i Chrome (landning, kapitel 1, fel→rätt, bild).
 
-> **Grund-/processpass (✓ KLAR 2026-06-20):** C och D nedan är nu gjorda – inkl. owner-stegen
-> (CI är en required check; GitHub Pages är på och publicerar från `main`). Återstår främst det
-> utforskande spåret A (innehåll: nästa = kapitel 5 "Loopar").
+> **Grund-/processpass (✓ KLAR 2026-06-20):** kapitelmall, validator och en gemensam
+> agentinstruktionskedja finns. `AGENTS.md` är canonical; Claude importerar den och Cursor
+> hänvisas dit. GitHub Pages är på. Branch protection behöver åter verifieras i GitHub.
 
 ### C. Författarflöde & grundfiler (effektivitet)
 - **Kapitelmall + checklista (✓ KLAR):** `content/_mall.js` – kopiera → `content/kapitel-N.js`,
@@ -165,13 +166,15 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
 - **Schema-validator i CI (✓ KLAR):** `tools/validate-content.js` (`npm run validate`) validerar
   id↔filnamn, `role`/`type`, `text`, `options` ≥2, `correctAnswer` i range (flerval) /
   permutation (ordering). Exit 1 vid fel; körs i CI före `npm test`. Rent Node, inget sajtberoende.
-- **Skärp `CLAUDE.md`/`.cursorrules` (delvis):** validator + mall + Node 22 dokumenterade och i
-  synk. Kvar (valfritt): en kort PR-checklista.
+- **Gemensam agentharness (✓ KLAR lokalt 2026-06-20):** `AGENTS.md` är canonical,
+  `CLAUDE.md` importerar den med `@AGENTS.md`, och `.cursorrules` är endast en
+  kompatibilitetshänvisning. Regler dupliceras inte längre.
 
 ### D. Test- & CI-robusthet
-- **CI som verklig grind (✓ KLAR 2026-06-20):** Node-pinningen åtgärdad + validator tillagd, och
-  CI är nu en **required status check** för `main` (branch protection → Require status checks →
-  "test"; satt av ägaren). Grönt gatear faktiskt merge.
+- **CI som verklig grind (måste verifieras):** Node-pinningen är åtgärdad och validatorn finns.
+  GitHubs publika API rapporterade 2026-06-20 `main` som `protected: false` och inga aktiva
+  rulesets, trots tidigare ägarbekräftelse. Kontrollera Settings → Rules/Branches och gör
+  checken `test` required innan detta markeras klart.
 - **Fler tester:** schema-validering klar (se C). Ev. liten a11y-/struktur-smoke kvar. `file://`-
   genomklick förblir manuell grind för CSS/visuellt.
 - **GitHub Pages-verifiering (✓ KLAR 2026-06-20):** Pages är på och publicerar från `main`/root
@@ -179,13 +182,14 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   sökvägar, ingen CDN/fetch).
 
 ## Arbetsflöde & verifiering
-- Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
+- Utveckla på en branch, aldrig direkt på `main`. Committa, pusha, öppna/stäng PR eller
+  merga endast när användaren uttryckligen ber om det.
 - Desktop-CSS ska vara **additiv** (`@media (min-width: …)`); rör inte mobilens värden.
 - Verifiera före merge: öppna `index.html` via `file://` i Chrome (inga konsolfel, inga
   nätverksanrop), och klicka igenom kapitlet (gating, fel→rätt, ordning). `node --check js/app.js`.
-- Håll `CLAUDE.md` och `.cursorrules` i synk.
+- Håll gemensamma regler endast i `AGENTS.md`; wrappers ska inte duplicera dem.
 
-## Hårda krav (sammanfattning – se CLAUDE.md)
+## Hårda krav (sammanfattning – se AGENTS.md)
 Ren statisk HTML+CSS+vanilla JS, ingen build. Fungerar via `file://` och GitHub Pages.
 Inga ramverk/CDN/externa fonter/nätverksanrop. All UI-text på svenska. Datamodellen
 (`window.KAPITEL`, `correctAnswer`) rörs inte vid design-/UI-arbete. Hitta aldrig på

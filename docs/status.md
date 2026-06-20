@@ -1,11 +1,11 @@
 # Status & handoff – Edison Hemguide
 
-Levande arbetsdokument. **Uppdateras i slutet av varje session.** Nästa session läser detta
-först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`), gör EXAKT
-ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
-en ny copy-paste längst ned.
+Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs/design.md`,
+`docs/roadmap.md` och därefter detta dokument. Vid implementation görs ett roadmap-steg;
+granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
+lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-20 · Kap 5 "Loopar" byggt (PR #18); beslut: nästa = brygg-/befästningspass eller felsökning/referenssida; EdBlocks-lärarguide kvar som idébank
+Senast uppdaterad: 2026-06-20 · Agentharness städad och slutgranskad ovanpå PR #18
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -14,15 +14,14 @@ Senast uppdaterad: 2026-06-20 · Kap 5 "Loopar" byggt (PR #18); beslut: nästa =
   vuxen-tips, två flervalsfrågor om loop/oändlig-loop och en ordningsfråga kör fram → vänta tills
   hinder → sväng → loopen börjar om). Loop som nästa kärnkoncept efter villkor (sekvens → program →
   villkor → loop). Exempel: blinka LED i loop, köra en fyrkant (kör fram + sväng × 4), kör-för-alltid
-  tills runda knappen, loop + sensor. Laddas via ny `<script>`-rad i `index.html` före `js/app.js`.
+  tills stoppknappen (fyrkanten), loop + sensor. Laddas via ny `<script>`-rad i `index.html` före `js/app.js`.
   Befintliga stegtyper, inga bilder; renderare/datamodell/CSS orörda. Kapitel 5 är nu sista kapitlet
   (numerisk sortering), så kap 4 länkar till kap 5 och kap 5 länkar till "Till kapitelöversikt".
 - **Kapitel 4 "Roboten som känner" är nu byggt** i `content/kapitel-4.js` (13 steg: text +
   vuxen-tips, två flervalsfrågor om hindersensor/villkor och en ordningsfråga känn av → kolla
   villkor → gör något). Introducerar sensorer (ljus/hinder/ljud/linje) och idén om villkor
   (om-då). Laddas via ny `<script>`-rad i `index.html` före `js/app.js`. Befintliga stegtyper,
-  inga bilder; renderare/datamodell/CSS orörda. Kapitel 4 är nu sista kapitlet (numerisk
-  sortering), så kap 3 länkar till kap 4 och kap 4 länkar till "Till kapitelöversikt".
+  inga bilder; renderare/datamodell/CSS orörda. Kapitel 4 följs nu av kapitel 5.
 - **Kapitel 3 "Robotar i världen" är nu byggt** som innehåll i `content/kapitel-3.js`
   (13 steg: text + vuxen-tips, två flervalsfrågor om robotarm/robotdammsugare och en
   ordningsfråga känna av→följa program→göra något). Laddas via en ny `<script>`-rad i
@@ -30,13 +29,12 @@ Senast uppdaterad: 2026-06-20 · Kap 5 "Loopar" byggt (PR #18); beslut: nästa =
 - Designsystem + mobil + desktop-ark (≥720 px) + chapter-rail (≥900 px) + tunn
   framstegsstapel ligger på `main`.
 - `js/app.js` väljer kapitel via `?kapitel=N`; utan query visas en landningsvy som listar
-  alla laddade kapitel. Landningsvyn listar nu kapitel 1, 2 och 3. Kapitel 3 är sista
-  kapitlet, så dess sista steg länkar till "Till kapitelöversikt".
+  alla laddade kapitel. På PR #18:s branch listas kapitel 1–5 och kapitel 5 är sist.
 - Committat testverktyg: `npm test` kör en jsdom-genomklick (`test/clickthrough.test.js`,
-  **10 tester**). `jsdom` är DEV-beroende; `node_modules/` är git-ignorerat. Sajten själv är
+  **16 tester**). `jsdom` är DEV-beroende; `node_modules/` är git-ignorerat. Sajten själv är
   fortsatt beroendefri.
-- **Testet genomklickar nu ALLA riktiga `content/kapitel-*.js` automatiskt** (kapitel 1, 2, 3
-  i dag) – inte längre bara kapitel 1 + ett syntetiskt inline-kapitel. Ett nytt kapitel testas
+- **Testet genomklickar nu ALLA riktiga `content/kapitel-*.js` automatiskt** (kapitel 1–5 på
+  PR #18:s branch). Ett nytt kapitel testas
   alltså bara genom att lägga till filen; trasig kapiteldata får `npm test` att faila.
 - **GitHub Actions-CI** (`.github/workflows/ci.yml`) kör `node --check` (renderaren + alla
   kapitelfiler) + `npm test` på varje PR och vid push till `main`. Workflow-filen påverkar inte
@@ -45,7 +43,7 @@ Senast uppdaterad: 2026-06-20 · Kap 5 "Loopar" byggt (PR #18); beslut: nästa =
   alternativet). Säker wrapper (feature-detect + `try/catch`) → tyst no-op när storage saknas/
   blockeras. Sparar besvarade frågor + senaste steg per kapitel och återupptar vid omladdning;
   sparade rätta svar visas gröna. Landningsvyn märker `Klart`/`Påbörjat`, rail (≥900 px) märker
-  `Klart`, "Börja om kapitlet" nollställer. Datamodellen orörd. `npm test` är nu **14 tester**.
+  `Klart`, "Börja om kapitlet" nollställer. Datamodellen orörd; totalsviten är nu **16 tester**.
 - **CI är grön och kör på Node 22.** Tidigare var den falskt röd på varje körning (Node 20
   expanderar inte globben i `node --test`). Nu verifieras `node --check` + `npm run validate`
   + `npm test` på varje PR och push till `main`.
@@ -57,16 +55,25 @@ Senast uppdaterad: 2026-06-20 · Kap 5 "Loopar" byggt (PR #18); beslut: nästa =
   kap 2 USB-C-adapter för MacBook). **Pedagogik-riktlinjer:** `docs/pedagogik.md`.
 - **Ny stegtyp `image`** i renderaren: lokal bild (`src`) + `alt`, texten bär betydelsen. Första
   bilden `assets/edison-knappar.svg` (original-SVG: rund/triangel/fyrkant) i kapitel 1. Validatorn
-  kräver lokal `src` + `alt`; CSS `.step-image` (responsiv). `npm test` är nu **15 tester**.
+  kräver lokal `src` + `alt`; CSS `.step-image` (responsiv). Totalsviten är nu **16 tester**.
 - **UI/UX- & a11y-granskning klar (spår B).** Strukturerad genomgång av `docs/design.md` mot
   bygget dokumenterad i nya `docs/a11y.md` (kontrasttabell + checklista). **WCAG-fix:** `.app-title`
   var `#F26B1D` på `#FAF7F2` ≈ 2,85:1 (under AA för stor text) → nu `--color-edison-orange-dark`
   (`#C8540F`, ≈ 4,1:1). `#F26B1D` kvar för kant/fokusring/maskot (dekor). **Reduced-motion** utökad:
   förutom maskot-nudge stängs nu `transition` på progressstapel/knappar/alternativ/rail-länkar av.
   Badges, fokus, touch-mål, responsivitet, "text bär betydelse" verifierade som AA-OK. Datamodellen
-  orörd; sajten beroendefri. `npm test` fortsatt **15 tester**.
+  orörd; sajten beroendefri. `npm test` har nu **16 tester**.
 
-## Vad senaste sessionen gjorde
+## Vad detta processpass gjorde
+- Gjorde `AGENTS.md` till gemensam källa för agentregler.
+- Gjorde `CLAUDE.md` till en liten `@AGENTS.md`-wrapper och `.cursorrules` till en
+  kompatibilitetshänvisning, i stället för tre kopior av samma regler.
+- Rättade README/handoff, tog bort direkt-push till `main` som standard och gjorde
+  modellrollerna verktygsneutrala.
+- Rättade Kapitel 5:s stoppknapp från rund programknapp till fyrkantig stoppknapp och lade
+  till ett regressionstest för faktainvarianten. Totalt 16 tester.
+
+## Senaste innehållssessionen (PR #18)
 - **Nytt kapitel 5 "Loopar – göra om och om igen" (upprepa).**
   - `content/kapitel-5.js` (nytt, 12 steg): intro (knyter till kap 4) → vuxen-tips (loop som
     nyckelbegrepp) → vad en loop är (block runt andra block) → blinka LED i loop → flervalsfråga
@@ -191,10 +198,14 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
   (I denna Cloud-miljö installeras det via setup-skript; kör annars `npm install`.)
 - `node_modules/` saknas i en färsk Cloud-container → `npm test` failar då falskt på
   "Cannot find module 'jsdom'". Kör **`npm install` först** (se nedan).
+- GitHub-skrivåtgärderna från processpasset återstår: PR #2 och #4 är fortfarande öppna,
+  eftersom denna tråd saknade fungerande autentiserad browser/GitHub-connector. Ingen osäker
+  API-genväg användes.
 
-## Owner-steg (✓ KLARA 2026-06-20, bekräftat av ägaren)
-- **CI är nu en *required* check** för `main` (branch protection: Require status checks → "test").
-  Grönt gatear faktiskt merge.
+## Owner-steg
+- **Branch protection måste åter verifieras.** GitHubs publika API rapporterade 2026-06-20
+  `main` som `protected: false` och inga aktiva rulesets. Kontrollera att checken `test`
+  verkligen är required innan PR #18 mergas.
 - **GitHub Pages är på och publicerar** (bekräftat av ägaren) – sajten är live från `main`/root.
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
@@ -214,14 +225,14 @@ Edison-fakta; flagga app-specifika blocknamn "att verifiera" i ett vuxen-steg.
 Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan computerUse köra den.
 
 ## Modellrekommendation för nästa steg
-- Nytt kapitel/modul eller innehåll → **Opus** (pedagogik + Edison-fakta).
-- Fler bilder (nya assets till befintlig `image`-typ) → **enklare modell (Sonnet)** mot spec.
-- Referenssida (om den kräver renderar-/CSS-logik) → **Opus** (avvägning).
+- Nytt kapitel/modul eller innehåll → **stark resonemangsmodell** (pedagogik + Edison-fakta).
+- Fler bilder till befintlig `image`-typ → **enklare/snabbare modell** mot spec.
+- Referenssida med renderar-/CSS-logik → **stark resonemangsmodell** (avvägning).
 
 ## Copy-paste för nästa session
 ```text
 Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Academy, main).
-Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
+Läs FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Kör npm install EN gång först (färsk container saknar node_modules → annars failar npm test
 falskt på "Cannot find module 'jsdom'"). Ange kort nuläge + planerad åtgärd innan du kör verktyg.
 
@@ -246,13 +257,13 @@ All UI-text på svenska. Rör inte datamodellen (window.KAPITEL / correctAnswer)
 
 VERKTYG: npm install (en gång) → npm run validate (schema, bör säga 6 kapitelfiler om du la till
 ett kapitel) → npm test (genomklickar alla kapitel automatiskt – nytt kapitel kräver ingen
-teständring) → node --check js/app.js. CI (Node 22) är en REQUIRED check (node --check + validate
-+ test) – håll grön.
+teständring) → node --check js/app.js. CI (Node 22) kör node --check + validate + test – håll
+den grön och verifiera branch protection i GitHub; anta inte att checken är required.
 
 VERIFIERA: npm run validate ✓, npm test ✓, samt file://-genomklick i Chrome (i Cloud: computerUse)
 – landning listar nya kapitlet, gating, fel→rätt-feedback, ordningsfråga, avslutslänk "Till kapitelöversikt".
 
-AVSLUTA enligt handoff: uppdatera docs/status.md (nuläge, gjort, beslut, varningar, nästa steg,
-modellrek) + bocka av i docs/roadmap.md, committa (branch+PR i Cloud; öppna ingen PR om användaren
-inte ber om det). Skriv en ny copy-paste längst ned. Modell: Opus.
+AVSLUTA enligt handoff om du faktiskt genomförde ett roadmap-steg: uppdatera docs/status.md och
+docs/roadmap.md. Håll ändringar lokala; committa, pusha eller öppna PR endast på uttrycklig begäran.
+Skriv bara en ny copy-paste när en verklig handoff behövs. Modell: stark resonemangsmodell.
 ```
