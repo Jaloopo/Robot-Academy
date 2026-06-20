@@ -5,7 +5,7 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · testverktyg (datadrivet genomklick av alla kapitel) + GitHub Actions-CI
+Senast uppdaterad: 2026-06-20 · framstegssparande via localStorage (roadmap-steg 5)
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -28,59 +28,73 @@ Senast uppdaterad: 2026-06-20 · testverktyg (datadrivet genomklick av alla kapi
 - **GitHub Actions-CI** (`.github/workflows/ci.yml`) kör `node --check` (renderaren + alla
   kapitelfiler) + `npm test` på varje PR och vid push till `main`. Workflow-filen påverkar inte
   sajten (laddas aldrig av `index.html`); sajten är fortsatt beroendefri.
+- **Framstegssparande via `localStorage` ligger nu i `js/app.js`** (roadmap-steg 5, första
+  alternativet). Säker wrapper (feature-detect + `try/catch`) → tyst no-op när storage saknas/
+  blockeras. Sparar besvarade frågor + senaste steg per kapitel och återupptar vid omladdning;
+  sparade rätta svar visas gröna. Landningsvyn märker `Klart`/`Påbörjat`, rail (≥900 px) märker
+  `Klart`, "Börja om kapitlet" nollställer. Datamodellen orörd. `npm test` är nu **14 tester**.
 
 ## Vad senaste sessionen gjorde
-- **Granskade + mergade roadmap-steg 4 (Kapitel 3 "Robotar i världen").** PR #9 granskad
-  (ren additiv datapåbyggnad, schema ok, säker robotfakta), `node --check` + `npm test` gröna,
-  squash-mergad till `main` som commit `d466926`.
-- **Byggde ut testverktyget så det genomklickar ALLA riktiga `content/kapitel-*.js`.**
-  `test/clickthrough.test.js` läser nu in alla kapitelfiler i `content/` (sorterat på nummer),
-  laddar dem i jsdom och kör samma datadrivna genomklick per kapitel (gating, fel→rätt, blandad
-  ordning, samt rätt avslutslänk: "Nästa kapitel" för alla utom det sista, "Till kapitelöversikt"
-  för det sista). Det syntetiska inline-kapitlet finns kvar för routing-/rail-testerna.
-- **La till GitHub Actions-CI** (`.github/workflows/ci.yml`): `npm install` → `node --check`
-  (renderaren + alla `content/kapitel-*.js`) → `npm test`, på `pull_request` och push till `main`.
-- Rörde INTE renderaren (`js/app.js`), datamodellen, CSS:en eller innehållet – bara testfilen,
-  CI-workflowen samt dokumentationen (`CLAUDE.md` + `.cursorrules` i synk).
+- **Implementerade roadmap-steg 5 – framstegssparande via `localStorage`.** Allt i `js/app.js`
+  + `style.css` + `test/clickthrough.test.js` (datamodell/innehåll orört):
+  - Säker storage-wrapper (`getStorage`, cachas; `try/catch` runt både `root.localStorage`-åtkomst
+    OCH `setItem`-prob). Saknas/blockeras storage → `null` → all persistens blir no-op.
+  - `loadChapterProgress`/`saveChapterProgress`/`clearChapterProgress` med nyckel
+    `edison-hemguide:<kapitel-id>` och en versionerad payload `{ v, current, completed, steps[] }`.
+    Validerar `v` + att `steps.length` matchar innehållet (ändrat kapitel → stale-data kastas).
+  - I kapitelvyn: `restoreProgress()` återställer `done`/`chosen`/`picks` + `current`-steg;
+    `persistProgress()` körs i varje `render()`. Ordering-displayordningen sparas INTE (blandas om
+    varje gång; picks mappar på optionsindex så badges stämmer ändå).
+  - Landningsvy + rail: `chapterProgressStatus()` ger `done`/`started`/`none` → `Klart`/`Påbörjat`.
+  - "Börja om kapitlet" (`#btn-reset-chapter`) → `resetChapter()` rensar storage + nollställer state.
+  - CSS additivt: `.chapter-status(--done/--started)`, `.linklike`/`.chapter-reset`, `.rail-status`.
+- **La till 4 persistens-tester** (totalt **14**, alla gröna): sparar/återupptar efter
+  (simulerad) omladdning, `Klart`/`Påbörjat`-märken på landningsvyn, "Börja om kapitlet"-reset,
+  samt graceful degradation på `file://` (jsdom saknar `localStorage` där). Testet fick
+  `bootstrap({url, prepare})` + en `reload()`-hjälpare (re-eval i samma fönster).
+- **Höll `CLAUDE.md`/`.cursorrules` orörda** (ingen regeländring behövdes).
 - Verifierade: `node --check js/app.js` ✓, `node --check test/clickthrough.test.js` ✓,
-  `npm test` ✓ (**10 tester**). Bekräftade fail-loud: en tillfällig `correctAnswer` utanför
-  index i `content/kapitel-3.js` fick testet att faila, och grönt igen efter återställning.
+  `npm test` ✓ (**14 tester**), och **`file://`-genomklick i riktiga Chrome**: bekräftat att
+  progress sparas/återupptas över reload, `Påbörjat`→`Klart`-märken, och reset – med video.
 
 ## Beslut (varför)
-- **Höll testet datadrivet, inga hårdkodade svar.** Det läser `correctAnswer` ur datan och
-  räknar ut förväntad avslutslänk ur kapitelordningen → nya kapitelfiler täcks AUTOMATISKT
-  utan teständring (matchar intentionen i `CLAUDE.md`).
-- **Behöll det syntetiska kapitlet** för routing-/landningsvy-/rail-testerna: de behöver
-  minimal, kontrollerad data och ska inte bero på hur många riktiga kapitel som finns.
-- **Default-läget oförändrat.** Det nya `allContent`-läget är opt-in i `bootstrap`, så de
-  befintliga testerna (som antar exakt 2 kapitel) påverkas inte.
-- **Manuell `file://`-koll smalnas av:** behövs nu främst för PR:ar som rör `js/app.js`/
-  `style.css` (logik/visuellt), inte för rent innehåll – det täcker `npm test` nu.
+- **`localStorage` framför ljud/animation.** Större pedagogiskt värde (barn kan fortsätta där de
+  slutade) och matchar Opus-rollen (state-logik + edge-cases på `file://`).
+- **Säker wrapper är obligatorisk:** jsdom på `file://` saknar `localStorage` HELT (kastar vid
+  åtkomst). Verifierat empiriskt. Riktiga Chrome på `file://` sparar dock – så feature ger värde
+  där, och degraderar tyst där det inte går. Inga nätverksanrop, inget nytt beroende.
+- **Versionerad + längd-validerad payload:** framtida kapiteländringar ska aldrig felmappa gammalt
+  framsteg – hellre börja om än visa fel "rätt svar".
+- **Sparar i varje `render()`:** enkelt och robust; payloaden är liten. Reset skriver en färsk
+  (tom) payload, så `chapterProgressStatus` blir `none` igen (testet kollar status, inte `null`).
+- **Datadrivet test behållet:** nya persistens-tester använder samma riktiga renderare/innehåll;
+  `prepare`-hooken seedar storage med EN payload som producerats av en riktig genomklick (ingen
+  hårdkodning av lagringsformatet).
 
 ## Varningar / blockers
-- `npm test` täcker logik + datakorrekthet, INTE det visuella. CSS/layout (responsivitet,
-  ikonfeedback, fokusring) måste fortfarande ögongranskas via `file://` i Chrome.
+- `npm test` täcker logik + datakorrekthet, INTE det visuella. CSS/layout måste fortfarande
+  ögongranskas via `file://` i Chrome.
+- **`localStorage` på `file://` är browserberoende.** Det fungerade i denna Chrome, men kan vara
+  blockerat i andra uppsättningar/privat läge → då degraderar appen tyst (ingen sparning, inga
+  badges, men full funktion). På GitHub Pages (http(s)) är det pålitligt.
 - `file://` ger en ofarlig konsolvarning ("Unsafe attempt to load URL") – inga nätverksanrop.
 - `node_modules/` committas aldrig: kör `npm install` en gång innan `npm test`. (I denna
-  Cloud-miljö saknades `node_modules/` initialt trots install-skriptet – kör `npm install`.)
+  Cloud-miljö installeras det via setup-skript; kör annars `npm install`.)
 - Denna körning gjordes som Cloud-agent → arbetet ligger på
-  `claude/test-real-kapitel-clickthrough` med PR i stället för direkt push till `main`
-  (miljön tillåter inte push till `main`). PR är vägen in till `main` här.
+  `cursor/localstorage-progress-6c47` med **PR #11** i stället för direkt push till `main`.
+  PR är vägen in till `main` här.
 
 ## Nästa steg (exakt ETT)
-Roadmap-steg 5 (Nice-to-have) – välj ETT:
-- **Framstegssparande** via `localStorage`: kom ihåg klarade steg/kapitel. Måste degradera
-  snällt på `file://` (där `localStorage` kan saknas/blockeras) och inte röra datamodellen i
-  onödan. — **Opus** (rör renderings-/state-logik + edge-cases).
+Roadmap-steg 5 har nu sitt `localStorage`-alternativ KLART. Kvar av "nice-to-have":
 - **Lätt ljud/animation** enligt `docs/design.md`: liten feedback vid rätt svar/kapitelklart.
   A11y: respektera `prefers-reduced-motion`, inget ljud-autospel. — **enklare modell** när
-  scopet är låst (mest CSS/asset), men låt Opus granska a11y.
+  scopet är låst (mest CSS/asset), men låt Opus granska a11y. (Obs: en maskot-nudge-animation
+  vid rätt svar finns redan; detta steg gäller ev. ljud och/eller en kapitelklart-animation.)
 
-(Mindre, valfritt tillägg om man vill: en schema-validator – `correctAnswer` i range,
-`ordering` = permutation, `options` finns – som CI kan köra. Enklare modell.)
+(Mindre, valfritt: en schema-validator i CI – `correctAnswer` i range, `ordering` = permutation,
+`options` finns. Enklare modell.)
 
 ## Modellrekommendation för nästa steg
-- Framstegssparande (`localStorage`) → **Opus** (logik + edge-case-bedömning på `file://`).
 - Ljud/animation → **enklare modell (Sonnet)** när scope är låst; Opus granskar a11y.
 
 ## Copy-paste för nästa session
@@ -89,15 +103,14 @@ Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Ac
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): Roadmap-steg 5 – Nice-to-have. Välj EN av:
-- Framstegssparande via localStorage (kom ihåg klarade steg/kapitel). Måste degradera snällt på
-  file:// (localStorage kan saknas/blockeras) och inte röra datamodellen i onödan. ELLER
-- Lätt ljud/animation enligt docs/design.md (feedback vid rätt svar/kapitelklart). A11y:
-  prefers-reduced-motion, inget ljud-autospel.
-Bestäm scope/form först. Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och
-GitHub Pages. Inga ramverk/CDN/externa fonter/nätverksanrop. All UI-text på svenska.
-OBS: npm test genomklickar nu ALLA riktiga content/kapitel-*.js automatiskt, och GitHub Actions-CI
-(.github/workflows/ci.yml) kör node --check + npm test på varje PR – håll den grön.
+UPPGIFT (ett steg): Roadmap-steg 5 är delvis klart – framstegssparande via localStorage ligger nu
+i js/app.js (se status). Kvar av nice-to-have: lätt ljud/animation enligt docs/design.md
+(liten feedback vid rätt svar/kapitelklart). A11y: respektera prefers-reduced-motion, inget
+ljud-autospel. En maskot-nudge-animation finns redan vid rätt svar – bestäm scope (ljud? och/eller
+en kapitelklart-animation?) FÖRST. Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på
+file:// och GitHub Pages. Inga ramverk/CDN/externa fonter/nätverksanrop. All UI-text på svenska.
+OBS: npm test genomklickar ALLA content/kapitel-*.js automatiskt och täcker nu även
+framstegssparandet (14 tester); GitHub Actions-CI kör node --check + npm test på varje PR – håll grön.
 
 VERIFIERA: node --check js/app.js, npm test (kör npm install först), samt genomklick via file://
 i Chrome (landningsvy + berört flöde) – särskilt vid CSS/logik-ändring.

@@ -72,7 +72,18 @@ det som inte är committat och pushat försvinner).
    (9 tester) och `file://`-genomklick i Chrome (landningsvy + kapitel 3, gating, fel→rätt,
    blandad ordning, avslutslänk "Till kapitelöversikt").
 5. **Nice-to-have:** framstegssparande (`localStorage`; opålitligt på `file://`), lätt
-   ljud/animation. **Committad dev-testharness (✓ KLAR):** `npm test` kör en jsdom-genomklick
+   ljud/animation.
+   **Framstegssparande (✓ KLAR):** `js/app.js` har en säker `localStorage`-wrapper
+   (feature-detect + `try/catch` runt både åtkomst och `setItem`) som degraderar till en
+   tyst no-op när storage saknas/blockeras (jsdom på `file://` saknar det helt; verifierat
+   att riktiga Chrome på `file://` DÄREMOT sparar). Per-kapitel sparas besvarade frågor
+   (`done`/`chosen`/`picks`) + senaste steg; vid omladdning återupptas kapitlet och sparade
+   rätta svar visas gröna. Sparad data validerar version + stegantal (ändrat innehåll kastar
+   stale-data i stället för att felmappa). Landningsvyn märker `Klart`/`Påbörjat`, rail
+   (≥900 px) märker `Klart`, och en "Börja om kapitlet"-kontroll nollställer. Datamodellen
+   orörd; sajten fortsatt beroendefri. Verifierat: `node --check`, `npm test` (**14 tester**)
+   och `file://`-genomklick i Chrome (resume efter reload, badges, reset).
+   **Committad dev-testharness (✓ KLAR):** `npm test` kör en jsdom-genomklick
    (`test/clickthrough.test.js`) mot den riktiga renderaren + innehållet och verifierar gating,
    fel→rätt-feedback, blandad ordning/"Börja om" och bakåtnavigering. `jsdom` är ett
    DEV-beroende (`package.json`, `node_modules/` är git-ignorerat) – **sajten själv är fortsatt
