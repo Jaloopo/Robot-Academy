@@ -64,11 +64,15 @@ det som inte är committat och pushat försvinner).
 4. **"Explore"-fördjupning:** korta avsnitt/länkar om robottyper (robotarmar, Roomba m.m.).
    Externa länkar ok; bilder MÅSTE vara lokala assets (inget CDN); fakta omskriven. — Opus.
 5. **Nice-to-have:** framstegssparande (`localStorage`; opålitligt på `file://`), lätt
-   ljud/animation. **Committad dev-testharness (✓ KLAR):** `npm test` kör en jsdom-genomklick
-   (`test/clickthrough.test.js`) mot den riktiga renderaren + innehållet och verifierar gating,
-   fel→rätt-feedback, blandad ordning/"Börja om" och bakåtnavigering. `jsdom` är ett
-   DEV-beroende (`package.json`, `node_modules/` är git-ignorerat) – **sajten själv är fortsatt
-   beroendefri** och laddas oförändrad via `file://` och GitHub Pages.
+   ljud/animation. **Committad dev-testharness (✓ KLAR + datadriven):** `npm test` kör en
+   jsdom-genomklick (`test/clickthrough.test.js`) mot den riktiga renderaren + innehållet och
+   verifierar gating, fel→rätt-feedback, blandad ordning/"Börja om" och bakåtnavigering.
+   Genomklicket är nu **datadrivet**: det upptäcker och klickar igenom VARJE riktig
+   `content/kapitel-*.js` (och kontrollerar avslutslänken utifrån kapitlens ordning), så ett
+   nytt kapitel testas automatiskt utan att testfilen rörs. `jsdom` är ett DEV-beroende
+   (`package.json`, `node_modules/` är git-ignorerat) – **sajten själv är fortsatt beroendefri**
+   och laddas oförändrad via `file://` och GitHub Pages. Detta är skyddsräcket som gör att
+   enklare/billigare modeller kan fylla nya kapitel och självverifiera mot specen.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**

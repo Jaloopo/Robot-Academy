@@ -4,10 +4,12 @@
 // Kör med: npm test  (node --test). Använder jsdom som DEV-beroende – sajten själv
 // är fortsatt beroendefri och laddas oförändrad via file:// och GitHub Pages.
 //
-// Testet driver den RIKTIGA renderaren (js/app.js) mot det RIKTIGA innehållet
-// (content/kapitel-1.js), och lägger vid behov till fler kapitel direkt i
-// window.KAPITEL. Genomklicken läser correctAnswer ur datan i stället för att
-// hårdkoda svar.
+// Testet driver den RIKTIGA renderaren (js/app.js) mot det RIKTIGA innehållet:
+// ett datadrivet genomklick laddar VARJE content/kapitel-*.js och klickar igenom
+// det, så ett nytt kapitel testas automatiskt utan att röra den här filen. Vissa
+// mekanik-tester (routing, landningsvy, rail) använder dessutom ett syntetiskt
+// testkapitel för kontrollerad data. Genomklicken läser correctAnswer ur datan i
+// stället för att hårdkoda svar.
 
 const test = require("node:test");
 const assert = require("node:assert");
@@ -16,8 +18,26 @@ const path = require("node:path");
 const { JSDOM } = require("jsdom");
 
 const ROOT = path.join(__dirname, "..");
-const contentSrc = fs.readFileSync(path.join(ROOT, "content", "kapitel-1.js"), "utf8");
+const CONTENT_DIR = path.join(ROOT, "content");
 const appSrc = fs.readFileSync(path.join(ROOT, "js", "app.js"), "utf8");
+
+function readContent(file) {
+  return fs.readFileSync(path.join(CONTENT_DIR, file), "utf8");
+}
+
+// Hämta kapitelnumret ur ett filnamn ("kapitel-2.js" -> 2) eller en id
+// ("kapitel-2" -> 2); null för allt annat.
+function chapterNumber(name) {
+  const m = String(name).match(/^kapitel-(\d+)(?:\.js)?$/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+// Alla riktiga kapitelfiler i nummerordning. Nya content/kapitel-N.js plockas
+// upp automatiskt av det datadrivna genomklicket längre ner.
+const realChapterFiles = fs
+  .readdirSync(CONTENT_DIR)
+  .filter((f) => chapterNumber(f) !== null)
+  .sort((a, b) => chapterNumber(a) - chapterNumber(b));
 
 const testChapter2 = {
   id: "kapitel-2",
@@ -53,6 +73,7 @@ const testChapter2 = {
 // Bygg en jsdom-värld med file://-URL, ladda innehåll + app och rendera.
 function bootstrap(options = {}) {
   const search = options.search || "";
+  const contentFiles = options.contentFiles || ["kapitel-1.js"];
   const extraChapters = options.extraChapters || [];
   const dom = new JSDOM(
     '<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"></head>' +
@@ -60,7 +81,7 @@ function bootstrap(options = {}) {
     { runScripts: "outside-only", url: "file:///workspace/index.html" + search }
   );
   const { window } = dom;
-  window.eval(contentSrc); // sätter window.KAPITEL
+  contentFiles.forEach((file) => window.eval(readContent(file))); // sätter window.KAPITEL
   extraChapters.forEach((chapter) => {
     window.KAPITEL[chapter.id] = chapter;
   });
@@ -221,6 +242,29 @@ test("genomklick av två kapitel: routing, gating, fel→rätt och ordning", () 
     "kapitel-2",
     { label: "Till kapitelöversikt", href: "./index.html" }
   );
+});
+
+// ---- Datadriven genomklick av ALLA riktiga kapitel ----
+// Laddar varje content/kapitel-*.js och kör den riktiga renderaren genom hela
+// kapitlet (gating, fel→rätt, blandad ordning + "Börja om", avslutslänk). Ett
+// nytt kapitel testas automatiskt utan att den här filen rörs. Avslutslänken
+// förväntas utifrån kapitlens sorterade ordning: "Nästa kapitel" (-> ?kapitel=N+1)
+// för alla utom det sista, som länkar "Till kapitelöversikt" (-> ./index.html).
+
+test("alla riktiga kapitel klarar genomklicket (datadrivet)", () => {
+  assert.ok(realChapterFiles.length >= 1, "minst ett riktigt kapitel finns att testa");
+
+  realChapterFiles.forEach((file) => {
+    const nr = chapterNumber(file);
+    const window = bootstrap({ contentFiles: realChapterFiles, search: "?kapitel=" + nr });
+    const ids = Array.from(window.EdisonApp.sortedChapterIds(window.KAPITEL));
+    const chapterId = "kapitel-" + nr;
+    const nextId = ids[ids.indexOf(chapterId) + 1] || null;
+    const expectedFinish = nextId
+      ? { label: "Nästa kapitel", href: "?kapitel=" + chapterNumber(nextId) }
+      : { label: "Till kapitelöversikt", href: "./index.html" };
+    completeChapter(window, chapterId, expectedFinish);
+  });
 });
 
 // ---- Chapter-rail (Layout B, desktop-kontext) ----
