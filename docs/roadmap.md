@@ -173,6 +173,32 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   (bekräftat av ägaren) – sajten är live. `index.html` var redan filnivå-ren (relativa `./`-
   sökvägar, ingen CDN/fetch).
 
+## Vision / epos: interaktivt CS-curriculum (utforskande – EJ schemalagt)
+Kartlagt 2026-06-20 (research-pass). **Riktning, inte beslutade steg.** Full idébank +
+källor: `docs/reference/cs-curriculum.md`. Sammanfattning:
+
+- **Idé:** väx från läs-och-svara till ett litet eget CS-curriculum med **interaktiva
+  moduler** (gissa → kör → ändra → se flödet) som barnet sedan **applicerar på roboten**.
+  Webben lär konceptet; Edison är "labbet". Detta matchar etablerad praktik (code.org CS
+  Fundamentals = online + "unplugged"; vår robot är det fysiska lagret).
+- **Konceptstege** (CSTA/code.org) vi följer: sekvens → events → loopar → villkor →
+  nästlade loopar/sammansatta villkor → funktioner/"egna block" → variabler. Vi ligger rätt.
+- **Pedagogik:** Use-Modify-Create & **PRIMM** (Predict-Run-Investigate-Modify-Make) –
+  läs/förutsäg/spåra kod FÖRE eget skrivande. Modulen = Predict→Run→Modify, sedan Make på
+  Edison. Designa MOT kända missuppfattningar (nästlade loopar tolkas som loopar i sekvens;
+  visa det höga mönstret, inte rad-för-rad).
+- **Minsta första spik (när vi vill testa):** en deterministisk vanilla-JS-modul som
+  animerar Edison på ett rutnät/LED och visar *3 staplade kör-block* vs *repetera 3× { kör }*
+  sida vid sida. Liten nog att bygga utan att spränga arkitekturen; mall för fler moduler.
+- **Teknisk spänning:** en interaktiv modul = **ny stegtyp med riktig renderingslogik +
+  state + a11y** (Opus/Claude Code-arbete, inte rutin). Bryter inte beroendefriheten, men är
+  projektets största nya tillskott. Håll konfig i datan **deklarativ/strängvänlig**
+  (mobil-redigerbar); aldrig kod-i-data.
+- **Beslut/process:** bygg INTE motorn nu. Vanligt innehåll (events/nästlade loopar/egna
+  block med befintliga stegtyper) kan fortsätta oberoende. Det interaktiva spåret tas i en
+  egen, avgränsad session (eller deep research för detaljerad curriculum-design) och börjar
+  med "Sekvens vs loop"-spiken ovan.
+
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
 - Desktop-CSS ska vara **additiv** (`@media (min-width: …)`); rör inte mobilens värden.
