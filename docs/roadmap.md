@@ -115,8 +115,11 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   "robotens programknapp". (2) kap 2: Edisons sladd är USB-A → MacBook (bara USB-C) behöver
   USB-C-till-USB-A-adapter; tillagt i adult-tipset. Kvarstående "att verifiera": exakta
   blocknamn/placering i EdBlocks (varierar per version) – medvetet kvar som adult-flagga.
-- **Innehållstäckning:** är 3 kapitel rätt scope? Kandidater till nytt kapitel/modul
-  (t.ex. sensorer, loopar, felsökning) eller referenssida. Beslut om bredd vs djup.
+- **Innehållstäckning (pågående):** **Kapitel 4 "Roboten som känner" (✓ KLAR 2026-06-20)** –
+  sensorer + villkor (om-då) i `content/kapitel-4.js` (13 steg) + ny `<script>`-rad i `index.html`.
+  Befintliga stegtyper, inga bilder, datamodell/renderare/CSS orörda. Faktagranskat mot
+  meetedison.com; appspecifika blocknamn flaggade "att verifiera". Kvarstående kandidater till
+  fler kapitel/moduler: loopar, felsökning eller referenssida. Beslut om bredd vs djup.
 - **Bilder/media (✓ KLAR 2026-06-20):** ny additiv stegtyp `image` i `js/app.js`
   (`renderImage`: `src` lokal sökväg + `alt`, escapad; texten bär fortfarande betydelsen).
   Validatorn kräver lokal `src` (ingen http/CDN) + `alt`. Första bilden: `assets/edison-knappar.svg`

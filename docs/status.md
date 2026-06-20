@@ -5,11 +5,17 @@ först (efter `CLAUDE.md`, `docs/plan.md`, `docs/design.md`, `docs/roadmap.md`),
 ett roadmap-steg, uppdaterar detta dokument + roadmap, committar till `main`, och skriver
 en ny copy-paste längst ned.
 
-Senast uppdaterad: 2026-06-20 · UI/UX- & a11y-granskning (spår B): kontrastfix + reduced-motion + `docs/a11y.md`
+Senast uppdaterad: 2026-06-20 · Nytt kapitel 4 "Roboten som känner" (sensorer + om-då)
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
 - Kapitel 2 "Ditt första program" klart (11 steg) i `content/kapitel-2.js`.
+- **Kapitel 4 "Roboten som känner" är nu byggt** i `content/kapitel-4.js` (13 steg: text +
+  vuxen-tips, två flervalsfrågor om hindersensor/villkor och en ordningsfråga känn av → kolla
+  villkor → gör något). Introducerar sensorer (ljus/hinder/ljud/linje) och idén om villkor
+  (om-då). Laddas via ny `<script>`-rad i `index.html` före `js/app.js`. Befintliga stegtyper,
+  inga bilder; renderare/datamodell/CSS orörda. Kapitel 4 är nu sista kapitlet (numerisk
+  sortering), så kap 3 länkar till kap 4 och kap 4 länkar till "Till kapitelöversikt".
 - **Kapitel 3 "Robotar i världen" är nu byggt** som innehåll i `content/kapitel-3.js`
   (13 steg: text + vuxen-tips, två flervalsfrågor om robotarm/robotdammsugare och en
   ordningsfråga känna av→följa program→göra något). Laddas via en ny `<script>`-rad i
@@ -54,7 +60,23 @@ Senast uppdaterad: 2026-06-20 · UI/UX- & a11y-granskning (spår B): kontrastfix
   orörd; sajten beroendefri. `npm test` fortsatt **15 tester**.
 
 ## Vad senaste sessionen gjorde
-- **UI/UX- & a11y-granskning (spår B – nu KLAR).**
+- **Nytt kapitel 4 "Roboten som känner" (sensorer + om-då).**
+  - `content/kapitel-4.js` (nytt, 13 steg): intro → ljussensorer → hindersensor → flervalsfråga
+    (hindersensorn) → ljudsensor/klapp → villkor "om-då" → vuxen-tips (villkor/förgrening,
+    appspecifika blocknamn "att verifiera") → flervalsfråga (väg fri → fortsätter rakt) →
+    linjesensor → ordningsfråga (känn av → kolla villkor → gör något) → avslut.
+  - `index.html`: ny `<script src="./content/kapitel-4.js">`-rad före `js/app.js`.
+  - Faktagranskat mot meetedison.com: ljussensorer ovansida v/h, hindersensor framtill (IR),
+    ljudsensor vid runda knappen (klapp), linjesensor undertill, villkor/förgrening. Renderare,
+    datamodell och CSS orörda.
+  - Bockade av "Innehållstäckning" (kap 4) i `docs/roadmap.md`.
+- Verifierat: `node --check` ✓, `npm run validate` ✓ (4 kapitelfiler), `npm test` ✓ (**15 tester**,
+  genomklicket täcker kap 4 automatiskt), samt `file://`-genomklick i Chrome (computerUse):
+  landning listar kap 4, fel→rätt-feedback, ordningsfråga, sista steget länkar till kapitel-
+  översikt. Demo-video + skärmdumpar bifogade i PR #16 / artefakter.
+
+## Förra sessionen gjorde
+- **UI/UX- & a11y-granskning (spår B – KLAR).**
   - `style.css`: `.app-title` → `--color-edison-orange-dark` (AA-kontrast); `prefers-reduced-motion`
     stänger nu även av `transition` på `.progressbar > span`, `.btn`, `.option`, `.chapter-link`,
     `.rail-link`. Båda additiva, inga mobilvärden i övrigt ändrade.
@@ -132,11 +154,12 @@ Senast uppdaterad: 2026-06-20 · UI/UX- & a11y-granskning (spår B): kontrastfix
   URL:en och klicka igenom ett kapitel.
 
 ## Nästa steg (exakt ETT)
-UI/UX- & a11y-granskningen (spår B) är klar. Rekommenderat nästa (välj ETT):
-- **Innehållstäckning / nytt kapitel eller modul** (t.ex. sensorer, loopar, felsökning) – beslut
-  bredd vs djup. Opus (pedagogik + Edison-fakta, samma datamodell/mall `content/_mall.js`). ELLER
-- **Fler bilder** med befintliga `image`-typen: block-snäpp i kap 2 / robotsiluetter i kap 3 –
-  bara nya lokala assets + ett bild-steg per kapitel. Enklare modell (Sonnet) mot spec. ELLER
+Kapitel 4 "Roboten som känner" är klart. Rekommenderat nästa (välj ETT):
+- **Nytt kapitel/modul** (t.ex. loopar/upprepa, felsökning, eller bygg ett sensorprogram steg
+  för steg) – beslut bredd vs djup. Opus (pedagogik + Edison-fakta, mall `content/_mall.js`). ELLER
+- **Fler bilder** med befintliga `image`-typen: block-snäpp i kap 2 / robotsiluetter i kap 3 /
+  sensorillustration i kap 4 – bara nya lokala assets + ett bild-steg per kapitel. Enklare modell
+  (Sonnet) mot spec. ELLER
 - **Owner-/processteg:** gör CI till *required* check + bekräfta GitHub Pages (se "Owner-steg").
 Notera: pixel-/visuell slutkoll sker alltid i Chrome (`file://`); i Cloud kan computerUse köra den.
 
@@ -151,17 +174,18 @@ Du tar över samordnar-/byggrollen för "Edison Hemguide" (repo Jaloopo/Robot-Ac
 Läs FÖRST: CLAUDE.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md.
 Ange kort nuläge + din planerade åtgärd innan du kör verktyg.
 
-UPPGIFT (ett steg): VÄLJ ETT. (a) Nytt kapitel/modul (sensorer, loopar el. felsökning) – Opus,
-pedagogik + Edison-fakta, utgå från content/_mall.js + ny <script>-rad i index.html FÖRE
-js/app.js. (b) Fler bilder via befintliga image-stegtypen (block-snäpp kap 2 / robotsiluetter
-kap 3) – egna lokala SVG i assets/, ett bild-steg per kapitel, ingen logikändring. (c) Owner-/
-processteg (CI required check + bekräfta GitHub Pages). A11y- & UI/UX-granskningen (spår B) är
-redan klar – se docs/a11y.md (kontrasttabell + checklista) om du rör CSS/markup, och håll AA.
+UPPGIFT (ett steg): VÄLJ ETT. (a) Nytt kapitel/modul (loopar/upprepa, felsökning el. bygg ett
+sensorprogram) – Opus, pedagogik + Edison-fakta, utgå från content/_mall.js + ny <script>-rad i
+index.html FÖRE js/app.js. (b) Fler bilder via befintliga image-stegtypen (block-snäpp kap 2 /
+robotsiluetter kap 3 / sensorbild kap 4) – egna lokala SVG i assets/, ett bild-steg per kapitel,
+ingen logikändring. (c) Owner-/processteg (CI required check + bekräfta GitHub Pages). A11y- &
+UI/UX-granskningen (spår B) är klar – se docs/a11y.md (kontrasttabell + checklista) om du rör
+CSS/markup, och håll AA. Kapitel 1–4 finns redan (kap 4 = sensorer/om-då).
 Endast statisk HTML+CSS+vanilla JS, ingen build, funkar på file:// och GitHub Pages. All UI-text
 på svenska. Rör inte datamodellen vid design-/UI-arbete.
 
-VERKTYG: npm install (en gång) → npm run validate (schema) → npm test (15, genomklickar alla
-kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. Bild-steg: type
+VERKTYG: npm install (en gång) → npm run validate (schema, 4 kapitelfiler) → npm test (15,
+genomklickar alla kapitel) → node --check js/app.js. Nytt kapitel: utgå från content/_mall.js. Bild-steg: type
 "image" med lokal src + alt (se kap 1). CI (Node 22) kör node --check + npm run validate + npm test
 på varje PR/push – håll grön.
 
