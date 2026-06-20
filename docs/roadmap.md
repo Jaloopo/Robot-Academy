@@ -10,7 +10,8 @@ det som inte är committat och pushat försvinner).
   flervalsfråga och ordningsfråga – med gating, snäll feedback och a11y.
 - Designsystem implementerat (tokens, WCAG AA-fix, ikonfeedback, maskot).
 - **Mobil + desktop** klart: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
-  canvas, samt tunn framstegsstapel.
+  canvas, samt tunn framstegsstapel. Desktop ≥900 px har dessutom en chapter-rail
+  (kontextspalt) i kapitelvyn.
 - En enda kanonisk innehållskälla: `content/kapitel-1.js` (`window.KAPITEL`).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
   redan laddade lokala script och fungerar på `file://`.
@@ -44,8 +45,14 @@ det som inte är committat och pushat försvinner).
    "klart → nästa/tillbaka". — Opus (logik). Resultat: landningsvy listar laddade kapitel,
    `?kapitel=N` route:ar utan fetch/server, sista steget länkar till nästa kapitel eller
    kapitelöversikt. Verifierat med jsdom-genomklick av två kapitel + Chrome `file://`.
-2. **Layout B – chapter-rail** på desktop (≥900 px): ny `<aside class="chapter-rail">`
-   (kontext, ej dubblerad nav). Tas först när steg 1 finns. — Claude Code/Claude Design.
+2. **(✓ KLAR)** **Layout B – chapter-rail** på desktop (≥900 px): ny
+   `<aside class="chapter-rail">` (kontext, ej dubblerad nav). — Claude Code/Claude Design.
+   Resultat: railen renderas av `js/app.js` i kapitelvyn (`#app.has-rail`, steginnehåll i
+   `.step-main`), listar kapitlen, markerar det aktiva (`aria-current="step"`) + dess "Steg X
+   av N" och en "Alla kapitel"-länk. Den primära steg-nav:en (Föregående/Nästa) ligger kvar i
+   `.nav` och dubbleras inte. Allt additivt via `@media (min-width: 900px)`; mobil + 720 px-arket
+   orört (`.chapter-rail { display:none }` under 900 px). Verifierat: `node --check`, `npm test`
+   (9 tester) och `file://`-genomklick i Chrome (mobilbredd + desktop ≥900 px).
 3. **Kapitel 2-innehåll** (EdBlocks / första programmet). — Opus (pedagogik; Edison-fakta
    skrivs om med egna ord, osäkert flaggas "att verifiera").
 4. **"Explore"-fördjupning:** korta avsnitt/länkar om robottyper (robotarmar, Roomba m.m.).
