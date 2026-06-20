@@ -1,0 +1,12 @@
+{
+  "name": "edison-hemguide",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Dev-testverktyg för Edison Hemguide. Endast utvecklingsberoenden – den publicerade sajten är fortfarande ren statisk HTML/CSS/JS utan beroenden och utan build.",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

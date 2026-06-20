@@ -5,3 +5,7 @@ docs/reference/*.pdf
 
 # OS-skräp
 .DS_Store
+
+# Dev-testverktyg (jsdom) – beroenden installeras lokalt, committas inte.
+# Sajten själv är fortsatt beroendefri; node_modules ingår aldrig i file://-/Pages-bygget.
+node_modules/

@@ -28,8 +28,18 @@ OBS: `CLAUDE.md` och `.cursorrules` ska hållas i synk – ändra alltid båda.
 ## Teknik
 - Endast statisk HTML + CSS + vanilla JS. Inga ramverk, ingen build, inga bundlers.
 - Måste fungera både via file:// och GitHub Pages. Använd relativa sökvägar (`./...`).
-- Inga externa beroenden eller nätverksanrop.
+- Inga externa beroenden eller nätverksanrop **i sajten**. (`index.html` laddar bara lokala
+  `./...`-filer.)
 - GitHub Pages publiceras från `main` (root).
+
+## Testverktyg (dev)
+- `npm test` kör en jsdom-genomklick (`test/clickthrough.test.js`) mot den riktiga
+  renderaren + innehållet: gating, fel→rätt, blandad ordning/"Börja om", bakåtnavigering.
+- `jsdom` är ett DEV-beroende i `package.json`; `node_modules/` är git-ignorerat och ingår
+  ALDRIG i sajten. Testet använder Nodes inbyggda `node:test`/`node:assert` (inget ramverk).
+- Kör `npm install` en gång, sedan `npm test`. Verifiera fortfarande även `file://` i Chrome.
+- Testet läser `correctAnswer` ur `window.KAPITEL` (hårdkodar inga svar) – fungerar för nya
+  kapitel utan ändring.
 
 ## Innehåll & laddning
 - ALL UI-text på svenska. Kodkommentarer får vara på engelska.
