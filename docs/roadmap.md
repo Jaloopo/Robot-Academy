@@ -61,8 +61,16 @@ det som inte är committat och pushat försvinner).
    (exakta blocknamn/placering) flaggade "att verifiera" i ett vuxen-tips. Verifierat:
    `node --check`, `npm test` (9 tester) och `file://`-genomklick i Chrome (kapitel 1 + 2,
    gating, fel→rätt, blandad ordning, avslutslänk "Till kapitelöversikt").
-4. **"Explore"-fördjupning:** korta avsnitt/länkar om robottyper (robotarmar, Roomba m.m.).
+4. **(✓ KLAR)** **"Explore"-fördjupning:** korta avsnitt om robottyper (robotarmar, Roomba m.m.).
    Externa länkar ok; bilder MÅSTE vara lokala assets (inget CDN); fakta omskriven. — Opus.
+   Resultat: nytt `content/kapitel-3.js` ("Robotar i världen", 13 steg: text, vuxen-tips, två
+   flervalsfrågor och en ordningsfråga känna av→följa program→göra något) enligt datamodellen +
+   ny `<script>`-rad i `index.html` före `js/app.js`. Renderare/datamodell/CSS orörda. Formbeslut:
+   eget kapitel med BEFINTLIGA stegtyper, INGA bilder/inbäddade länkar (renderaren escapar text,
+   så `<img>`/`<a>` kräver logikändring → flaggat som möjligt eget, additivt steg senare). Fakta
+   hålls säker/allmängiltig och omskriven med egna ord. Verifierat: `node --check`, `npm test`
+   (9 tester) och `file://`-genomklick i Chrome (landningsvy + kapitel 3, gating, fel→rätt,
+   blandad ordning, avslutslänk "Till kapitelöversikt").
 5. **Nice-to-have:** framstegssparande (`localStorage`; opålitligt på `file://`), lätt
    ljud/animation. **Committad dev-testharness (✓ KLAR):** `npm test` kör en jsdom-genomklick
    (`test/clickthrough.test.js`) mot den riktiga renderaren + innehållet och verifierar gating,
