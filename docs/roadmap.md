@@ -92,6 +92,51 @@ det som inte är committat och pushat försvinner).
    bara kapitel 1 + ett syntetiskt inline-kapitel). Nytt kapitel = bara ny fil, ingen
    teständring; trasig kapiteldata får `npm test` att faila. Möjligt nästa processteg:
    GitHub Actions-CI som kör `node --check` + `npm test` på varje PR.
+   **CI-fix (✓ KLAR):** CI:n (tillagd i steg 4-PR:en) var i praktiken röd på varje körning –
+   inklusive push till `main` – eftersom den var pinnad på Node 20 där `node --test
+   "test/**/*.test.js"` inte expanderar globben ("Could not find …"). Lokalt (Node 22) såg
+   testet grönt ut, så felet var osynligt. Åtgärd: CI bumpad till Node 22 (matchar devmiljön).
+   `npm test` (14) verifierad grön både lokalt och i CI efter fixen.
+
+## Meta-pass: backlog att utforska (kartlagt 2026-06-20)
+Detta är en **idé-/utredningsbacklog**, inte beslutade steg. Tas EN i taget; varje post
+utreds först (kort kartläggning + rekommendation) innan ev. implementation. Markera
+✓ KLAR / pågående efter hand. Ordningen är inte huggen i sten.
+
+### A. Innehåll & pedagogik
+- **Pedagogik-research:** kort omvärldskoll (åldersanpassning 7–10 år, scaffolding,
+  "gör tillsammans"-modellen) → konkreta riktlinjer i `docs/`. Påverkar ton/steglängd.
+- **Edison-faktagranskning:** gå igenom kapitel 1–3 mot källa (EdBlocks V3), lyft allt som
+  är "att verifiera". Hitta ALDRIG på fakta (se CLAUDE.md).
+- **Innehållstäckning:** är 3 kapitel rätt scope? Kandidater till nytt kapitel/modul
+  (t.ex. sensorer, loopar, felsökning) eller referenssida. Beslut om bredd vs djup.
+- **Bilder/media:** kapitel 3 flaggade att `<img>`/inbäddade länkar kräver en additiv,
+  escapad mediastegtyp – utred om det är värt det (lokala assets, ingen CDN).
+
+### B. UI/UX- & a11y-granskning
+- **Strukturerad genomgång av `docs/design.md` mot bygget:** responsivitet (mobil→desktop,
+  rail ≥900 px), touch-mål ≥44 px, fokusring, "text bär betydelse"-principen.
+- **WCAG-kontroll:** kontrast på nya badges (`Klart`/`Påbörjat`), tab-ordning, skärmläsar-
+  genomgång av kapitelflödet. Ev. liten a11y-smoke i testet.
+- **Reduced-motion:** maskot-nudge + ev. kommande animation ska respektera
+  `prefers-reduced-motion`; verifiera.
+
+### C. Författarflöde & grundfiler (effektivitet)
+- **Kapitelmall + checklista:** en `content/_mall.js` + kort guide så nya kapitel kan
+  skrivas snabbt (även från GitHub-mobilappen) utan att röra logiken.
+- **Schema-validator i CI:** validera datamodellen (`correctAnswer` i range, `ordering` =
+  permutation av index, `options` finns för rätt typer). Fångar trasig kapiteldata tidigt.
+  ("Backend"-känslan utan server: ren Node-validering, inget nytt sajtberoende.)
+- **Skärp `CLAUDE.md`/`.cursorrules`:** håll i synk, förtydliga sessionsprotokoll/handoff
+  utifrån vad som faktiskt fungerat. Ev. kort PR-checklista.
+
+### D. Test- & CI-robusthet
+- **CI som verklig grind:** (Node-pinningen åtgärdad ovan.) Överväg att göra CI obligatorisk
+  för merge och lägga till `node --check` på fler filer / länk-/sökvägskoll.
+- **Fler tester:** schema-validering (se C), ev. liten a11y-/struktur-smoke. `file://`-
+  genomklick förblir manuell grind för CSS/visuellt.
+- **GitHub Pages-verifiering:** bekräfta att deploy från `main` (root) fungerar och att
+  relativa sökvägar (`./…`) håller på Pages som på `file://`.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, merga till `main`. **Öppna ingen PR om användaren inte ber om det.**
