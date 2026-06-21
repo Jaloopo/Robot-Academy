@@ -62,9 +62,67 @@ Allt är ADDITIVT via `@media (min-width: 900px)`; mobilen och 720 px-arket är 
   .has-rail .chapter-rail {
     display: block; position: sticky; top: 3rem;
     align-self: start; padding-right: 2rem; border-right: 1px solid #ece5da;
+    max-height: calc(100vh - 8rem); overflow: auto;
   }
   .step-main { min-width: 0; }
+  /* Läspelare kapad ≤680 px (direkta barn i .step-main – ingen extra wrapper) */
+  .has-rail .step-main > .app-header,
+  .has-rail .step-main > .progressbar,
+  .has-rail .step-main > #step-card,
+  .has-rail .step-main > .nav,
+  .has-rail .step-main > .chapter-finish,
+  .has-rail .step-main > .chapter-reset {
+    max-width: 680px; margin-inline: auto;
+  }
   /* .rail-link/.rail-link--current/.rail-kicker/.rail-title/.rail-progress/.rail-overview … */
+}
+```
+
+### Desktop (≥1200 px)
+Alternativ 1 – lugnt skalande ark. Landningsarket (`#app` utan `.has-rail`) växer till **860 px**
+(visuellt QA:at mot storyboard – inte 760). Kapitelarket (`#app.has-rail`) växer till **1180 px**;
+rail **260 px**, `column-gap: 3rem`, arkpaddning `3rem 3.5rem`, stegkortspadding `2rem`.
+Typografi-tak: brödtext **1,1875 rem (19 px)**, `.app-title` **1,9 rem**, `line-height: 1,6` – växer
+inte mer vid ≥1440.
+
+**Vertikal balans:** `body` blir `display:flex; flex-direction:column; align-items:center` och
+`#app` får `width:100%`, `margin-block:auto`, `margin-inline:0`. Använd **inte**
+`place-content:center` / `justify-content:center` på `body` – det kollapsar `#app` till
+innehållsbredd och ignorerar `max-width`. Flex + `margin-block:auto` centrerar arket
+scroll-säkert (långt innehåll scrollar utan klipp).
+
+Rail: `top: 4rem` (sticky); `max-height: calc(100vh - 8rem); overflow: auto` (satt redan ≥900).
+
+```css
+@media (min-width: 1200px) {
+  body {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    font-size: 1.1875rem; line-height: 1.6;
+  }
+  #app {
+    width: 100%; margin-block: auto; margin-inline: 0;
+    max-width: 860px; padding: 3rem 3.5rem;
+  }
+  #app.has-rail {
+    max-width: 1180px; grid-template-columns: 260px minmax(0, 1fr);
+    column-gap: 3rem; padding: 3rem 3.5rem;
+  }
+  .has-rail .chapter-rail { top: 4rem; }
+  .step-card { padding: 2rem; }
+  .app-title { font-size: 1.9rem; }
+}
+```
+
+### Desktop (≥1440 px)
+Kapitelarkets **sluttak 1280 px**; rail **280 px**, `column-gap: 3,5rem`, arkpaddning
+`3,25rem 4rem`. Landningsarket stannar på **860 px**. Typografin ändras inte.
+
+```css
+@media (min-width: 1440px) {
+  #app.has-rail {
+    max-width: 1280px; grid-template-columns: 280px minmax(0, 1fr);
+    column-gap: 3.5rem; padding: 3.25rem 4rem;
+  }
 }
 ```
 

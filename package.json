@@ -5,9 +5,11 @@
   "description": "Dev-testverktyg för Edison Hemguide. Endast utvecklingsberoenden – den publicerade sajten är fortfarande ren statisk HTML/CSS/JS utan beroenden och utan build.",
   "scripts": {
     "validate": "node tools/validate-content.js",
-    "test": "node --test \"test/**/*.test.js\""
+    "test": "node --test \"test/**/*.test.js\"",
+    "snap": "node tools/snap.js"
   },
   "devDependencies": {
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "playwright-core": "^1.61.0"
   }
 }

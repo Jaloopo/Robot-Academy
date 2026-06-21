@@ -80,8 +80,9 @@ tillägg i respektive wrapper – duplicera inte dessa regler.
 - Genomklicket laddar AUTOMATISKT alla `content/kapitel-*.js` och klickar igenom var och en
   (gating, fel→rätt, blandad ordning, rätt avslutslänk). Ett NYTT kapitel testas alltså bara
   genom att lägga till filen – ingen teständring behövs. Trasig kapiteldata (t.ex.
-  `correctAnswer` utanför index) får `npm test` att faila. Manuell `file://`-koll behövs då
-  främst för PR:ar som rör `js/app.js` eller `style.css` (logik/visuellt), inte rent innehåll.
+  `correctAnswer` utanför index) får `npm test` att faila. Vid ändringar i `js/app.js` eller
+  `style.css` ska relevant browserflöde/assertion läggas till i `npm run snap` om dagens grind
+  inte täcker risken. Manuell Chrome-kontroll är reserverad för WebUSB/robotflöden.
 - `npm run validate` (`tools/validate-content.js`) validerar datamodellen i alla
   `content/kapitel-*.js`: id matchar filnamn, `role`/`type` giltiga, `text` finns, `options`
   ≥2, `correctAnswer` i range (flerval) resp. permutation (ordering). Exit 1 vid fel. Körs i CI

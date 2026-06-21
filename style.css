@@ -534,6 +534,17 @@ body {
     align-self: start;
     padding-right: 2rem;
     border-right: 1px solid #ece5da;
+    max-height: calc(100vh - 8rem);
+    overflow: auto;
+  }
+  .has-rail .step-main > .app-header,
+  .has-rail .step-main > .progressbar,
+  .has-rail .step-main > #step-card,
+  .has-rail .step-main > .nav,
+  .has-rail .step-main > .chapter-finish,
+  .has-rail .step-main > .chapter-reset {
+    max-width: 680px;
+    margin-inline: auto;
   }
   .step-main {
     min-width: 0;                     /* tillåt att grid-spalten krymper rätt */
@@ -617,5 +628,51 @@ body {
   .rail-overview:focus-visible {
     outline: 2px solid var(--color-edison-orange);
     outline-offset: 2px;
+  }
+}
+
+/* ADDITIVT — bred desktop ≥1200 px. Mobil, 720 px- och 900 px-värden orörda utöver
+   tillägg ovan (läspelare, rail-overflow). Landningsark 860 px; kapitelark 1180 px. */
+@media (min-width: 1200px) {
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.1875rem;
+    line-height: 1.6;
+  }
+  #app {
+    width: 100%;
+    margin-block: auto;
+    margin-inline: 0;
+    max-width: 860px;
+    padding: 3rem 3.5rem;
+  }
+  #app.has-rail {
+    max-width: 1180px;
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    column-gap: 3rem;
+    padding: 3rem 3.5rem;
+  }
+  .has-rail .chapter-rail {
+    top: 4rem;
+  }
+  .step-card {
+    padding: 2rem;
+  }
+  .app-title {
+    font-size: 1.9rem;
+  }
+}
+
+/* ADDITIVT — sluttak ≥1440 px. Landningsarket stannar på 860 px. */
+@media (min-width: 1440px) {
+  #app.has-rail {
+    max-width: 1280px;
+    grid-template-columns: 280px minmax(0, 1fr);
+    column-gap: 3.5rem;
+    padding: 3.25rem 4rem;
   }
 }

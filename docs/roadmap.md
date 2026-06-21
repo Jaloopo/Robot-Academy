@@ -11,7 +11,9 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
 - Designsystem implementerat (tokens, WCAG AA-fix, ikonfeedback, maskot).
 - **Mobil + desktop-bas** finns: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
   canvas, samt tunn framstegsstapel. Desktop ≥900 px har dessutom en chapter-rail
-  (kontextspalt) i kapitelvyn. Anpassningen för bred desktop är beslutad men inte byggd.
+  (kontextspalt) i kapitelvyn. **Bred desktop (Alternativ 1) är byggd:** läspelare ≤680 px,
+  landningsark 860 px, kapitelark 1180→1280 px, typografi-tak 19 px, vertikal balans via
+  flex + `margin-block:auto`.
 - Innehåll i `content/kapitel-1.js`–`content/kapitel-5.js` (`window.KAPITEL`; kapitel 5
   mergades via PR #18).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
@@ -256,13 +258,17 @@ så modulen blir ett tryggt, smalt bygge i stället för ett experiment ovanpå 
    på branch `docs/desktop-ux-och-modulspec`.
 2. **Beslut taget:** automatiserad visuell QA (Playwright, dev-only) ersätter manuell Chrome-
    kontroll för statisk UI/CSS (detaljer i `docs/desktop-ux-beslut.md` §8).
-3. **Claude Design** på de fem storyboard-tillstånden i `docs/desktop-ux-beslut.md` §7 (UI/UX,
-   Uppgift A). Designunderlag, inte produktkod – kan ske före bygget. Mata in `style.css` +
-   `docs/design.md`-tokens + beslutsunderlaget; exportera handoff till Claude Code/Cursor.
-   (Gäller **inte** Uppgift B/curriculum – den är text/pedagogik och behöver inget designverktyg.)
-4. **Roadmap-steg:** bygg **visual-QA-baslinje + desktoplayout enligt Alternativ 1** (additiv
-   CSS ≥900/≥1200/≥1440, kapat läsmått, balanserad luft). När byggt blir måtten kanon i
-   `docs/design.md` (avsnittet "Desktop").
+3. **(✓ KLAR)** **Claude Design** på de fem storyboard-tillstånden i `docs/desktop-ux-beslut.md` §7
+   (UI/UX, Uppgift A). Storyboard-handoffen ("Edison Hemguide – Storyboard") är levererad och
+   användes som visuellt referensunderlag för desktoplayouten i steg 4. (Gällde **inte** Uppgift
+   B/curriculum – den är text/pedagogik och behöver inget designverktyg.)
+4. **(✓ KLAR)** **Roadmap-steg:** bygg **visual-QA-baslinje + desktoplayout enligt Alternativ 1**
+   (additiv CSS ≥900/≥1200/≥1440, kapat läsmått, balanserad luft). Måtten är kanon i
+   `docs/design.md` (avsnittet "Desktop"). Resultat: Playwright-harness `npm run snap` (dev-only)
+   med viewportar 320–1718; additiv desktop-CSS i `style.css` (läspelare ≤680 px ≥900, landning
+   860 px / kapitel 1180→1280 px sluttak, rail 260→280 px, typografi 19 px, flex+
+   `margin-block:auto` för vertikal balans – inte `place-content:center`). Verifierat: `node --check`,
+   `npm run validate`, `npm test` (25), `npm run snap` (alla kontroller gröna inkl. skal 1280/1440/1718).
 5. **Curriculum-evidenskarta + Edison-mappning:** ett avgränsat deep-research-pass före
    Fas 3-bygget. Kartlägg åldersprogression (7–10, utan individprofil), evidens för
    programmering med fysisk robot, kända missuppfattningar, formativ observation och exakt
