@@ -18,8 +18,13 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
   redan laddade lokala script och fungerar på `file://`.
 - Stegtypsarkitekturen är implementerad i `docs/architecture.md`: ett fullständigt
   plugin-kontrakt för state, persistence, progress, gating, HTML och events – inte bara
-  ett renderar-registry. Fas 2:s merge väntar fortfarande på den manuella `file://`-kontrollen
-  efter cleanup-reviewn.
+  ett renderar-registry. **Fas 2 är mergad till `main` via PR #22** (`window.EdisonApp`-
+  registry + fyra pluginfiler + rätt scriptordning i `index.html`).
+- **UI/UX- + curriculum-designpass (2026-06-21):** desktopproblem diagnostiserat och två
+  alternativ + rekommendation i `docs/desktop-ux-beslut.md`; **Alternativ 1 ("lugnt skalande
+  ark") är valt**. Källbelagd modulspec för "Sekvens vs loop" i `docs/modul-sekvens-vs-loop.md`.
+  **Beslut:** automatiserad visuell QA (Playwright, dev-only) ersätter den manuella Chrome-
+  kontrollen som grind för statisk UI/CSS.
 
 ## Roller (vem gör vad)
 - **Samordnare / planerare (stark resonemangsmodell):** äger denna roadmap, granskar
@@ -199,8 +204,11 @@ utreds först (kort kartläggning + rekommendation) innan ev. implementation. Ma
   GitHubs publika API rapporterade 2026-06-20 `main` som `protected: false` och inga aktiva
   rulesets, trots tidigare ägarbekräftelse. Kontrollera Settings → Rules/Branches och gör
   checken `test` required innan detta markeras klart.
-- **Fler tester:** schema-validering klar (se C). Ev. liten a11y-/struktur-smoke kvar. `file://`-
-  genomklick förblir manuell grind för CSS/visuellt.
+- **Fler tester:** schema-validering klar (se C). Ev. liten a11y-/struktur-smoke kvar.
+- **Visuell QA (beslutad 2026-06-21):** automatiserad Playwright-baserad visual QA (dev-only)
+  ersätter manuell Chrome-kontroll som grind för statisk UI/CSS. Namngivet gap, viewportar,
+  assertions och kommando i `docs/desktop-ux-beslut.md` §8. WebUSB/robotflöde förblir manuellt.
+  Byggs som eget roadmap-steg (se "Beslutad ordning framåt").
 - **GitHub Pages-verifiering (✓ KLAR 2026-06-20):** Pages är på och publicerar från `main`/root
   (bekräftat av ägaren) – sajten är live. `index.html` var redan filnivå-ren (relativa `./`-
   sökvägar, ingen CDN/fetch).
@@ -233,9 +241,28 @@ beroende-policy finns i `docs/architecture.md`.
   text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
   http-resurser). En ny manuell Chrome-kontroll efter cleanup-reviewn återstår före merge.
 - **Fas 3 – nästa möjliga produktsteg:** bygg endast "Sekvens vs loop" mot det verifierade kontraktet, med textbärande
-  betydelse, tangentbord, cleanup, persistence och reduced-motion-stöd.
+  betydelse, tangentbord, cleanup, persistence och reduced-motion-stöd. Spec finns i
+  `docs/modul-sekvens-vs-loop.md`. **Byggs först efter** visual-QA-baslinjen och desktoplayouten
+  (se "Beslutad ordning framåt" nedan).
 - **Fas 4:** användartesta och utvärdera innan fler interaktiva stegtyper eller ett rikare
   programformat planeras. Återöppna beroende-/buildfrågan bara vid ett konkret hinder.
+
+### Beslutad ordning framåt (2026-06-21)
+Få först skalet och den automatiska visuella verifieringen på plats; bygg interaktiviteten sist
+så modulen blir ett tryggt, smalt bygge i stället för ett experiment ovanpå ett osäkert gränssnitt.
+
+1. **(✓ KLAR denna session)** Synka lokal `main` (PR #22), spara designdokumenten med justeringar
+   på branch `docs/desktop-ux-och-modulspec`.
+2. **Beslut taget:** automatiserad visuell QA (Playwright, dev-only) ersätter manuell Chrome-
+   kontroll för statisk UI/CSS (detaljer i `docs/desktop-ux-beslut.md` §8).
+3. **Claude Design** på de fem storyboard-tillstånden i `docs/desktop-ux-beslut.md` §7 (UI/UX,
+   Uppgift A). Designunderlag, inte produktkod – kan ske före bygget. Mata in `style.css` +
+   `docs/design.md`-tokens + beslutsunderlaget; exportera handoff till Claude Code/Cursor.
+   (Gäller **inte** Uppgift B/curriculum – den är text/pedagogik och behöver inget designverktyg.)
+4. **Roadmap-steg:** bygg **visual-QA-baslinje + desktoplayout enligt Alternativ 1** (additiv
+   CSS ≥900/≥1200/≥1440, kapat läsmått, balanserad luft). När byggt blir måtten kanon i
+   `docs/design.md` (avsnittet "Desktop").
+5. **Därefter Fas 3:** "Sekvens vs loop" som liten interaktiv modul mot plugin-kontraktet.
 
 Fas 2 är klar: kärnan saknar konkreta stegtypvillkor i state, restore, serialize,
 progress, gating, rendering och event-bindning; namespace är additivt; validatorn är

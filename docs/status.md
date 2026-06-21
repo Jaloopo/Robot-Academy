@@ -5,7 +5,7 @@ Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs
 granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
 lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-20 · Fas 2 plugin-refaktor med cleanup-reviewfixar; manuell `file://`-kontroll återstår före merge
+Senast uppdaterad: 2026-06-21 · Fas 2 mergad (PR #22); UI/UX- + curriculum-designpass: Alternativ 1 valt, visual-QA-beslut, två nya designdokument
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -83,6 +83,30 @@ Senast uppdaterad: 2026-06-20 · Fas 2 plugin-refaktor med cleanup-reviewfixar; 
   förutom maskot-nudge stängs nu `transition` på progressstapel/knappar/alternativ/rail-länkar av.
   Badges, fokus, touch-mål, responsivitet, "text bär betydelse" verifierade som AA-OK. Datamodellen
   orörd; sajten beroendefri. `npm test` har nu **16 tester**.
+
+## Denna session gjorde (UI/UX- + curriculum-designpass, 2026-06-21)
+- **Rent designpass – ingen produktkod, CSS, paket eller tester rörda.** Branch:
+  `docs/desktop-ux-och-modulspec` (utgår från `main` efter PR #22).
+- **Synkade lokal `main`** (var 4 commits efter `origin/main`) → nu vid PR #22; Fas 2-
+  pluginarkitekturen och rätt scriptordning i `index.html` finns. Den tidigare "saknade
+  pluginscript"-varningen gällde en gammal lokal arbetskopia och är inaktuell.
+- **`docs/desktop-ux-beslut.md` (ny):** diagnos av desktopproblemet (litet appskal + för
+  brett läsmått när ytan väl växer), två alternativ, **rekommendation = Alternativ 1 "lugnt
+  skalande ark" (valt av ägaren)**, mått (skal/rail/läspelare/typografi/luft/CTA), placering
+  av "Sekvens vs loop" utan dashboard-känsla, a11y-/reduced-motion-krav, storyboard med 5
+  skärmtillstånd för Claude Design, och en dev-only visual-QA-rekommendation.
+- **`docs/modul-sekvens-vs-loop.md` (ny):** källbelagd modulspec (CSTA 1A-AP-10/1B-AP-10,
+  K-12 CS Framework, PRIMM-originalet Sentance/Waite/Kallia 2019, Use–Modify–Create Lee 2011)
+  med tydlig [KÄLLA]/[DESIGNSLUTSATS]-uppdelning: lärandemål, tre missuppfattningar,
+  PRIMM-flöde 3–5 min, textbärande alternativ, vuxenfråga, observationssignaler och gräns
+  (ingen robotanslutning, ingen förgrening, ingen generell programspråksmotor).
+- **Justeringar efter review:** (1) klargjort att PR #22 redan finns på `origin/main`;
+  (2) ändrat "400 % zoom" i visual-QA-planen till "smal viewport / 400 %-ekvivalent reflow
+  ned till ~320 CSS-px" (headless bevisar inte verklig browserzoom); (3) lagt till
+  kontrollfrågan *"Vad är det som Edison upprepar?"* mot missuppfattningen "en loop är bara
+  en genväg".
+- **Beslut:** automatiserad visuell QA (Playwright, dev-only) ersätter manuell Chrome-kontroll
+  som grind för statisk UI/CSS. Beslutad ordning framåt finns i `docs/roadmap.md`.
 
 ## Denna arkitektur-/kontraktssession gjorde
 - Portade och omarbetade `docs/architecture.md` från källbranchens skiss efter dagens
@@ -267,17 +291,60 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
 - **GitHub Pages är på och publicerar** (bekräftat av ägaren) – sajten är live från `main`/root.
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
-## Nästa steg (inte startat)
-**Fas 3 – första interaktiva spiken "Sekvens vs loop".** Bygg den endast om ägaren uttryckligen
-ber om nästa roadmap-steg. Den ska använda det verifierade plugin-kontraktet, inte lägga
-simulator-/aktivitetslogik i appkärnan, och ska ha textbärande betydelse, tangentbord,
-cleanup, persistence och reduced-motion-stöd.
+## Nästa steg (beslutad ordning – se docs/roadmap.md)
+Bygg skalet och den automatiska visuella verifieringen FÖRE interaktiviteten:
 
-**Icke-mål för nästa pass tills det beställs:** inga fler plugins av bara arkitekturskäl,
-ingen ändring av `content/`/CSS/package-filer utan tydligt scope, inga ES-moduler, ingen
-bundler och inga runtime-beroenden.
+1. **Claude Design** på de fem storyboard-tillstånden (`docs/desktop-ux-beslut.md` §7) – UI/UX,
+   Uppgift A. Designunderlag, inte produktkod; kan ske före bygget. Mata in `style.css` +
+   `docs/design.md`-tokens + beslutsunderlaget och exportera handoff till Claude Code/Cursor.
+2. **Roadmap-steg:** bygg **visual-QA-baslinje (Playwright, dev-only) + desktoplayout enligt
+   Alternativ 1** (additiv CSS, kapat läsmått, balanserad luft). Måtten blir då kanon i
+   `docs/design.md`.
+3. **Därefter Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt `docs/modul-sekvens-vs-loop.md`
+   – textbärande betydelse, tangentbord, cleanup, persistence, reduced motion; ingen simulator-/
+   aktivitetslogik i appkärnan.
+
+**Icke-mål tills respektive steg beställs:** inga fler plugins av bara arkitekturskäl,
+ingen ändring av `content/`/package-filer utan tydligt scope, inga ES-moduler, ingen
+bundler och inga runtime-beroenden i sajten (Playwright är ett DEV-beroende, laddas aldrig av
+`index.html`).
 
 ## Modellrekommendation för nästa steg
-- Fas 3 innebär ny interaktion, a11y och pedagogisk produktkänsla → använd Opus 4.8 High /
-  high-thinking Opus-klass eller motsvarande stark modell för design/review; implementation
-  kan delegeras till billigare modell först när specen är smal och tydlig.
+- **Desktoplayout + visual-QA-baslinje:** Opus 4.8 High / high-thinking Opus-klass för CSS-/
+  a11y-/reflow-omdömet; den mekaniska Playwright-skript-delen kan delegeras till billigare
+  modell när specen (§8) är låst.
+- **Fas 3** innebär ny interaktion, a11y och pedagogisk produktkänsla → Opus 4.8 High eller
+  motsvarande stark modell för design/review; implementation kan delegeras till billigare
+  modell först när specen är smal och tydlig.
+
+## Copy-paste för nästa session (roadmap-steg: visual-QA-baslinje + desktoplayout)
+```text
+Du bygger nästa roadmap-steg för "Edison Hemguide" (repo Jaloopo/Robot-Academy):
+VISUAL-QA-BASLINJE (Playwright, dev-only) + DESKTOPLAYOUT enligt Alternativ 1.
+
+LÄS FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md,
+docs/architecture.md och docs/desktop-ux-beslut.md (särskilt §4 mått, §6 a11y, §8 visual-QA).
+Kontrollera git status/branch och att main är synkad med origin (PR #22 ska finnas).
+Ange kort nuläge, exakt filscope och nästa åtgärd innan du kör fler verktyg. Arbeta på en
+branch; committa/pusha/öppna PR endast på uttrycklig begäran.
+
+MÅL A – visual-QA (gör denna först, den blir grinden för B):
+- Lägg Playwright som DEV-beroende (devDependency); node_modules/ är git-ignorerat och sajten
+  förblir beroendefri (index.html laddar ALDRIG Playwright).
+- Skriv ett dev-only skript (`npm run snap`) som öppnar index.html via file:// i namngivna
+  viewportar (390, 768, 900, 1280, 1440, 1718 och ~320 px reflow-proxy) för landning,
+  ?kapitel=1 och – när den finns – Sekvens vs loop, och kör assertions ur §8 (ingen horisontell
+  scroll; läspelare ≤ ~700 px; rail dold <900/synlig ≥900; ark centrerat; en kolumn ned till
+  ~320 px). Artefakter till en git-ignorerad artifacts/-mapp.
+
+MÅL B – desktoplayout (Alternativ 1, ADDITIV CSS):
+- Implementera måtten i docs/desktop-ux-beslut.md §4: skal ≥900/≥1200/≥1440, kapat läsmått
+  (~680 px), balanserad vertikal luft (min-height-centrering), rail-max-height/overflow,
+  typografitak (~19 px), CTA-bredd. Rör INTE mobilens värden (<720 px) eller datamodellen.
+- När klart: uppdatera docs/design.md "Desktop" med de byggda måtten (gör dem kanon).
+
+VERIFIERA: node --check, npm run validate, npm test (alla gröna), npm run snap grön, samt en
+manuell file://-blick i Chrome för det som inte är ren statisk UI/CSS. Dokumentera i
+docs/status.md + docs/roadmap.md. Modell: Opus 4.8 High för CSS/a11y; mekanisk skriptdel kan
+delegeras till billigare modell.
+```
