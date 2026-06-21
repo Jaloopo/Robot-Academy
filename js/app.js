@@ -1,6 +1,8 @@
 (function (root) {
   "use strict";
 
+  var app = root.EdisonApp = root.EdisonApp || {};
+
   // ---- Pure helpers (testable, no DOM) ----
 
   function sequencesEqual(a, b) {
@@ -112,7 +114,7 @@
       s.removeItem(probeKey);
       storageRef = s;
     } catch (e) {
-      storageRef = null; // unavailable / blocked → silently skip persistence
+      storageRef = null; // unavailable / blocked -> silently skip persistence
     }
     return storageRef;
   }
@@ -145,7 +147,7 @@
     try {
       s.setItem(chapterStorageKey(chapterId), JSON.stringify(data));
     } catch (e) {
-      // quota / serialization error → degrade silently
+      // quota / serialization error -> degrade silently
     }
   }
 
@@ -159,7 +161,22 @@
     }
   }
 
-  // "none" | "started" | "done" for the landing/rail badges.
+  function utilityPluginContext() {
+    return {
+      ui: {
+        escapeHtml: escapeHtml,
+        feedbackHtml: function () { return ""; }
+      },
+      utils: {
+        sequencesEqual: sequencesEqual,
+        shuffleDisplayOrder: shuffleDisplayOrder
+      },
+      requestRender: function () {},
+      prefersReducedMotion: function () { return false; }
+    };
+  }
+
+  // "none" | "started" | "done" for tests and non-rendering status checks.
   function chapterProgressStatus(chapterId, chapter) {
     var stepsArr = (chapter && chapter.steps) || [];
     var data = loadChapterProgress(chapterId, stepsArr.length);
@@ -168,10 +185,14 @@
     if (data.current > 0) return "started";
     for (var i = 0; i < data.steps.length; i++) {
       var rec = data.steps[i];
-      var stp = stepsArr[i];
-      if (!rec || !stp) continue;
-      if ((stp.type === "question_single_choice" || stp.type === "ordering") && rec.done) return "started";
-      if (stp.type === "ordering" && rec.picks && rec.picks.length) return "started";
+      var step = stepsArr[i];
+      var plugin = app.getStepType && step ? app.getStepType(step.type) : null;
+      if (!rec || !step || !plugin) continue;
+      try {
+        if (plugin.hasProgress(step, rec, utilityPluginContext())) return "started";
+      } catch (e) {
+        return "started";
+      }
     }
     return "none";
   }
@@ -181,23 +202,22 @@
   function initApp(doc) {
     var appEl = doc.getElementById("app");
     if (!appEl) return;
+
+    if (typeof app.cleanupActiveView === "function") {
+      app.cleanupActiveView();
+    }
+    app.cleanupActiveView = null;
+
     var chapters = root.KAPITEL || {};
     var chapterIds = sortedChapterIds(chapters);
 
-    // Inline SVG icons (aria-hidden – form+colour, text conveys meaning).
-    // Check: used in correct option button and ok-feedback.
+    // Inline SVG icons (aria-hidden - form+colour, text conveys meaning).
+    // Check: used in ok-feedback.
     var SVG_CHECK =
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"' +
       ' stroke="#1E5E22" stroke-width="3" stroke-linecap="round"' +
       ' stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto">' +
       '<path d="M5 13l4 4L19 7"/></svg>';
-
-    // Retry arrow: used inside wrong option buttons (matches border colour).
-    var SVG_RETRY_BTN =
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none"' +
-      ' stroke="#B26A00" stroke-width="2.4" stroke-linecap="round"' +
-      ' stroke-linejoin="round" aria-hidden="true" style="flex:0 0 auto">' +
-      '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v4h-4"/></svg>';
 
     // Retry arrow: used in retry-feedback paragraph (matches text colour).
     var SVG_RETRY_FEEDBACK =
@@ -219,6 +239,110 @@
       '<circle cx="39" cy="34" r="3.5" fill="#fff"/>' +
       '<path d="M27 40 q5 4 10 0" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>' +
       '</svg></div>';
+
+    function feedbackHtml(feedback) {
+      if (!feedback) return "";
+      var icon = feedback.kind === "ok" ? SVG_CHECK : SVG_RETRY_FEEDBACK;
+      return "<p class=\"feedback feedback--" + feedback.kind + "\"" +
+        " role=\"status\" aria-live=\"polite\">" +
+        icon + "<span>" + escapeHtml(feedback.msg) + "</span></p>";
+    }
+
+    function prefersReducedMotion() {
+      return !!(root.matchMedia && root.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
+
+    function createPluginContext(generation) {
+      return {
+        ui: {
+          escapeHtml: escapeHtml,
+          feedbackHtml: feedbackHtml
+        },
+        utils: {
+          sequencesEqual: sequencesEqual,
+          shuffleDisplayOrder: shuffleDisplayOrder
+        },
+        requestRender: function (request) {
+          if (viewDisposed || generation !== renderGeneration) return;
+          request = request || {};
+          if (request.celebrate) pendingMascotNudge = true;
+          render(request.focus || null);
+        },
+        prefersReducedMotion: prefersReducedMotion
+      };
+    }
+
+    function getStepPlugin(step) {
+      if (!app.getStepType || !step) return null;
+      return app.getStepType(step.type);
+    }
+
+    function logPluginError(step, error) {
+      if (root.console && typeof root.console.error === "function") {
+        root.console.error("Edison Hemguide stegfel", {
+          chapter: requestedChapterId,
+          type: step && step.type,
+          error: error
+        });
+      }
+    }
+
+    function lockedErrorMessage(step) {
+      return "Okänd stegtyp: " + String(step && step.type ? step.type : "saknas") +
+        ". Steget är låst tills det rättas.";
+    }
+
+    function makeErrorEntry(step, error) {
+      if (error) logPluginError(step, error);
+      return {
+        plugin: null,
+        state: null,
+        errorMessage: lockedErrorMessage(step)
+      };
+    }
+
+    function markEntryError(entry, step, error) {
+      if (error) logPluginError(step, error);
+      entry.plugin = null;
+      entry.state = null;
+      entry.errorMessage = lockedErrorMessage(step);
+    }
+
+    function makeStepEntry(step, savedRecord) {
+      var plugin = getStepPlugin(step);
+      if (!plugin) return makeErrorEntry(step, new Error("Saknat plugin"));
+      try {
+        return {
+          plugin: plugin,
+          state: savedRecord ? plugin.restore(step, savedRecord, createPluginContext(0)) :
+            plugin.createState(step, createPluginContext(0)),
+          errorMessage: null
+        };
+      } catch (e) {
+        return makeErrorEntry(step, e);
+      }
+    }
+
+    // "none" | "started" | "done" for the landing/rail badges.
+    function chapterProgressStatus(chapterId, chapter) {
+      var stepsArr = (chapter && chapter.steps) || [];
+      var data = loadChapterProgress(chapterId, stepsArr.length);
+      if (!data) return "none";
+      if (data.completed) return "done";
+      if (data.current > 0) return "started";
+      for (var i = 0; i < data.steps.length; i++) {
+        var rec = data.steps[i];
+        var stp = stepsArr[i];
+        var plugin = getStepPlugin(stp);
+        if (!rec || !stp || !plugin) continue;
+        try {
+          if (plugin.hasProgress(stp, rec, createPluginContext(0))) return "started";
+        } catch (e) {
+          logPluginError(stp, e);
+        }
+      }
+      return "none";
+    }
 
     function renderLanding(message) {
       appEl.className = ""; // single-column landing (no chapter-rail)
@@ -279,77 +403,59 @@
     var steps = chapter.steps;
     var totalSteps = steps.length;
     var current = 0;
-    var state = steps.map(makeStepState);
+    var entries = [];
     var pendingMascotNudge = false;
-    restoreProgress();
+    var currentCleanup = null;
+    var renderGeneration = 0;
+    var viewDisposed = false;
 
-    function makeStepState(step) {
-      if (step.type === "question_single_choice") {
-        return { done: false, chosen: null, wrongTried: [], feedback: null };
-      }
-      if (step.type === "ordering") {
-        return {
-          done: false,
-          display: shuffleDisplayOrder(step.options.length, step.correctAnswer),
-          picks: [],
-          feedback: null
-        };
-      }
-      return { done: true }; // text / adult
-    }
+    restoreProgress();
+    app.cleanupActiveView = disposeView;
 
     // Restore saved per-step answers + resumed step from a previous session.
-    // Display order for ordering steps is intentionally NOT restored (it is
-    // reshuffled each load); picks map by option index so badges still line up.
+    // Runtime display details are intentionally owned by plugins; saved records
+    // only contain logical, restorable state.
     function restoreProgress() {
       var saved = loadChapterProgress(requestedChapterId, totalSteps);
-      if (!saved) return;
-      saved.steps.forEach(function (rec, i) {
-        if (!rec) return;
-        var step = steps[i];
-        var st = state[i];
-        if (step.type === "question_single_choice") {
-          if (rec.done) {
-            st.done = true;
-            if (typeof rec.chosen === "number") st.chosen = rec.chosen;
-            st.feedback = { kind: "ok", msg: "Rätt! Bra jobbat." };
-          } else if (Array.isArray(rec.wrongTried)) {
-            st.wrongTried = rec.wrongTried.slice();
-          }
-        } else if (step.type === "ordering") {
-          if (rec.done) {
-            st.done = true;
-            if (Array.isArray(rec.picks)) st.picks = rec.picks.slice();
-            st.feedback = { kind: "ok", msg: "Perfekt ordning! Edison är redo." };
-          }
-        }
+      entries = steps.map(function (step, i) {
+        return makeStepEntry(step, saved && saved.steps ? saved.steps[i] : null);
       });
-      if (typeof saved.current === "number" && saved.current >= 0 && saved.current < totalSteps) {
+      if (saved && typeof saved.current === "number" && saved.current >= 0 && saved.current < totalSteps) {
         current = saved.current;
       }
     }
 
-    // Serialize current progress for this chapter. Only stores answer flags +
-    // resumed step (never the data model). completed = all steps done AND the
-    // last step reached, which drives the "Klart" badge on the landing/rail.
+    function entryIsDone(entry, step) {
+      if (!entry || entry.errorMessage || !entry.plugin) return false;
+      try {
+        return !!entry.plugin.isDone(step, entry.state, createPluginContext(renderGeneration));
+      } catch (e) {
+        markEntryError(entry, step, e);
+        return false;
+      }
+    }
+
+    function serializeEntry(entry, step) {
+      if (!entry || entry.errorMessage || !entry.plugin) return null;
+      try {
+        return entry.plugin.serialize(step, entry.state, createPluginContext(renderGeneration));
+      } catch (e) {
+        markEntryError(entry, step, e);
+        return null;
+      }
+    }
+
+    // Serialize current progress for this chapter. Only stores plugin-owned
+    // logical records + resumed step (never the data model). completed = all
+    // steps done AND the last step reached, which drives badges on landing/rail.
     function persistProgress() {
       var allDone = true;
       var stepRecords = steps.map(function (step, i) {
-        var st = state[i];
-        if (step.type === "question_single_choice") {
-          if (!st.done) allDone = false;
-          var qRec = { done: !!st.done };
-          if (typeof st.chosen === "number") qRec.chosen = st.chosen;
-          if (st.wrongTried && st.wrongTried.length) qRec.wrongTried = st.wrongTried.slice();
-          return qRec;
-        }
-        if (step.type === "ordering") {
-          if (!st.done) allDone = false;
-          var oRec = { done: !!st.done };
-          if (st.picks && st.picks.length) oRec.picks = st.picks.slice();
-          return oRec;
-        }
-        return { done: true }; // text / adult
+        var entry = entries[i];
+        if (!entryIsDone(entry, step)) allDone = false;
+        var record = serializeEntry(entry, step);
+        if (entry && entry.errorMessage) allDone = false;
+        return record;
       });
       saveChapterProgress(requestedChapterId, {
         v: STORAGE_VERSION,
@@ -359,116 +465,67 @@
       });
     }
 
+    function entryHasProgress(entry, step) {
+      if (!entry || entry.errorMessage || !entry.plugin) return false;
+      var rec = serializeEntry(entry, step);
+      if (!rec) return false;
+      try {
+        return !!entry.plugin.hasProgress(step, rec, createPluginContext(renderGeneration));
+      } catch (e) {
+        markEntryError(entry, step, e);
+        return false;
+      }
+    }
+
     function hasResettableProgress() {
       if (current > 0) return true;
       for (var i = 0; i < totalSteps; i++) {
-        var step = steps[i];
-        var st = state[i];
-        if (step.type === "question_single_choice" && st.done) return true;
-        if (step.type === "ordering" && (st.done || (st.picks && st.picks.length))) return true;
+        if (entryHasProgress(entries[i], steps[i])) return true;
       }
       return false;
     }
 
     function resetChapter() {
       clearChapterProgress(requestedChapterId);
-      state = steps.map(makeStepState);
+      entries = steps.map(function (step) {
+        return makeStepEntry(step, null);
+      });
       current = 0;
       render("card");
     }
 
+    function cleanupCurrent() {
+      if (!currentCleanup) return;
+      var cleanupRecord = currentCleanup;
+      currentCleanup = null;
+      try {
+        cleanupRecord.cleanup();
+      } catch (e) {
+        markEntryError(cleanupRecord.entry, cleanupRecord.step, e);
+      }
+    }
+
+    function disposeView() {
+      viewDisposed = true;
+      cleanupCurrent();
+      if (app.cleanupActiveView === disposeView) app.cleanupActiveView = null;
+    }
+
     // ---- Rendering ----
 
-    function feedbackHtml(st) {
-      if (!st || !st.feedback) return "";
-      var icon = st.feedback.kind === "ok" ? SVG_CHECK : SVG_RETRY_FEEDBACK;
-      return "<p class=\"feedback feedback--" + st.feedback.kind + "\"" +
-        " role=\"status\" aria-live=\"polite\">" +
-        icon + "<span>" + escapeHtml(st.feedback.msg) + "</span></p>";
-    }
-
-    function renderText(step) {
-      return "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
-    }
-
-    // Local image/illustration step. The text still carries the meaning (a11y);
-    // the image is a complement with its own alt text. src must be a local path
-    // (no fetch/CDN) so it works on file:// and GitHub Pages alike.
-    function renderImage(step) {
-      var html = "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
-      html += "<img class=\"step-image\" src=\"" + escapeHtml(step.src) +
-        "\" alt=\"" + escapeHtml(step.alt || "") + "\">";
-      return html;
-    }
-
-    function renderSingleChoice(step, st) {
-      var html = "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
-      html += "<ul class=\"options\" role=\"list\">";
-      step.options.forEach(function (opt, i) {
-        var cls = "option";
-        var disabled = "";
-        var inner = "<span>" + escapeHtml(opt) + "</span>";
-        if (st.done) {
-          disabled = " disabled";
-          if (i === step.correctAnswer) {
-            cls += " option--correct";
-            inner = SVG_CHECK + inner;
-          }
-        } else if (st.wrongTried.indexOf(i) !== -1) {
-          cls += " option--wrong";
-          inner = SVG_RETRY_BTN + inner;
-        }
-        var pressed = st.chosen === i ? "true" : "false";
-        html += "<li><button type=\"button\" class=\"" + cls + "\" data-idx=\"" + i +
-          "\" aria-pressed=\"" + pressed + "\"" + disabled + ">" +
-          inner + "</button></li>";
-      });
-      html += "</ul>";
-      html += feedbackHtml(st);
-      return html;
-    }
-
-    function renderOrdering(step, st) {
-      var html = "<p class=\"step-text\">" + escapeHtml(step.text) + "</p>";
-      html += "<ul class=\"options options--ordering\" role=\"list\">";
-      st.display.forEach(function (oi) {
-        var pos = st.picks.indexOf(oi);
-        var picked = pos !== -1;
-        var cls = "option" + (picked ? " option--picked" : "");
-        var disabled = (st.done || picked) ? " disabled" : "";
-        var badge = picked
-          ? "<span class=\"option-badge\" aria-hidden=\"true\">" + (pos + 1) + "</span>"
-          : "";
-        var label = picked
-          ? "Vald som nummer " + (pos + 1) + ": " + step.options[oi]
-          : step.options[oi];
-        html += "<li><button type=\"button\" class=\"" + cls + "\" data-oi=\"" + oi +
-          "\" aria-pressed=\"" + (picked ? "true" : "false") +
-          "\" aria-label=\"" + escapeHtml(label) + "\"" + disabled + ">" +
-          badge + "<span>" + escapeHtml(step.options[oi]) + "</span></button></li>";
-      });
-      html += "</ul>";
-      if (!st.done) {
-        html += "<button type=\"button\" class=\"btn btn--ghost\" id=\"btn-reset\"" +
-          (st.picks.length === 0 ? " disabled" : "") + ">Börja om</button>";
+    function renderStepEntry(entry, step) {
+      if (!entry || entry.errorMessage || !entry.plugin) return renderErrorStep(entry, step);
+      try {
+        return entry.plugin.render(step, entry.state, createPluginContext(renderGeneration));
+      } catch (e) {
+        markEntryError(entry, step, e);
+        return renderErrorStep(entry, step);
       }
-      html += feedbackHtml(st);
-      return html;
     }
 
-    function renderStepContent(step, st) {
-      switch (step.type) {
-        case "text":
-          return renderText(step);
-        case "image":
-          return renderImage(step);
-        case "question_single_choice":
-          return renderSingleChoice(step, st);
-        case "ordering":
-          return renderOrdering(step, st);
-        default:
-          return "<p class=\"step-stub\">Okänd stegtyp: " + escapeHtml(step.type) + "</p>";
-      }
+    function renderErrorStep(entry, step) {
+      var message = entry && entry.errorMessage ? entry.errorMessage : lockedErrorMessage(step);
+      return "<p class=\"step-stub\" role=\"alert\">" + escapeHtml(message) + "</p>";
     }
 
     // Desktop-only context column (Layout B). Lists chapters and marks the
@@ -501,17 +558,26 @@
     }
 
     function render(focus) {
+      renderGeneration += 1;
+      cleanupCurrent();
+
       var step = steps[current];
-      var st = state[current];
+      var entry = entries[current];
+      var resettableProgress = hasResettableProgress();
+      var done = entry && !entry.errorMessage && entryIsDone(entry, step);
+      persistProgress(); // remember resumed step + answers for next visit
+      if (entry && entry.errorMessage) done = false;
+      var contentHtml = renderStepEntry(entry, step);
+      if (entry && entry.errorMessage) done = false;
       var isAdult = step.role === "adult";
       var cardClass = "step-card" + (isAdult ? " step-card--adult" : "");
       var labelHtml = isAdult
         ? "<span class=\"step-label\">Tips till dig som hjälper</span>"
         : "";
       var isLastStep = current === totalSteps - 1;
-      var nextDisabled = !isLastStep && !st.done;
+      var nextDisabled = !isLastStep && !done;
       var pct = Math.round(((current + 1) / totalSteps) * 100);
-      var hintHtml = (!st.done && step.type !== "text")
+      var hintHtml = !done
         ? "<p class=\"nav-hint\">Svara först för att gå vidare.</p>"
         : "";
       var navHtml =
@@ -520,7 +586,7 @@
             (current === 0 ? " disabled" : "") + ">Föregående</button>";
 
       if (isLastStep) {
-        if (st.done) {
+        if (done) {
           navHtml += "<a class=\"btn btn--primary\" id=\"link-finish\" href=\"" +
             (nextChapterId ? chapterHref(nextChapterId) : landingHref()) + "\">" +
             (nextChapterId ? "Nästa kapitel" : "Till kapitelöversikt") + "</a>";
@@ -532,17 +598,15 @@
           (nextDisabled ? " disabled" : "") + ">Nästa</button>";
       }
       navHtml += "</nav>";
-      if (isLastStep && st.done && nextChapterId) {
+      if (isLastStep && done && nextChapterId) {
         navHtml += "<p class=\"chapter-finish\"><a href=\"" + landingHref() + "\">Till kapitelöversikt</a></p>";
       }
-      if (hasResettableProgress()) {
+      if (resettableProgress) {
         navHtml += "<p class=\"chapter-reset\">" +
           "<button type=\"button\" class=\"linklike\" id=\"btn-reset-chapter\">Börja om kapitlet</button></p>";
       }
 
-      persistProgress(); // remember resumed step + answers for next visit
-
-      appEl.className = "has-rail"; // enables two-column desktop layout (≥900px)
+      appEl.className = "has-rail"; // enables two-column desktop layout (>=900px)
       appEl.innerHTML =
         chapterRailHtml() +
         "<div class=\"step-main\">" +
@@ -556,13 +620,13 @@
           "<div class=\"progressbar\" aria-hidden=\"true\"><span style=\"width:" + pct + "%\"></span></div>" +
           "<article class=\"" + cardClass + "\" id=\"step-card\" tabindex=\"-1\">" +
             labelHtml +
-            renderStepContent(step, st) +
+            contentHtml +
           "</article>" +
           hintHtml +
           navHtml +
         "</div>";
 
-      // Trigger mascot nudge on correct answer
+      // Trigger mascot nudge on correct answer.
       if (pendingMascotNudge) {
         pendingMascotNudge = false;
         var mascot = appEl.querySelector(".mascot");
@@ -572,104 +636,69 @@
         }
       }
 
-      // Re-attach handlers
+      // Re-attach shell handlers.
       doc.getElementById("btn-prev").addEventListener("click", goPrev);
       var nextBtn = doc.getElementById("btn-next");
       if (nextBtn) nextBtn.addEventListener("click", goNext);
       var resetChapterBtn = doc.getElementById("btn-reset-chapter");
       if (resetChapterBtn) resetChapterBtn.addEventListener("click", resetChapter);
 
-      if (step.type === "question_single_choice") {
-        forEachEl(appEl.querySelectorAll(".option[data-idx]"), function (btn) {
-          btn.addEventListener("click", function () {
-            onChoice(parseInt(btn.getAttribute("data-idx"), 10));
-          });
-        });
-      } else if (step.type === "ordering") {
-        forEachEl(appEl.querySelectorAll(".option[data-oi]"), function (btn) {
-          btn.addEventListener("click", function () {
-            onPick(parseInt(btn.getAttribute("data-oi"), 10));
-          });
-        });
-        var resetBtn = doc.getElementById("btn-reset");
-        if (resetBtn) resetBtn.addEventListener("click", onReset);
-      }
-
+      bindCurrentStep(entry, step);
       applyFocus(focus);
     }
 
-    function forEachEl(list, fn) {
-      for (var i = 0; i < list.length; i++) fn(list[i]);
+    function bindCurrentStep(entry, step) {
+      if (!entry || entry.errorMessage || !entry.plugin) return;
+      var card = doc.getElementById("step-card");
+      try {
+        var cleanup = entry.plugin.bind(card, step, entry.state, createPluginContext(renderGeneration));
+        if (typeof cleanup === "function") {
+          var didCleanup = false;
+          currentCleanup = {
+            entry: entry,
+            step: step,
+            cleanup: function () {
+              if (didCleanup) return;
+              didCleanup = true;
+              cleanup();
+            }
+          };
+        }
+      } catch (e) {
+        markEntryError(entry, step, e);
+        render("card");
+      }
     }
 
     function applyFocus(focus) {
       if (!focus) return;
       var el = null;
+      var card = doc.getElementById("step-card");
       if (focus === "next") {
         el = doc.getElementById("btn-next");
         if (!el) el = doc.getElementById("link-finish");
         if (el && el.disabled) el = null;
-      } else if (focus === "options") {
-        el = appEl.querySelector(".option:not(:disabled)");
+      } else if (focus === "step" || focus === "card") {
+        el = card;
+      } else if (focus && typeof focus.selector === "string" && card) {
+        el = card.querySelector(focus.selector);
+        if (el && el.disabled) el = null;
       }
-      if (!el) el = doc.getElementById("step-card");
+      if (!el) el = card;
       if (el && typeof el.focus === "function") el.focus();
     }
 
-    // ---- Interaction ----
-
-    function onChoice(i) {
-      var step = steps[current];
-      var st = state[current];
-      if (st.done) return;
-      st.chosen = i;
-      if (i === step.correctAnswer) {
-        st.done = true;
-        st.feedback = { kind: "ok", msg: "Rätt! Bra jobbat." };
-        pendingMascotNudge = true;
-        render("next");
-      } else {
-        if (st.wrongTried.indexOf(i) === -1) st.wrongTried.push(i);
-        st.feedback = { kind: "retry", msg: "Inte riktigt – prova en annan knapp." };
-        render("options");
-      }
-    }
-
-    function onPick(oi) {
-      var step = steps[current];
-      var st = state[current];
-      if (st.done || st.picks.indexOf(oi) !== -1) return;
-      st.picks.push(oi);
-      if (st.picks.length === step.options.length) {
-        if (sequencesEqual(st.picks, step.correctAnswer)) {
-          st.done = true;
-          st.feedback = { kind: "ok", msg: "Perfekt ordning! Edison är redo." };
-          pendingMascotNudge = true;
-          render("next");
-        } else {
-          st.feedback = { kind: "retry", msg: "Nästan! Tryck ”Börja om” och försök i en annan ordning." };
-          render("options");
-        }
-      } else {
-        st.feedback = null;
-        render("options");
-      }
-    }
-
-    function onReset() {
-      var st = state[current];
-      if (st.done) return;
-      st.picks = [];
-      st.feedback = null;
-      render("options");
-    }
+    // ---- Navigation ----
 
     function goPrev() {
       if (current > 0) { current--; render("card"); }
     }
 
     function goNext() {
-      if (current < totalSteps - 1 && state[current].done) { current++; render("card"); }
+      if (current < totalSteps - 1 && entryIsDone(entries[current], steps[current])) {
+        current++;
+        render("card");
+      }
     }
 
     render(null);
@@ -680,16 +709,14 @@
     initApp(document);
   }
 
-  // Expose testable pure functions for Node tests.
-  root.EdisonApp = {
-    sequencesEqual: sequencesEqual,
-    shuffleDisplayOrder: shuffleDisplayOrder,
-    chapterIdFromSearch: chapterIdFromSearch,
-    sortedChapterIds: sortedChapterIds,
-    getStorage: getStorage,
-    loadChapterProgress: loadChapterProgress,
-    chapterProgressStatus: chapterProgressStatus,
-    initApp: initApp
-  };
+  // Expose testable pure functions without replacing the additive registry.
+  app.sequencesEqual = sequencesEqual;
+  app.shuffleDisplayOrder = shuffleDisplayOrder;
+  app.chapterIdFromSearch = chapterIdFromSearch;
+  app.sortedChapterIds = sortedChapterIds;
+  app.getStorage = getStorage;
+  app.loadChapterProgress = loadChapterProgress;
+  app.chapterProgressStatus = chapterProgressStatus;
+  app.initApp = initApp;
 
 })(typeof window !== "undefined" ? window : (typeof global !== "undefined" ? global : this));

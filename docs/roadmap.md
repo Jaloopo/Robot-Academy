@@ -16,9 +16,10 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
   mergades via PR #18).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
   redan laddade lokala script och fungerar på `file://`.
-- Stegtypsarkitekturen är nu beslutad i `docs/architecture.md`: ett fullständigt
+- Stegtypsarkitekturen är implementerad i `docs/architecture.md`: ett fullständigt
   plugin-kontrakt för state, persistence, progress, gating, HTML och events – inte bara
-  ett renderar-registry. Ingen produktkod är ännu refaktorerad.
+  ett renderar-registry. Fas 2:s merge väntar fortfarande på den manuella `file://`-kontrollen
+  efter cleanup-reviewn.
 
 ## Roller (vem gör vad)
 - **Samordnare / planerare (stark resonemangsmodell):** äger denna roadmap, granskar
@@ -223,19 +224,24 @@ beroende-policy finns i `docs/architecture.md`.
   `docs/architecture.md`. Kärnan äger routing/storage/nav, pluginet äger hela steglivscykeln
   och Node-validatorn äger innehållsschemat. Namespace byggs additivt på
   `window.EdisonApp`; klassiska script laddas registry → plugins → kapiteldata → app.
-- **Fas 2 – nästa exakta steg:** beteendebevarande registry-refaktor av dagens fyra typer.
-  Behåll HTML-sträng → `innerHTML` → bind, befintlig datamodell, storage-envelope, markup,
-  CSS och UI-beteende. Ingen interaktiv spik i samma pass.
-- **Fas 3:** bygg endast "Sekvens vs loop" mot det verifierade kontraktet, med textbärande
+- **Fas 2 (✓ KLAR 2026-06-20):** beteendebevarande registry-refaktor av dagens fyra typer.
+  Resultat: additivt `window.EdisonApp`-registry, fyra klassiska pluginfiler, produktordning
+  registry → plugins → kapiteldata → app, tunnare appkärna och separat Node-registry i validatorn.
+  HTML-sträng → `innerHTML` → bind, befintlig datamodell, storage-envelope, markup, CSS och
+  UI-beteende behölls. Ingen interaktiv spik byggdes i samma pass. Verifierat med `node --check`,
+  `npm run validate`, `npm test` (**25 tester**) och tidigare Chrome-`file://`-genomklick (landning,
+  text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
+  http-resurser). En ny manuell Chrome-kontroll efter cleanup-reviewn återstår före merge.
+- **Fas 3 – nästa möjliga produktsteg:** bygg endast "Sekvens vs loop" mot det verifierade kontraktet, med textbärande
   betydelse, tangentbord, cleanup, persistence och reduced-motion-stöd.
 - **Fas 4:** användartesta och utvärdera innan fler interaktiva stegtyper eller ett rikare
   programformat planeras. Återöppna beroende-/buildfrågan bara vid ett konkret hinder.
 
-Fas 2 är klar endast när kärnan saknar konkreta stegtypvillkor i state, restore,
-serialize, progress, gating, rendering och event-bindning; namespace är additivt;
-validatorn är grön; minst dagens **16 tester** är gröna; och en manuell `file://`-
-genomklick i Chrome bekräftar oförändrat beteende. Sajten förblir fri från runtime-
-beroenden, nätverksanrop, ES-moduler och buildsteg.
+Fas 2 är klar: kärnan saknar konkreta stegtypvillkor i state, restore, serialize,
+progress, gating, rendering och event-bindning; namespace är additivt; validatorn är
+grön; dagens **25 tester** är gröna; och tidigare Chrome-`file://`-genomklick bekräftade
+oförändrat beteende. Sajten förblir fri från runtime-beroenden, nätverksanrop, ES-moduler och
+buildsteg.
 
 ## Arbetsflöde & verifiering
 - Utveckla på en branch, aldrig direkt på `main`. Committa, pusha, öppna/stäng PR eller
