@@ -5,7 +5,7 @@ Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs
 granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
 lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-21 · Fas 2 mergad (PR #22); UI/UX- + curriculum-designpass: Alternativ 1 valt, visual-QA-beslut, två nya designdokument
+Senast uppdaterad: 2026-06-21 · visual-QA-baslinje + desktoplayout (Alternativ 1) byggd på branch `visual-qa-och-desktoplayout`
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -27,7 +27,9 @@ Senast uppdaterad: 2026-06-21 · Fas 2 mergad (PR #22); UI/UX- + curriculum-desi
   ordningsfråga känna av→följa program→göra något). Laddas via en ny `<script>`-rad i
   `index.html` före `js/app.js`.
 - Designsystem + mobil + desktop-ark (≥720 px) + chapter-rail (≥900 px) + tunn
-  framstegsstapel ligger på `main`.
+  framstegsstapel ligger på `main`. **Bred desktop (Alternativ 1)** byggd additivt i `style.css`:
+  läspelare ≤680 px (≥900), landningsark 860 px / kapitelark 1180→1280 px sluttak (≥1200/≥1440),
+  rail 260→280 px, typografi-tak 19 px, vertikal balans med flex + `margin-block:auto`.
 - `js/app.js` väljer kapitel via `?kapitel=N`; utan query visas en landningsvy som listar
   alla laddade kapitel. På `main` listas kapitel 1–5 och kapitel 5 är sist.
 - **Fas 2 av stegtypsarkitekturen är implementerad för dagens fyra typer.** `window.EdisonApp`
@@ -84,6 +86,25 @@ Senast uppdaterad: 2026-06-21 · Fas 2 mergad (PR #22); UI/UX- + curriculum-desi
   förutom maskot-nudge stängs nu `transition` på progressstapel/knappar/alternativ/rail-länkar av.
   Badges, fokus, touch-mål, responsivitet, "text bär betydelse" verifierade som AA-OK. Datamodellen
   orörd; sajten beroendefri. `npm test` har nu **16 tester**.
+
+## Denna session gjorde (visual-QA + desktoplayout, 2026-06-21)
+- **Branch:** `visual-qa-och-desktoplayout` (lokalt, ej committat/pushat).
+- **Playwright visual-QA:** `npm run snap` (`tools/snap.js`, dev-only) – viewportar 320, 390,
+  768, 900, 1280, 1440, 1718 för landning + kapitel 1; assertions för horisontell scroll,
+  rail-synlighet, läsmått ≤700 px, reflow 320 px, arket växer (skal), **landningsark 860 px**,
+  **vertikal balans (≥1200)**, symmetrisk placering, inga externa resurser, samt **inga
+  laddningsfel/`pageerror`/konsolfel** (en tillåten URL räcker inte – resursen måste laddas).
+  Skärmdumpar till git-ignorerad `artifacts/`. (Grindhärdning gjord efter oberoende review.)
+- **Desktop-CSS (Alternativ 1, endast statiskt skal – ingen Fas 3-interaktivitet):** additiva
+  `@media (min-width: 900/1200/1440)` i `style.css` – läspelare kapad ≤680 px, rail
+  `max-height`/`overflow`, landning 860 px, kapitel 1180→1280 px, rail 260→280 px,
+  typografi 19 px / titel 1,9 rem, stegkort 2 rem padding, vertikal balans via
+  `body { display:flex; align-items:center }` + `#app { width:100%; margin-block:auto;
+  margin-inline:0 }` – **inte** `place-content:center` (kollapsar bredd).
+- **Beslut:** landningsark **860 px** (Opus visual QA mot storyboard, inte 760).
+- **Dokumentation:** `docs/design.md` Desktop ≥1200/≥1440 kanon; `docs/roadmap.md` steg 4
+  bockat; denna fil uppdaterad.
+- **Verifierat:** `node --check`, `npm run validate`, `npm test` (25), `npm run snap` (alla gröna).
 
 ## Denna session gjorde (UI/UX- + curriculum-designpass, 2026-06-21)
 - **Rent designpass – ingen produktkod, CSS, paket eller tester rörda.** Branch:
@@ -269,8 +290,9 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
   vuxen-steg, precis som i kap 4.
 
 ## Varningar / blockers
-- `npm test` täcker logik + datakorrekthet, INTE det visuella. CSS/layout måste fortfarande
-  ögongranskas via `file://` i Chrome.
+- **`npm run snap`** täcker nu statisk UI/CSS (layout, reflow, skal, rail, läsmått) via
+  Playwright + system-Chrome. WebUSB/robotflöden är fortfarande manuella.
+- `npm test` täcker logik + datakorrekthet, inte det visuella i detalj (snap kompletterar).
 - **`localStorage` på `file://` är browserberoende.** Det fungerade i denna Chrome, men kan vara
   blockerat i andra uppsättningar/privat läge → då degraderar appen tyst (ingen sparning, inga
   badges, men full funktion). På GitHub Pages (http(s)) är det pålitligt.
@@ -293,22 +315,17 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
 ## Nästa steg (beslutad ordning – se docs/roadmap.md)
-Bygg skalet och den automatiska visuella verifieringen FÖRE interaktiviteten:
+Claude Design (storyboard) är levererad och desktoplayout + visual-QA-baslinje är byggda
+(roadmap-steg 3 och 4). Nästa:
 
-1. **Claude Design** på de fem storyboard-tillstånden (`docs/desktop-ux-beslut.md` §7) – UI/UX,
-   Uppgift A. Designunderlag, inte produktkod; kan ske före bygget. Mata in `style.css` +
-   `docs/design.md`-tokens + beslutsunderlaget och exportera handoff till Claude Code/Cursor.
-2. **Roadmap-steg:** bygg **visual-QA-baslinje (Playwright, dev-only) + desktoplayout enligt
-   Alternativ 1** (additiv CSS, kapat läsmått, balanserad luft). Måtten blir då kanon i
-   `docs/design.md`.
-3. **Före Fas 3:** gör ett avgränsat deep-research-pass för curriculum + Edison-mappning.
+1. **Curriculum-evidenskarta + Edison-mappning (före Fas 3):** ett avgränsat deep-research-pass.
    Resultatet ska skilja källor från designval, täcka progression 7–10 år, fysisk robot som
    lärresurs, missuppfattningar och formativ observation – men inte bygga produktkod eller en
    individuell barnprofil. Det kan skärpa modulspecen.
-4. **Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt `docs/modul-sekvens-vs-loop.md`
+2. **Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt `docs/modul-sekvens-vs-loop.md`
    – textbärande betydelse, tangentbord, cleanup, persistence, reduced motion; ingen simulator-/
    aktivitetslogik i appkärnan.
-5. **Efter verifierad Fas 3, före modul två:** låt en stark mjukvaruarkitekt granska verklig
+3. **Efter verifierad Fas 3, före modul två:** låt en stark mjukvaruarkitekt granska verklig
    kod mot framtida moduler och övningar. Bedöm plugin-kontrakt, persistence, validering,
    cleanup, a11y och testbarhet; gör inga abstraktioner som den byggda modulen inte motiverar.
 
@@ -318,9 +335,6 @@ bundler och inga runtime-beroenden i sajten (Playwright är ett DEV-beroende, la
 `index.html`).
 
 ## Modellrekommendation för nästa steg
-- **Desktoplayout + visual-QA-baslinje:** Opus 4.8 High / high-thinking Opus-klass för CSS-/
-  a11y-/reflow-omdömet; den mekaniska Playwright-skript-delen kan delegeras till billigare
-  modell när specen (§8) är låst.
 - **Fas 3** innebär ny interaktion, a11y och pedagogisk produktkänsla → Opus 4.8 High eller
   motsvarande stark modell för design/review; implementation kan delegeras till billigare
   modell först när specen är smal och tydlig.
@@ -328,76 +342,46 @@ bundler och inga runtime-beroenden i sajten (Playwright är ett DEV-beroende, la
   resonemangsmodell. Research kan samla material med enklare modell, men källvärdering,
   progression och rekommendationer ska granskas av stark modell.
 
-## Copy-paste för nästa steg (Claude Design – storyboard, ingen produktkod)
+## Copy-paste för nästa steg (curriculum-evidenskarta + Edison-mappning)
 ```text
-Designa en UI/UX-prototyp för "Edison Hemguide" utifrån den befintliga produkten. Detta är
-ett design- och handoffpass – ändra inte repot och bygg inte produktkod.
+Gör nästa avgränsade researchpass för Edison Hemguide:
+CURRICULUM-EVIDENSKARTA + EDISON-/EDBLOCKS-MAPPNING för barn cirka 7–10 år tillsammans
+med en vuxen. Detta är research och dokumentation – ingen produktkod, UI eller ny modul.
 
-LÄS/ANVÄND SOM KANON:
-- style.css (dagens verkliga visuella språk)
-- docs/design.md (tokens och mobilprinciper)
-- docs/desktop-ux-beslut.md (Alternativ 1, särskilt §4, §6 och storyboard §7)
-- docs/modul-sekvens-vs-loop.md (pedagogiskt flöde; skriv inte om curriculumet)
+LÄS FÖRST: AGENTS.md, docs/plan.md, docs/pedagogik.md, docs/architecture.md,
+docs/roadmap.md, docs/status.md, docs/reference/cs-curriculum.md och
+docs/modul-sekvens-vs-loop.md. Synka main och arbeta på en ny branch. Ingen commit/push/PR
+utan uttrycklig begäran.
 
-SKAPA DE FEM TILLSTÅNDEN I STORYBOARDEN:
-1. landningsvy,
-2. kapitelvy med textsteg,
-3. Sekvens vs loop – Predict,
-4. Run/Investigate,
-5. Modify/Make.
+FORSKNINGSFRÅGOR:
+1. Vilken progression av sekvens, händelser, loopar, sensorer/villkor och felsökning stöds
+   för åldern 7–10? Skilj vid behov på ungefär 7–8 och 9–10 år.
+2. Vad visar forskning om fysisk utbildningsrobotik jämfört med eller kombinerat med
+   skärmbaserad programmering – inklusive motivation, transfer och kognitiv belastning?
+3. Vilka vanliga missuppfattningar bör varje modul uttryckligen designa mot?
+4. Vilka korta, icke-dömande observationssignaler kan användas formativt tillsammans med
+   en vuxen utan poängsystem eller personprofilering?
+5. Hur mappar detta exakt till Edison V3/EdBlocks funktioner och begränsningar?
 
-VISA minst 1718×920 desktop och 390×844 mobil. Kontrollera även hur layouten faller ihop
-mot cirka 320 CSS-px som reflow-proxy. Följ Alternativ 1: skalet växer, läsmåttet stannar
-kring 680 px, luften balanseras och den interaktiva scenen är villkorad – ingen permanent
-tredje kolumn/dashboard. Behåll svensk UI-text, befintliga färgtokens och systemfont.
+KÄLLHIERARKI:
+- officiella standarder/ramverk (CSTA, K–12 CS Framework och relevant svensk förstahandskälla),
+- peer-reviewad primärforskning med relevant ålder; systematiska översikter används för att
+  hitta och väga studier, inte som enda stöd,
+- Edison-fakta endast från Microbric/EdBlocks/meetedison och deras officiella lärarmaterial.
 
-HÅRDA GRÄNSER:
-- ingen ny navigation, gamification, poäng, timer, fri canvas eller autoanimation,
-- inga externa fonter/assets, nätverksanrop, ramverk eller runtime-beroenden,
-- inga bilder/skärmdumpar från EdBlocks; använd enkla egna blockformer,
-- texten bär betydelsen; alla kontroller minst 44 px, tangentbordsordning och synlig fokus,
-- reduced motion visar samma slutläge direkt,
-- ingen WebUSB, robotanslutning eller generell programspråksmotor.
+För varje central källa: ange full referens/DOI eller stabil länk, ålder/urval, metod,
+relevant resultat och begränsning. Märk påståenden som [KÄLLA], [EVIDENSSTYRKA],
+[DESIGNSLUTSATS] eller [OSÄKERHET]. Kopiera inte kursmaterial eller bilder; skriv med egna ord.
 
 LEVERERA:
-- en tydlig prototyp av alla fem tillstånd,
-- kort motivering till layout-, fokus- och responsivitetsval,
-- exakta föreslagna token/CSS/markup-deltan som handoff (inte en omskrivning av appen),
-- lista eventuella avsteg från kanondokumenten – gör inga tysta avsteg.
+- skapa docs/reference/curriculum-evidence-map.md,
+- föreslå en liten konceptprogression och innehållsrubrikbank, inte ett helt jättelångt curriculum,
+- granska "Sekvens vs loop" mot evidensen och ändra docs/modul-sekvens-vs-loop.md endast om
+  ett tydligt källbelagt skäl finns,
+- uppdatera docs/reference/cs-curriculum.md, docs/roadmap.md och docs/status.md endast där
+  besluten faktiskt förändras,
+- redovisa osäkerheter och vad som fortfarande kräver mänsklig/robotbaserad observation.
 
-Målet är ett designunderlag som nästa kodsession kan implementera bakom Playwright-grinden.
-```
-
-## Copy-paste för nästa session (roadmap-steg: visual-QA-baslinje + desktoplayout)
-```text
-Du bygger nästa roadmap-steg för "Edison Hemguide" (repo Jaloopo/Robot-Academy):
-VISUAL-QA-BASLINJE (Playwright, dev-only) + DESKTOPLAYOUT enligt Alternativ 1.
-
-LÄS FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md,
-docs/architecture.md och docs/desktop-ux-beslut.md (särskilt §4 mått, §6 a11y, §8 visual-QA).
-Kontrollera git status/branch och att main är synkad med origin (PR #22 ska finnas).
-Ange kort nuläge, exakt filscope och nästa åtgärd innan du kör fler verktyg. Arbeta på en
-branch; committa/pusha/öppna PR endast på uttrycklig begäran.
-
-MÅL A – visual-QA (gör denna först, den blir grinden för B):
-- Lägg Playwright som DEV-beroende (devDependency); node_modules/ är git-ignorerat och sajten
-  förblir beroendefri (index.html laddar ALDRIG Playwright).
-- Skriv ett dev-only skript (`npm run snap`) som öppnar index.html via file:// i namngivna
-  viewportar (390, 768, 900, 1280, 1440, 1718 och ~320 px reflow-proxy) för landning,
-  ?kapitel=1 och – när den finns – Sekvens vs loop, och kör assertions ur §8 (ingen horisontell
-  scroll; läspelare ≤ ~700 px; rail dold <900/synlig ≥900; ark centrerat; en kolumn ned till
-  ~320 px). Artefakter till en git-ignorerad artifacts/-mapp.
-
-MÅL B – desktoplayout (Alternativ 1, ADDITIV CSS):
-- Implementera måtten i docs/desktop-ux-beslut.md §4: skal ≥900/≥1200/≥1440, kapat läsmått
-  (~680 px), balanserad vertikal luft (min-height-centrering), rail-max-height/overflow,
-  typografitak (~19 px), CTA-bredd. Rör INTE mobilens värden (<720 px) eller datamodellen.
-- När klart: uppdatera docs/design.md "Desktop" med de byggda måtten (gör dem kanon).
-
-VERIFIERA: node --check, npm run validate, npm test (alla gröna) och npm run snap grön.
-Ingen manuell Chrome-grind för statisk UI/CSS; om en ändrad funktion inte går att verifiera
-automatiskt, namnge gapet och stoppa före merge i stället för att låtsas att den är täckt.
-WebUSB/robotflöden är utanför detta roadmap-steg. Dokumentera i docs/status.md + docs/roadmap.md.
-Modell: Opus 4.8 High för CSS/a11y; mekanisk skriptdel kan
-delegeras till billigare modell.
+HÅRDA GRÄNSER: ingen individuell barnprofil, ingen produktkod, ingen WebUSB-implementation,
+ingen generell programspråksmotor och inga påhittade Edison-fakta.
 ```

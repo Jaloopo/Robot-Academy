@@ -9,3 +9,6 @@ docs/reference/*.pdf
 # Dev-testverktyg (jsdom) – beroenden installeras lokalt, committas inte.
 # Sajten själv är fortsatt beroendefri; node_modules ingår aldrig i file://-/Pages-bygget.
 node_modules/
+
+# Visual-QA-screenshots från npm run snap (dev-only)
+artifacts/
