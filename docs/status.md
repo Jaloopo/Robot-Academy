@@ -5,7 +5,7 @@ Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs
 granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
 lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-20 · Arkitektur-/kontraktssession genomförd; nästa steg är en beteendebevarande plugin-refaktor
+Senast uppdaterad: 2026-06-20 · Fas 2 plugin-refaktor med cleanup-reviewfixar; manuell `file://`-kontroll återstår före merge
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -30,13 +30,27 @@ Senast uppdaterad: 2026-06-20 · Arkitektur-/kontraktssession genomförd; nästa
   framstegsstapel ligger på `main`.
 - `js/app.js` väljer kapitel via `?kapitel=N`; utan query visas en landningsvy som listar
   alla laddade kapitel. På `main` listas kapitel 1–5 och kapitel 5 är sist.
-- **Arkitektur-/kontraktet är dokumenterat men inte implementerat:**
-  `docs/architecture.md` definierar ett stegtyps-plugin-kontrakt och en fasad migration;
+- **Fas 2 av stegtypsarkitekturen är implementerad för dagens fyra typer.** `window.EdisonApp`
+  byggs additivt i `js/edison-app.js`, standardtyperna ligger i `js/step-types/*.js`, och
+  `index.html` laddar registry → plugins → kapiteldata → app. `js/app.js` äger fortsatt
+  routing, storage-envelope, nav, reset och chapter-rail, men anropar plugin-kontraktet för
+  state, restore, serialize, progress, gating, rendering och event-bindning. Den interaktiva
+  "Sekvens vs loop"-spiken är inte byggd.
+- **Cleanup-reviewfixar:** rendergenerationen invalideras före cleanup, cleanup-fel låser
+  ägande steg i stället för att avbryta navigationen, och `isDone`/`serialize` kan visa felvyn
+  i samma render. Datamodell, CSS och plugin-kontraktets publika metodsignaturer är orörda.
+- **Verifiering för fas 2:** `node --check` på nya/ändrade JS-filer, `npm run validate` och
+  `npm test` (**25 tester**) är gröna. Tidigare Chrome-`file://`-genomklick täckte landning,
+  text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
+  http-resurser; en ny manuell Chrome-kontroll efter cleanup-fixen återstår före merge.
+- `docs/architecture.md` definierar det fortsatta stegtyps-plugin-kontraktet och
   `docs/reference/cs-curriculum.md` beskriver den anonymiserade, utforskande riktningen
   för en senare interaktiv "Sekvens vs loop"-spik.
 - Committat testverktyg: `npm test` kör en jsdom-genomklick (`test/clickthrough.test.js`,
-  **16 tester**). `jsdom` är DEV-beroende; `node_modules/` är git-ignorerat. Sajten själv är
-  fortsatt beroendefri.
+  **25 tester**). Nya kontraktstester täcker additivt registry, obligatoriska pluginmetoder,
+  app-bootstrap utan namespace-överskrivning, okänd låst stegtyp, plugin-cleanup, sena
+  cleanup-callbacks, cleanup-fel och validatorns separata Node-registry. `jsdom` är
+  DEV-beroende; `node_modules/` är git-ignorerat. Sajten själv är fortsatt beroendefri.
 - **Testet genomklickar nu ALLA riktiga `content/kapitel-*.js` automatiskt** (kapitel 1–5 på
   `main`). Ett nytt kapitel testas
   alltså bara genom att lägga till filen; trasig kapiteldata får `npm test` att faila.
@@ -52,8 +66,10 @@ Senast uppdaterad: 2026-06-20 · Arkitektur-/kontraktssession genomförd; nästa
   expanderar inte globben i `node --test`). Nu verifieras `node --check` + `npm run validate`
   + `npm test` på varje PR och push till `main`.
 - **Schema-validator finns:** `npm run validate` (`tools/validate-content.js`) fäller bygget
-  på trasig kapiteldata (id↔filnamn, `role`/`type`, `text`, `options` ≥2, `correctAnswer` i
-  range/permutation). **Kapitelmall finns:** `content/_mall.js` (kopiera → `kapitel-N.js`).
+  på trasig kapiteldata (id↔filnamn, `role`/`type`, `text`, typregistry, lokala bildfält,
+  `options` ≥2, `correctAnswer` i range/permutation). Validatorn har ett separat Node-registry
+  och laddar inte browser-DOM-plugin. **Kapitelmall finns:** `content/_mall.js` (kopiera →
+  `kapitel-N.js`).
 - **Innehållet är faktagranskat mot meetedison.com** (kap 1–3): sensorer/knappar/WebUSB/V3-flöde
   verifierade; två rättningar gjorda (kap 1 runda knappen = "programknapp" inte "laddar in";
   kap 2 USB-C-adapter för MacBook). **Pedagogik-riktlinjer:** `docs/pedagogik.md`.
@@ -251,93 +267,17 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
 - **GitHub Pages är på och publicerar** (bekräftat av ägaren) – sajten är live från `main`/root.
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
-## Nästa steg (exakt ETT) – BESLUTAT
-**Beteendebevarande stegtyps-plugin-refaktor.** Implementera endast fas 2 i
-`docs/architecture.md`: flytta dagens fyra stegtyper till registry + klassiska pluginfiler
-utan att ändra data, markup, CSS, copy eller användarflöde. Detta är medvetet inte samma
-pass som den första interaktiva "Sekvens vs loop"-spiken.
+## Nästa steg (inte startat)
+**Fas 3 – första interaktiva spiken "Sekvens vs loop".** Bygg den endast om ägaren uttryckligen
+ber om nästa roadmap-steg. Den ska använda det verifierade plugin-kontraktet, inte lägga
+simulator-/aktivitetslogik i appkärnan, och ska ha textbärande betydelse, tangentbord,
+cleanup, persistence och reduced-motion-stöd.
 
-**Icke-mål:** ingen ny stegtyp, ingen ändring av `content/`, ingen CSS-redesign, ingen
-ändring av storage-envelope eller kapitelrouting, inga ES-moduler, ingen bundler och inga
-runtime-beroenden.
+**Icke-mål för nästa pass tills det beställs:** inga fler plugins av bara arkitekturskäl,
+ingen ändring av `content/`/CSS/package-filer utan tydligt scope, inga ES-moduler, ingen
+bundler och inga runtime-beroenden.
 
 ## Modellrekommendation för nästa steg
-- Plugin-refaktorn → **stark resonemangsmodell** (beteendeparitet, persistence, gating,
-  focus/a11y och file://-scriptordning måste hållas samtidigt).
-
-## Copy-paste för nästa session
-```text
-Du tar över fas 2: den beteendebevarande stegtyps-plugin-refaktorn för "Edison Hemguide"
-(repo Jaloopo/Robot-Academy). Implementera EXAKT ett roadmap-steg; bygg inte den interaktiva
-"Sekvens vs loop"-spiken ännu.
-
-LÄS FÖRST: AGENTS.md, docs/plan.md, docs/design.md, docs/roadmap.md, docs/status.md och
-docs/architecture.md. Kontrollera git status, aktuell branch och senaste main. Ange kort
-nuläge, exakt filscope och nästa åtgärd innan du kör fler verktyg. Arbeta på branch och håll
-allt lokalt; committa, pusha eller öppna PR bara på uttrycklig begäran.
-
-MÅL: Flytta dagens fyra typer (`text`, `image`, `question_single_choice`, `ordering`) från
-typvillkor i `js/app.js` till ett additivt `window.EdisonApp`-registry. Behåll dagens
-HTML-sträng → innerHTML → bind-mönster, nuvarande UI-markup/klassnamn/copy, routing, storage-
-envelope, reset, feedback, fokus, chapter-rail och file://-beteende.
-
-KONTRAKT (se docs/architecture.md för exakt semantik): varje plugin implementerar
-`createState`, `restore`, `serialize`, `hasProgress`, `isDone`, `render` och `bind`.
-Kärnan känner efter refaktorn inte till konkreta typnamn i state, restore, serialize,
-progress, gating, rendering eller event-bindning.
-
-EXAKT FILSCOPE:
-- Skapa: js/edison-app.js
-- Skapa: js/step-types/text.js
-- Skapa: js/step-types/image.js
-- Skapa: js/step-types/question-single-choice.js
-- Skapa: js/step-types/ordering.js
-- Ändra: js/app.js
-- Ändra: index.html (scriptordning: registry → plugins → kapiteldata → app)
-- Ändra: tools/validate-content.js (ett separat Node-registry eller motsvarande
-  typspecifik validering; ladda inte browser-DOM-kod i Node)
-- Ändra: test/clickthrough.test.js (ladda script i produktionsordning och täck registry-
-  kontraktet, okänd typ och dubbelregistrering)
-- Ändra vid avslut: docs/roadmap.md och docs/status.md
-- RÖR INTE: style.css, content/*, package.json, package-lock.json eller nya beroenden.
-
-VIKTIGA DETALJER:
-- Bootstrap ska vara additiv: `window.EdisonApp = window.EdisonApp || {}`. Ersätt inte
-  namespaceobjektet när appen exponerar testbara hjälpfunktioner.
-- Vanliga scriptfiler, inga `type="module"`, `import`, fetch, async eller buildsteg.
-- Dubbelregistrerad typ kastar synkront. Okänd eller trasig typ ger en svensk, textbärande,
-  låst felvy; den får inte räknas som klar eller sparas som lyckad.
-- `bind` returnerar vid behov cleanup som kärnan kör före omrendering. Plugins äger sin
-  semantik, events, typspecifika fokus och reduced-motion; kärnan äger routing, storage-
-  envelope, skal/nav och säkert fokusfallback.
-- Behåll dagens fördelning: localStorage degraderar tyst på file://; text och bild är
-  omedelbart klara; flerval och ordning gatear Nästa enligt samma regler som idag.
-
-ARBETSSÄTT: Skriv eller uppdatera relevanta tester före respektive kodflytt. Gör små,
-reversibla delsteg (namespace/registry → plugins → tunn kärna → validator/testharness) och
-kör testsviten efter varje meningsfullt delsteg. Ingen big-bang och ingen produktändring.
-Subagenter är ok för avgränsad plan/research, implementation och review, men kör inte
-parallell implementation på samma branch/filer. Om koordinatorn körs på GPT-5.5 Extra High
-eller annan dyr toppmodell: låt inte alla subagenter ärva den slentrianmässigt. Använd Opus
-4.8 High / high-thinking Opus-klass för UI/UX, ny interaktion, a11y och visuell produktkänsla;
-använd en stark standard-/high-modell som mellannivå för integrationsarbete och medelsvår
-debug; använd Composer 2.5 (inte Fast) för implementerare som följer tydlig spec; använd
-enklare/snabbare modell för readonly research, sökning, testkörning och enkel QA.
-
-BINÄRA ACCEPTANSKRITERIER:
-- `rg`/kodgranskning bekräftar att appkärnan saknar konkreta stegtypvillkor i de sju
-  livscykelområdena ovan.
-- Befintlig datamodell och sparad kapitel-envelope fungerar; lagrade framsteg återställs,
-  reset fungerar och text-/bildsteg är fortfarande omedelbart klara.
-- Befintliga 16 tester är gröna, plus kontraktstester för registry, okänd typ och dubbel
-  registrering. `npm run validate`, `npm test` och `node --check` för varje ändrad/ny JS-fil
-  är gröna.
-- Manuell Chrome-genomklick via file://: landning, text, bild, fel→rätt, ordering, bakåt,
-  omladdad progress, reset och avslutslänk. Inga konsolfel utöver dokumenterad file://-varning
-  och inga nätverksanrop.
-- Ingen CSS-, copy- eller layoutförändring och inga nya runtime-beroenden.
-
-Dokumentera resultat, avvikelser och nästa exakta steg i roadmap/status. Håll ändringarna lokala.
-Modell: stark resonemangsmodell för koordinatorn; välj subagentmodell efter uppgift enligt
-AGENTS.md och docs/roadmap.md, inte automatiskt dyraste möjliga.
-```
+- Fas 3 innebär ny interaktion, a11y och pedagogisk produktkänsla → använd Opus 4.8 High /
+  high-thinking Opus-klass eller motsvarande stark modell för design/review; implementation
+  kan delegeras till billigare modell först när specen är smal och tydlig.

@@ -1,9 +1,9 @@
 # Arkitektur och plugin-kontrakt för stegtyper
 
-**Status:** beslutad målbild, ännu inte implementerad. Uppdaterad 2026-06-20 mot
-`js/app.js` på `main` (`c213deae`). Dokumentet beskriver nästa beteendebevarande
-refaktor och sätter gränser inför framtida interaktiva stegtyper. Det ändrar inte
-produktens datamodell eller beteende.
+**Status:** Fas 2 är implementerad i arbetsgrenen. Uppdaterad 2026-06-20 mot den
+aktuella registry-refaktorn. Dokumentet beskriver det implementerade kontraktet och
+sätter gränser inför framtida interaktiva stegtyper. Det ändrar inte produktens
+datamodell eller beteende.
 
 ## Mål och icke-mål
 
@@ -209,12 +209,13 @@ alltså inte orsaka en ny render eller skriva över nyare state.
 
 1. Kärnan slår upp pluginet för varje steg innan kapitelvyn startar.
 2. Utan sparad post anropas `createState`; med post anropas `restore`.
-3. Vid render frågar kärnan `isDone`, bygger skal/nav och lägger in resultatet från
-   `render`.
+3. Vid render validerar kärnan status och serialisering före innehållet byggs, så ett
+   fel kan visa den låsta felvyn i samma render.
 4. Kärnan anropar `bind` med stegkortet och sparar eventuell cleanup.
 5. Pluginets event ändrar sitt state och kallar `requestRender`.
-6. Före omrendering kör kärnan cleanup. Därefter serialiseras state, framsteg avgörs
-   med `hasProgress` och vyn byggs på nytt.
+6. Före omrendering invaliderar kärnan rendergenerationen och kör cleanup. Ett
+   cleanup-fel fångas och låser dess ägande steg; sena callbacks från den gamla
+   bindningen ignoreras. Därefter avgörs framsteg med `hasProgress` och vyn byggs på nytt.
 7. Kapitelstatusen Klart är sann endast när alla plugins rapporterar `isDone` och
    användaren har nått sista steget, precis som idag.
 
@@ -285,9 +286,9 @@ i jsdom-testharnessen.
   kärnan ett svenskt, textbärande fel i stegkortet, loggar typ och kapitel i konsolen
   och håller Nästa/Klart låst. Steget får inte behandlas som färdigt eller sparas som
   lyckat.
-- **Pluginmetod kastar:** kärnan fångar felet vid livscykelgränsen, kör cleanup om den
-  finns och använder samma låsta felvy. Ett trasigt steg får inte krascha landningsvyn
-  eller andra kapitel.
+- **Pluginmetod eller cleanup kastar:** kärnan fångar felet vid livscykelgränsen,
+  knyter cleanup-felet till dess ägande steg och använder samma låsta felvy. Ett trasigt
+  steg får inte krascha landningsvyn eller andra kapitel.
 - **Trasig sparad post:** pluginet återgår till säkert färskt state. Lagringsproblem
   fortsätter degradera tyst enligt dagens `file://`-policy.
 
@@ -309,13 +310,13 @@ rörelse önskas. Cleanup måste stoppa pågående timers/animationer före omre
 Spika ansvar, plugin-API, namespace, loadordning, felhantering och acceptanskriterier
 utan produktkod.
 
-### Fas 2 – beteendebevarande registry-refaktor (nästa exakta steg)
+### Fas 2 – beteendebevarande registry-refaktor (implementerad 2026-06-20)
 
-Inför namespace/registry och fyra plugins för dagens typer. Flytta typkunskapen ur
+Införde namespace/registry och fyra plugins för dagens typer. Typkunskapen flyttades ur
 kärnan utan att ändra kapiteldata, storage-envelope, markup/klassnamn, text, CSS eller
-interaktion. Utöka testharnessen så filerna laddas i produktionsordning och lägg till
-kontraktstester för registryt, okänd/dubbelregistrerad typ samt cleanup vid omrendering
-och när kapitelvyn lämnas.
+interaktion. Testharnessen laddar filerna i produktionsordning och täcker registryt,
+okänd/dubbelregistrerad typ, cleanup vid omrendering och när kapitelvyn lämnas, sena
+cleanup-callbacks samt cleanup- och statusfel.
 
 Binära acceptanskriterier:
 
@@ -327,7 +328,7 @@ Binära acceptanskriterier:
   pluginmetoder, dubbelregistrering, okänd typ, låst svensk felvy och att cleanup körs
   en gång före omrendering och när vyn lämnas;
 - validatorn är grön, fäller en okänd typ utan att ladda browser-DOM-kod och `npm test`
-  visar minst dagens **16 tester** gröna;
+  visar dagens **25 tester** gröna;
 - `node --check` är grön för alla nya/ändrade JS-filer;
 - manuell `file://`-genomklick i Chrome täcker landning, text, bild, fel→rätt,
   ordering, bakåtnavigering, omladdad progress, reset och avslutslänk;

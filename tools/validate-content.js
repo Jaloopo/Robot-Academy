@@ -4,9 +4,10 @@
 // Kör: npm run validate  (eller: node tools/validate-content.js)
 //
 // Laddar varje kapitelfil i en sandlåda med SAMMA window.KAPITEL-mönster som sajten
-// (ingen jsdom behövs) och kontrollerar datamodellen i CLAUDE.md:
+// (ingen jsdom behövs) och kontrollerar datamodellen i AGENTS.md:
 //   - id matchar filnamnet, titel finns, steps är en icke-tom array
-//   - role ∈ {child, adult}, type ∈ {text, question_single_choice, ordering}, text finns
+//   - role ∈ {child, adult}, type finns i TYPE_VALIDATORS, text finns
+//   - image: lokal src + alt
 //   - question_single_choice: options (≥2 strängar), correctAnswer = heltal i [0, options.length)
 //   - ordering: options (≥2 strängar), correctAnswer = permutation av [0..options.length-1]
 // Fel -> exit 1 (CI blir röd). Varningar (t.ex. "Vuxen:"-prefix) loggas men fäller inte bygget.
@@ -21,7 +22,7 @@ const ROOT = path.join(__dirname, "..");
 const CONTENT_DIR = path.join(ROOT, "content");
 
 const VALID_ROLES = ["child", "adult"];
-const VALID_TYPES = ["text", "image", "question_single_choice", "ordering"];
+const TYPE_VALIDATORS = Object.create(null);
 
 function chapterNumber(name) {
   const m = String(name).match(/\d+/);
@@ -43,6 +44,65 @@ function isPermutation(arr, n) {
   return true;
 }
 
+function registerTypeValidator(type, validateStepType) {
+  if (!isNonEmptyString(type)) throw new Error("Typvalidator saknar namn.");
+  if (typeof validateStepType !== "function") throw new Error("Typvalidator för " + type + " saknar funktion.");
+  if (Object.prototype.hasOwnProperty.call(TYPE_VALIDATORS, type)) {
+    throw new Error("Typvalidatorn " + type + " är redan registrerad.");
+  }
+  TYPE_VALIDATORS[type] = validateStepType;
+}
+
+function warnUnexpectedQuestionFields(step, at, warnings) {
+  if ("options" in step) warnings.push(at + ": " + step.type + '-steg bör inte ha "options".');
+  if ("correctAnswer" in step) warnings.push(at + ": " + step.type + '-steg bör inte ha "correctAnswer".');
+}
+
+function validateOptions(step, at, errors) {
+  if (!Array.isArray(step.options) || step.options.length < 2) {
+    errors.push(at + ': "' + step.type + '" kräver minst 2 "options".');
+    return false;
+  }
+  step.options.forEach((opt, j) => {
+    if (!isNonEmptyString(opt)) errors.push(at + ": option " + (j + 1) + " är tom eller inte en sträng.");
+  });
+  return true;
+}
+
+registerTypeValidator("text", (step, at, errors, warnings) => {
+  warnUnexpectedQuestionFields(step, at, warnings);
+});
+
+registerTypeValidator("image", (step, at, errors, warnings) => {
+  if (!isNonEmptyString(step.src)) {
+    errors.push(at + ': "image" kräver en "src" (lokal sökväg till bild).');
+  } else if (/^(https?:)?\/\//i.test(step.src)) {
+    errors.push(at + ': "src" måste vara en lokal sökväg (ingen http(s)/CDN).');
+  }
+  if (typeof step.alt !== "string") {
+    errors.push(at + ': "image" kräver "alt" (text-alternativ; "" om bilden är rent dekorativ).');
+  } else if (step.alt.trim() === "") {
+    warnings.push(at + ': tom "alt" – använd bara om bilden är rent dekorativ.');
+  }
+  warnUnexpectedQuestionFields(step, at, warnings);
+});
+
+registerTypeValidator("question_single_choice", (step, at, errors) => {
+  if (!validateOptions(step, at, errors)) return;
+  const n = step.options.length;
+  if (!Number.isInteger(step.correctAnswer) || step.correctAnswer < 0 || step.correctAnswer >= n) {
+    errors.push(at + ": correctAnswer (" + JSON.stringify(step.correctAnswer) + ") måste vara ett heltal 0.." + (n - 1) + ".");
+  }
+});
+
+registerTypeValidator("ordering", (step, at, errors) => {
+  if (!validateOptions(step, at, errors)) return;
+  const n = step.options.length;
+  if (!isPermutation(step.correctAnswer, n)) {
+    errors.push(at + ": correctAnswer (" + JSON.stringify(step.correctAnswer) + ") måste vara en permutation av [0.." + (n - 1) + "].");
+  }
+});
+
 // Ladda alla kapitelfiler i EN delad sandlåda – exakt som index.html ackumulerar window.KAPITEL.
 function loadChapters() {
   const files = fs
@@ -62,8 +122,9 @@ function validateStep(step, at, errors, warnings) {
   if (!VALID_ROLES.includes(step.role)) {
     errors.push(at + ': ogiltig role "' + step.role + '" (ska vara child|adult).');
   }
-  if (!VALID_TYPES.includes(step.type)) {
-    errors.push(at + ': ogiltig type "' + step.type + '" (text|question_single_choice|ordering).');
+  const typeValidator = TYPE_VALIDATORS[step.type];
+  if (!typeValidator) {
+    errors.push(at + ': ogiltig type "' + step.type + '" (' + Object.keys(TYPE_VALIDATORS).join("|") + ").");
     return;
   }
   if (!isNonEmptyString(step.text)) {
@@ -72,44 +133,29 @@ function validateStep(step, at, errors, warnings) {
   if (step.role === "adult" && /^\s*vuxen\s*:/i.test(step.text || "")) {
     warnings.push(at + ': adult-steg ska INTE inleda texten med "Vuxen:" (renderaren sätter etiketten).');
   }
+  typeValidator(step, at, errors, warnings);
+}
 
-  if (step.type === "text" || step.type === "image") {
-    if (step.type === "image") {
-      if (!isNonEmptyString(step.src)) {
-        errors.push(at + ': "image" kräver en "src" (lokal sökväg till bild).');
-      } else if (/^(https?:)?\/\//i.test(step.src)) {
-        errors.push(at + ': "src" måste vara en lokal sökväg (ingen http(s)/CDN).');
-      }
-      if (typeof step.alt !== "string") {
-        errors.push(at + ': "image" kräver "alt" (text-alternativ; "" om bilden är rent dekorativ).');
-      } else if (step.alt.trim() === "") {
-        warnings.push(at + ': tom "alt" – använd bara om bilden är rent dekorativ.');
-      }
-    }
-    if ("options" in step) warnings.push(at + ": " + step.type + '-steg bör inte ha "options".');
-    if ("correctAnswer" in step) warnings.push(at + ": " + step.type + '-steg bör inte ha "correctAnswer".');
-    return;
+function validateChapterForTest(file, ch) {
+  const errors = [];
+  const warnings = [];
+  const expectedId = file.replace(/\.js$/, "");
+  if (!ch) {
+    errors.push(file + ': hittade inget window.KAPITEL["' + expectedId + '"] (id måste matcha filnamnet).');
+    return { errors, warnings };
   }
-
-  // question_single_choice + ordering kräver options.
-  if (!Array.isArray(step.options) || step.options.length < 2) {
-    errors.push(at + ': "' + step.type + '" kräver minst 2 "options".');
-    return;
+  if (ch.id !== expectedId) {
+    errors.push(file + ': id "' + ch.id + '" matchar inte filnamnet ("' + expectedId + '").');
   }
-  step.options.forEach((opt, j) => {
-    if (!isNonEmptyString(opt)) errors.push(at + ": option " + (j + 1) + " är tom eller inte en sträng.");
-  });
-
-  const n = step.options.length;
-  if (step.type === "question_single_choice") {
-    if (!Number.isInteger(step.correctAnswer) || step.correctAnswer < 0 || step.correctAnswer >= n) {
-      errors.push(at + ": correctAnswer (" + JSON.stringify(step.correctAnswer) + ") måste vara ett heltal 0.." + (n - 1) + ".");
-    }
-  } else if (step.type === "ordering") {
-    if (!isPermutation(step.correctAnswer, n)) {
-      errors.push(at + ": correctAnswer (" + JSON.stringify(step.correctAnswer) + ") måste vara en permutation av [0.." + (n - 1) + "].");
-    }
+  if (!isNonEmptyString(ch.titel)) {
+    errors.push(file + ': "titel" saknas eller är tom.');
   }
+  if (!Array.isArray(ch.steps) || ch.steps.length === 0) {
+    errors.push(file + ': "steps" saknas eller är en tom array.');
+    return { errors, warnings };
+  }
+  ch.steps.forEach((step, i) => validateStep(step, file + " steg " + (i + 1), errors, warnings));
+  return { errors, warnings };
 }
 
 function validate() {
@@ -119,22 +165,9 @@ function validate() {
 
   files.forEach((file) => {
     const expectedId = file.replace(/\.js$/, "");
-    const ch = kapitel[expectedId];
-    if (!ch) {
-      errors.push(file + ': hittade inget window.KAPITEL["' + expectedId + '"] (id måste matcha filnamnet).');
-      return;
-    }
-    if (ch.id !== expectedId) {
-      errors.push(file + ': id "' + ch.id + '" matchar inte filnamnet ("' + expectedId + '").');
-    }
-    if (!isNonEmptyString(ch.titel)) {
-      errors.push(file + ': "titel" saknas eller är tom.');
-    }
-    if (!Array.isArray(ch.steps) || ch.steps.length === 0) {
-      errors.push(file + ': "steps" saknas eller är en tom array.');
-      return;
-    }
-    ch.steps.forEach((step, i) => validateStep(step, file + " steg " + (i + 1), errors, warnings));
+    const result = validateChapterForTest(file, kapitel[expectedId]);
+    errors.push(...result.errors);
+    warnings.push(...result.warnings);
   });
 
   return { files, errors, warnings };
@@ -162,4 +195,13 @@ function main() {
   );
 }
 
-main();
+module.exports = {
+  TYPE_VALIDATORS,
+  validateChapterForTest,
+  validate,
+  validateStep
+};
+
+if (require.main === module) {
+  main();
+}

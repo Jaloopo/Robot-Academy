@@ -82,6 +82,7 @@ function bootstrap(options = {}) {
     { runScripts: "outside-only", url: base + search }
   );
   const { window } = dom;
+  evalRegistryAndPlugins(window);
   // allContent: ladda ALLA riktiga kapitel; annars bara kapitel-1 (+ ev. syntetiska).
   window.eval(options.allContent ? realContentSrc : contentSrc); // sätter window.KAPITEL
   extraChapters.forEach((chapter) => {
@@ -94,6 +95,42 @@ function bootstrap(options = {}) {
 
 // http(s)-bas: jsdom ger då en fungerande localStorage (file:// gör inte det).
 const STORE_URL = "https://example.org/index.html";
+
+function bootstrapRegistryOnly(seed) {
+  const registrySrc = fs.readFileSync(path.join(ROOT, "js", "edison-app.js"), "utf8");
+  const dom = new JSDOM(
+    '<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"></head><body></body></html>',
+    { runScripts: "outside-only", url: "file:///workspace/index.html" }
+  );
+  if (seed) dom.window.EdisonApp = seed;
+  dom.window.eval(registrySrc);
+  return dom.window;
+}
+
+const stepTypeScriptFiles = [
+  "text.js",
+  "image.js",
+  "question-single-choice.js",
+  "ordering.js"
+];
+
+function evalRegistryAndPlugins(window) {
+  const registrySrc = fs.readFileSync(path.join(ROOT, "js", "edison-app.js"), "utf8");
+  window.eval(registrySrc);
+  stepTypeScriptFiles.forEach((file) => {
+    const src = fs.readFileSync(path.join(ROOT, "js", "step-types", file), "utf8");
+    window.eval(src);
+  });
+}
+
+function bootstrapPluginsOnly() {
+  const dom = new JSDOM(
+    '<!DOCTYPE html><html lang="sv"><head><meta charset="UTF-8"></head><body></body></html>',
+    { runScripts: "outside-only", url: "file:///workspace/index.html" }
+  );
+  evalRegistryAndPlugins(dom.window);
+  return dom.window;
+}
 
 // Simulera en sidomladdning: kör om renderaren i SAMMA fönster, så att fönstrets
 // localStorage (och därmed sparat framsteg) finns kvar mellan körningarna.
@@ -191,6 +228,133 @@ function completeChapter(window, chapterId, expectedFinish) {
 
 // ---- Rena hjälpfunktioner ----
 
+test("EdisonApp-registryt är additivt, validerar kontraktet och stoppar dubletter", () => {
+  const seed = { existingHelper: true };
+  const window = bootstrapRegistryOnly(seed);
+  const plugin = {
+    createState: function () {},
+    restore: function () {},
+    serialize: function () {},
+    hasProgress: function () {},
+    isDone: function () {},
+    render: function () {},
+    bind: function () {}
+  };
+
+  assert.strictEqual(window.EdisonApp.existingHelper, true, "befintligt namespace skrivs inte över");
+  assert.strictEqual(typeof window.EdisonApp.registerStepType, "function");
+  assert.strictEqual(typeof window.EdisonApp.getStepType, "function");
+  assert.strictEqual(window.EdisonApp.getStepType("demo"), null, "okänd typ ger null");
+
+  window.EdisonApp.registerStepType("demo", plugin);
+
+  assert.strictEqual(window.EdisonApp.getStepType("demo"), plugin, "registrerat plugin går att slå upp");
+  assert.throws(
+    () => window.EdisonApp.registerStepType("demo", plugin),
+    /redan registrerad/,
+    "dubbelregistrering kastar"
+  );
+  assert.throws(
+    () => window.EdisonApp.registerStepType("trasig", { createState: function () {} }),
+    /saknar.*restore/,
+    "obligatoriska metoder krävs"
+  );
+});
+
+test("standardpluginen registrerar dagens fyra stegtyper och deras grundsemantik", () => {
+  const window = bootstrapPluginsOnly();
+  const required = window.EdisonApp.requiredStepTypeMethods;
+
+  ["text", "image", "question_single_choice", "ordering"].forEach((type) => {
+    const plugin = window.EdisonApp.getStepType(type);
+    assert.ok(plugin, type + " är registrerad");
+    required.forEach((method) => {
+      assert.strictEqual(typeof plugin[method], "function", type + " implementerar " + method);
+    });
+  });
+
+  const ctx = {
+    ui: {
+      escapeHtml: (value) => String(value),
+      feedbackHtml: () => ""
+    },
+    utils: {
+      sequencesEqual: (a, b) => JSON.stringify(a) === JSON.stringify(b),
+      shuffleDisplayOrder: (length, avoid) => {
+        const order = Array.from({ length }, (_, i) => i).reverse();
+        return JSON.stringify(order) === JSON.stringify(avoid) ? order.slice().reverse() : order;
+      }
+    },
+    requestRender: () => {},
+    prefersReducedMotion: () => false
+  };
+
+  const text = window.EdisonApp.getStepType("text");
+  const image = window.EdisonApp.getStepType("image");
+  const question = window.EdisonApp.getStepType("question_single_choice");
+  const ordering = window.EdisonApp.getStepType("ordering");
+
+  assert.strictEqual(text.isDone({}, text.createState({}, ctx), ctx), true, "text är direkt klart");
+  assert.strictEqual(image.isDone({}, image.createState({}, ctx), ctx), true, "image är direkt klart");
+  assert.match(
+    image.render({ text: "Hej", src: "./assets/test.svg", alt: "Testbild" }, image.createState({}, ctx), ctx),
+    /<img class="step-image"/,
+    "image-pluginet renderar befintlig bildmarkup"
+  );
+
+  const questionState = question.createState({ options: ["A", "B"], correctAnswer: 1 }, ctx);
+  assert.strictEqual(questionState.done, false);
+  assert.strictEqual(questionState.chosen, null);
+  assert.strictEqual(questionState.feedback, null);
+  assert.deepStrictEqual(Array.from(questionState.wrongTried), []);
+  assert.strictEqual(question.isDone({}, questionState, ctx), false, "flerval gatear Nästa före rätt svar");
+
+  const orderingState = ordering.createState({ options: ["A", "B", "C"], correctAnswer: [0, 1, 2] }, ctx);
+  assert.deepStrictEqual(orderingState.display, [2, 1, 0], "ordering använder contextets blandning");
+  assert.strictEqual(ordering.isDone({}, orderingState, ctx), false, "ordering gatear Nästa före rätt ordning");
+});
+
+test("app-bootstrap behåller EdisonApp-registryt och registrerade standardplugin", () => {
+  const window = bootstrap();
+
+  assert.strictEqual(typeof window.EdisonApp.getStepType, "function");
+  assert.ok(window.EdisonApp.getStepType("text"), "text-plugin finns kvar efter app-bootstrap");
+  assert.ok(window.EdisonApp.getStepType("ordering"), "ordering-plugin finns kvar efter app-bootstrap");
+});
+
+test("validatorn exporterar separat Node-registry och fäller okänd stegtyp", () => {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  let validator;
+  try {
+    console.log = () => {};
+    console.warn = () => {};
+    console.error = () => {};
+    delete require.cache[require.resolve("../tools/validate-content.js")];
+    validator = require("../tools/validate-content.js");
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    console.error = originalError;
+  }
+
+  assert.strictEqual(typeof validator.validateChapterForTest, "function");
+  assert.deepStrictEqual(
+    Array.from(Object.keys(validator.TYPE_VALIDATORS)).sort(),
+    ["image", "ordering", "question_single_choice", "text"],
+    "Node-validatorn har eget typregistry"
+  );
+
+  const result = validator.validateChapterForTest("kapitel-9.js", {
+    id: "kapitel-9",
+    titel: "Trasig typ",
+    steps: [{ role: "child", type: "mystery_step", text: "Hej" }]
+  });
+
+  assert.match(result.errors.join("\n"), /ogiltig type "mystery_step"/);
+});
+
 test("sequencesEqual jämför element för element", () => {
   const { sequencesEqual } = bootstrap().EdisonApp;
   assert.strictEqual(sequencesEqual([0, 1, 2], [0, 1, 2]), true);
@@ -238,6 +402,189 @@ test("okänt ?kapitel=N går tillbaka till landningsvyn", () => {
   assert.ok(appEl(window).querySelector(".landing-message"));
   assert.match(appEl(window).textContent, /Kapitlet finns inte än/);
   assert.strictEqual(appEl(window).querySelectorAll(".chapter-link").length, 2);
+});
+
+test("okänd stegtyp visar svensk låst felvy och räknas inte som klar", () => {
+  const unknownChapter = {
+    id: "kapitel-9",
+    titel: "Okänd typ",
+    steps: [
+      {
+        role: "child",
+        type: "mystery_step",
+        text: "Det här steget ska inte kunna visas."
+      }
+    ]
+  };
+  const window = bootstrap({
+    search: "?kapitel=9",
+    extraChapters: [unknownChapter],
+    prepare: (w) => { w.console.error = () => {}; }
+  });
+
+  assert.match(appEl(window).textContent, /Okänd stegtyp: mystery_step/);
+  assert.strictEqual(nextBtn(window).disabled, true, "okänd typ håller avslut låst");
+  assert.strictEqual(finishLink(window), null, "okänd typ får ingen avslutslänk");
+});
+
+test("plugin-cleanup körs före omrendering och när kapitelvyn lämnas", () => {
+  const counts = { cleanup: 0, bind: 0 };
+  const cleanupChapter = {
+    id: "kapitel-8",
+    titel: "Cleanup-test",
+    steps: [
+      {
+        role: "child",
+        type: "cleanup_test",
+        text: "Rita om pluginet."
+      }
+    ]
+  };
+  const window = bootstrap({
+    search: "?kapitel=8",
+    url: STORE_URL,
+    extraChapters: [cleanupChapter],
+    prepare: (w) => {
+      w.EdisonApp.registerStepType("cleanup_test", {
+        createState: () => ({ done: false }),
+        restore: () => ({ done: false }),
+        serialize: () => ({ done: false }),
+        hasProgress: () => false,
+        isDone: () => false,
+        render: () => '<button type="button" class="option" id="plugin-rerender">Rita om</button>',
+        bind: (container, step, state, ctx) => {
+          counts.bind += 1;
+          container.querySelector("#plugin-rerender").addEventListener("click", () => {
+            ctx.requestRender({ focus: "step" });
+          });
+          return () => { counts.cleanup += 1; };
+        }
+      });
+    }
+  });
+
+  assert.strictEqual(counts.bind, 1, "pluginet binds vid första render");
+  assert.strictEqual(counts.cleanup, 0, "ingen cleanup före omrendering");
+
+  window.document.getElementById("plugin-rerender").click();
+
+  assert.strictEqual(counts.bind, 2, "pluginet binds om efter requestRender");
+  assert.strictEqual(counts.cleanup, 1, "cleanup körs före omrendering");
+
+  window.history.pushState({}, "", STORE_URL);
+  window.EdisonApp.initApp(window.document);
+
+  assert.strictEqual(counts.cleanup, 2, "cleanup körs när kapitelvyn lämnas");
+  assert.match(appEl(window).querySelector(".app-title").textContent, /Välj kapitel/);
+});
+
+test("städad requestRender kan inte starta nästlad render", () => {
+  const counts = { cleanup: 0, bind: 0 };
+  const cleanupChapter = {
+    id: "kapitel-8",
+    titel: "Sena callbacks",
+    steps: [{ role: "child", type: "late_callback_test", text: "Rita om säkert." }]
+  };
+  const window = bootstrap({
+    search: "?kapitel=8",
+    extraChapters: [cleanupChapter],
+    prepare: (w) => {
+      w.console.error = () => {};
+      w.EdisonApp.registerStepType("late_callback_test", {
+        createState: () => ({ done: false }),
+        restore: () => ({ done: false }),
+        serialize: () => ({ done: false }),
+        hasProgress: () => false,
+        isDone: () => false,
+        render: () => '<button type="button" id="request-rerender">Rita om</button>',
+        bind: (container, step, state, ctx) => {
+          counts.bind += 1;
+          container.querySelector("#request-rerender").addEventListener("click", () => {
+            ctx.requestRender({ focus: "step" });
+          });
+          return () => {
+            counts.cleanup += 1;
+            ctx.requestRender({ focus: "step" });
+          };
+        }
+      });
+    }
+  });
+
+  window.document.getElementById("request-rerender").click();
+
+  assert.strictEqual(counts.cleanup, 1, "den gamla bindningen städas en gång");
+  assert.strictEqual(counts.bind, 2, "sent callback får inte skapa en tredje bindning");
+});
+
+test("cleanup-fel låser steget utan att avbryta omrenderingen", () => {
+  let requestRender;
+  const cleanupChapter = {
+    id: "kapitel-8",
+    titel: "Cleanup-fel",
+    steps: [{ role: "child", type: "cleanup_error_test", text: "Detta ska ersättas vid fel." }]
+  };
+  const window = bootstrap({
+    search: "?kapitel=8",
+    extraChapters: [cleanupChapter],
+    prepare: (w) => {
+      w.console.error = () => {};
+      w.EdisonApp.registerStepType("cleanup_error_test", {
+        createState: () => ({ done: true }),
+        restore: () => ({ done: true }),
+        serialize: () => ({ done: true }),
+        hasProgress: () => false,
+        isDone: () => true,
+        render: () => '<p id="plugin-content">Plugininnehåll</p>',
+        bind: (container, step, state, ctx) => {
+          requestRender = ctx.requestRender;
+          return () => { throw new Error("cleanup gick sönder"); };
+        }
+      });
+    }
+  });
+
+  assert.doesNotThrow(() => requestRender({ focus: "card" }), "cleanup-fel får inte krascha renderingen");
+  assert.match(appEl(window).textContent, /Okänd stegtyp: cleanup_error_test/);
+  assert.strictEqual(appEl(window).querySelector("#plugin-content"), null, "felvyn ersätter innehållet direkt");
+  assert.strictEqual(nextBtn(window).disabled, true, "trasigt steg hålls låst");
+});
+
+test("isDone- och serialize-fel visar låst felvy i samma render", () => {
+  ["isDone", "serialize"].forEach((failingMethod) => {
+    const type = "render_error_" + failingMethod;
+    const errorChapter = {
+      id: "kapitel-8",
+      titel: "Renderfel",
+      steps: [{ role: "child", type, text: "Detta ska inte ligga kvar efter ett pluginfel." }]
+    };
+    const window = bootstrap({
+      search: "?kapitel=8",
+      extraChapters: [errorChapter],
+      prepare: (w) => {
+        w.console.error = () => {};
+        w.EdisonApp.registerStepType(type, {
+          createState: () => ({ done: true }),
+          restore: () => ({ done: true }),
+          serialize: () => {
+            if (failingMethod === "serialize") throw new Error("serialize gick sönder");
+            return { done: true };
+          },
+          hasProgress: () => false,
+          isDone: () => {
+            if (failingMethod === "isDone") throw new Error("isDone gick sönder");
+            return true;
+          },
+          render: () => '<p id="plugin-content">Plugininnehåll</p>',
+          bind: () => {}
+        });
+      }
+    });
+
+    assert.match(appEl(window).textContent, new RegExp("Okänd stegtyp: " + type));
+    assert.strictEqual(appEl(window).querySelector("#plugin-content"), null, failingMethod + " lämnar inte gammalt innehåll");
+    assert.strictEqual(nextBtn(window).disabled, true, failingMethod + " håller steget låst");
+  });
 });
 
 // ---- Full genomklick ----
