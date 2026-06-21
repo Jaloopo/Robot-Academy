@@ -328,6 +328,46 @@ bundler och inga runtime-beroenden i sajten (Playwright är ett DEV-beroende, la
   resonemangsmodell. Research kan samla material med enklare modell, men källvärdering,
   progression och rekommendationer ska granskas av stark modell.
 
+## Copy-paste för nästa steg (Claude Design – storyboard, ingen produktkod)
+```text
+Designa en UI/UX-prototyp för "Edison Hemguide" utifrån den befintliga produkten. Detta är
+ett design- och handoffpass – ändra inte repot och bygg inte produktkod.
+
+LÄS/ANVÄND SOM KANON:
+- style.css (dagens verkliga visuella språk)
+- docs/design.md (tokens och mobilprinciper)
+- docs/desktop-ux-beslut.md (Alternativ 1, särskilt §4, §6 och storyboard §7)
+- docs/modul-sekvens-vs-loop.md (pedagogiskt flöde; skriv inte om curriculumet)
+
+SKAPA DE FEM TILLSTÅNDEN I STORYBOARDEN:
+1. landningsvy,
+2. kapitelvy med textsteg,
+3. Sekvens vs loop – Predict,
+4. Run/Investigate,
+5. Modify/Make.
+
+VISA minst 1718×920 desktop och 390×844 mobil. Kontrollera även hur layouten faller ihop
+mot cirka 320 CSS-px som reflow-proxy. Följ Alternativ 1: skalet växer, läsmåttet stannar
+kring 680 px, luften balanseras och den interaktiva scenen är villkorad – ingen permanent
+tredje kolumn/dashboard. Behåll svensk UI-text, befintliga färgtokens och systemfont.
+
+HÅRDA GRÄNSER:
+- ingen ny navigation, gamification, poäng, timer, fri canvas eller autoanimation,
+- inga externa fonter/assets, nätverksanrop, ramverk eller runtime-beroenden,
+- inga bilder/skärmdumpar från EdBlocks; använd enkla egna blockformer,
+- texten bär betydelsen; alla kontroller minst 44 px, tangentbordsordning och synlig fokus,
+- reduced motion visar samma slutläge direkt,
+- ingen WebUSB, robotanslutning eller generell programspråksmotor.
+
+LEVERERA:
+- en tydlig prototyp av alla fem tillstånd,
+- kort motivering till layout-, fokus- och responsivitetsval,
+- exakta föreslagna token/CSS/markup-deltan som handoff (inte en omskrivning av appen),
+- lista eventuella avsteg från kanondokumenten – gör inga tysta avsteg.
+
+Målet är ett designunderlag som nästa kodsession kan implementera bakom Playwright-grinden.
+```
+
 ## Copy-paste för nästa session (roadmap-steg: visual-QA-baslinje + desktoplayout)
 ```text
 Du bygger nästa roadmap-steg för "Edison Hemguide" (repo Jaloopo/Robot-Academy):
