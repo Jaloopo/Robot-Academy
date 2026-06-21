@@ -9,9 +9,9 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
 - Kapitel 1 "Lär känna Edison" är **funktionellt komplett**: text-steg, vuxen-tips,
   flervalsfråga och ordningsfråga – med gating, snäll feedback och a11y.
 - Designsystem implementerat (tokens, WCAG AA-fix, ikonfeedback, maskot).
-- **Mobil + desktop** klart: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
+- **Mobil + desktop-bas** finns: mobil-först bas + additivt desktop-ark (≥720 px) på lugn
   canvas, samt tunn framstegsstapel. Desktop ≥900 px har dessutom en chapter-rail
-  (kontextspalt) i kapitelvyn.
+  (kontextspalt) i kapitelvyn. Anpassningen för bred desktop är beslutad men inte byggd.
 - Innehåll i `content/kapitel-1.js`–`content/kapitel-5.js` (`window.KAPITEL`; kapitel 5
   mergades via PR #18).
 - Flerkapitelstöd finns: utan query visas landningsvy; `?kapitel=N` väljer kapitel via
@@ -239,7 +239,8 @@ beroende-policy finns i `docs/architecture.md`.
   UI-beteende behölls. Ingen interaktiv spik byggdes i samma pass. Verifierat med `node --check`,
   `npm run validate`, `npm test` (**25 tester**) och tidigare Chrome-`file://`-genomklick (landning,
   text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
-  http-resurser). En ny manuell Chrome-kontroll efter cleanup-reviewn återstår före merge.
+  http-resurser). För senare statisk UI/CSS ersätts den tidigare manuella Chrome-grinden av
+  beslutade Playwright-visual-QA; WebUSB/robotflöden är fortsatt ett separat manuellt område.
 - **Fas 3 – nästa möjliga produktsteg:** bygg endast "Sekvens vs loop" mot det verifierade kontraktet, med textbärande
   betydelse, tangentbord, cleanup, persistence och reduced-motion-stöd. Spec finns i
   `docs/modul-sekvens-vs-loop.md`. **Byggs först efter** visual-QA-baslinjen och desktoplayouten
@@ -262,7 +263,17 @@ så modulen blir ett tryggt, smalt bygge i stället för ett experiment ovanpå 
 4. **Roadmap-steg:** bygg **visual-QA-baslinje + desktoplayout enligt Alternativ 1** (additiv
    CSS ≥900/≥1200/≥1440, kapat läsmått, balanserad luft). När byggt blir måtten kanon i
    `docs/design.md` (avsnittet "Desktop").
-5. **Därefter Fas 3:** "Sekvens vs loop" som liten interaktiv modul mot plugin-kontraktet.
+5. **Curriculum-evidenskarta + Edison-mappning:** ett avgränsat deep-research-pass före
+   Fas 3-bygget. Kartlägg åldersprogression (7–10, utan individprofil), evidens för
+   programmering med fysisk robot, kända missuppfattningar, formativ observation och exakt
+   Edison-/EdBlocks-koppling mot primär- och förstahandskällor. Resultatet ska vara ett
+   källspårbart beslutsunderlag och en innehållsrubrikbank – inte ett färdigt jättelångt
+   curriculum eller produktkod. Det får justera modulspecen om evidensen kräver det.
+6. **Fas 3:** "Sekvens vs loop" som liten interaktiv modul mot plugin-kontraktet.
+7. **Arkitektureftergranskning:** efter en verifierad Fas 3-modul men före modul två. Granska
+   verklig kod och testsuite för utbyggbarhet (plugin-kontrakt, state/persistence, validering,
+   cleanup, a11y och testbarhet); föreslå bara ändringar som den första modulen faktiskt visar
+   behov av. Ingen förhandsabstraktion eller ny plattform av princip.
 
 Fas 2 är klar: kärnan saknar konkreta stegtypvillkor i state, restore, serialize,
 progress, gating, rendering och event-bindning; namespace är additivt; validatorn är

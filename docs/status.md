@@ -42,7 +42,8 @@ Senast uppdaterad: 2026-06-21 · Fas 2 mergad (PR #22); UI/UX- + curriculum-desi
 - **Verifiering för fas 2:** `node --check` på nya/ändrade JS-filer, `npm run validate` och
   `npm test` (**25 tester**) är gröna. Tidigare Chrome-`file://`-genomklick täckte landning,
   text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
-  http-resurser; en ny manuell Chrome-kontroll efter cleanup-fixen återstår före merge.
+  http-resurser. För statisk UI/CSS ersätts den tidigare manuella Chrome-grinden nu av den
+  beslutade Playwright-visual-QA:n; WebUSB/robotflöden har ett separat manuellt testbehov.
 - `docs/architecture.md` definierar det fortsatta stegtyps-plugin-kontraktet och
   `docs/reference/cs-curriculum.md` beskriver den anonymiserade, utforskande riktningen
   för en senare interaktiv "Sekvens vs loop"-spik.
@@ -300,9 +301,16 @@ Bygg skalet och den automatiska visuella verifieringen FÖRE interaktiviteten:
 2. **Roadmap-steg:** bygg **visual-QA-baslinje (Playwright, dev-only) + desktoplayout enligt
    Alternativ 1** (additiv CSS, kapat läsmått, balanserad luft). Måtten blir då kanon i
    `docs/design.md`.
-3. **Därefter Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt `docs/modul-sekvens-vs-loop.md`
+3. **Före Fas 3:** gör ett avgränsat deep-research-pass för curriculum + Edison-mappning.
+   Resultatet ska skilja källor från designval, täcka progression 7–10 år, fysisk robot som
+   lärresurs, missuppfattningar och formativ observation – men inte bygga produktkod eller en
+   individuell barnprofil. Det kan skärpa modulspecen.
+4. **Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt `docs/modul-sekvens-vs-loop.md`
    – textbärande betydelse, tangentbord, cleanup, persistence, reduced motion; ingen simulator-/
    aktivitetslogik i appkärnan.
+5. **Efter verifierad Fas 3, före modul två:** låt en stark mjukvaruarkitekt granska verklig
+   kod mot framtida moduler och övningar. Bedöm plugin-kontrakt, persistence, validering,
+   cleanup, a11y och testbarhet; gör inga abstraktioner som den byggda modulen inte motiverar.
 
 **Icke-mål tills respektive steg beställs:** inga fler plugins av bara arkitekturskäl,
 ingen ändring av `content/`/package-filer utan tydligt scope, inga ES-moduler, ingen
@@ -316,6 +324,9 @@ bundler och inga runtime-beroenden i sajten (Playwright är ett DEV-beroende, la
 - **Fas 3** innebär ny interaktion, a11y och pedagogisk produktkänsla → Opus 4.8 High eller
   motsvarande stark modell för design/review; implementation kan delegeras till billigare
   modell först när specen är smal och tydlig.
+- **Curriculum-evidenskartan och arkitektureftergranskningen:** använd en stark
+  resonemangsmodell. Research kan samla material med enklare modell, men källvärdering,
+  progression och rekommendationer ska granskas av stark modell.
 
 ## Copy-paste för nästa session (roadmap-steg: visual-QA-baslinje + desktoplayout)
 ```text
@@ -343,8 +354,10 @@ MÅL B – desktoplayout (Alternativ 1, ADDITIV CSS):
   typografitak (~19 px), CTA-bredd. Rör INTE mobilens värden (<720 px) eller datamodellen.
 - När klart: uppdatera docs/design.md "Desktop" med de byggda måtten (gör dem kanon).
 
-VERIFIERA: node --check, npm run validate, npm test (alla gröna), npm run snap grön, samt en
-manuell file://-blick i Chrome för det som inte är ren statisk UI/CSS. Dokumentera i
-docs/status.md + docs/roadmap.md. Modell: Opus 4.8 High för CSS/a11y; mekanisk skriptdel kan
+VERIFIERA: node --check, npm run validate, npm test (alla gröna) och npm run snap grön.
+Ingen manuell Chrome-grind för statisk UI/CSS; om en ändrad funktion inte går att verifiera
+automatiskt, namnge gapet och stoppa före merge i stället för att låtsas att den är täckt.
+WebUSB/robotflöden är utanför detta roadmap-steg. Dokumentera i docs/status.md + docs/roadmap.md.
+Modell: Opus 4.8 High för CSS/a11y; mekanisk skriptdel kan
 delegeras till billigare modell.
 ```

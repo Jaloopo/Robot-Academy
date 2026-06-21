@@ -4,8 +4,8 @@
 paket, ingen commit/push i detta pass. Mått och regler nedan är en **spec** att bygga
 mot i ett senare, additivt CSS-pass.
 
-**Datum:** 2026-06-21 · **Status:** förslag för beslut. När ägaren valt alternativ blir
-de valda måtten kanon i `docs/design.md` (avsnittet "Desktop").
+**Datum:** 2026-06-21 · **Status:** Alternativ 1 beslutat. De valda måtten blir kanon i
+`docs/design.md` (avsnittet "Desktop") när de har implementerats och verifierats.
 
 **Förutsättningar (oförändrade):** mobil-först, additivt desktop via `@media`, vanilla
 JS, statiskt, `file://` + GitHub Pages, inga runtime-beroenden, all UI-text på svenska,
@@ -189,8 +189,8 @@ en spelplan.
 - **Reflow (WCAG 1.4.10):** vid ~320 CSS-px / 400 %-ekvivalent reflow ska vyn vara **en
   kolumn utan horisontell scroll**. Railen är redan dold <900 px; verifiera att ≥1200-scenen
   **staplar** och att den vertikala centreringen använder `min-height` (inget innehåll klipps).
-  Verklig browserzoom kontrolleras manuellt i Chrome; den automatiska QA:n testar smal
-  viewport ned till ~320 CSS-px som proxy (se §8).
+  Den automatiska QA:n testar smal viewport ned till ~320 CSS-px som proxy (se §8); den gör
+  inget anspråk på att bevisa alla detaljer i en webbläsares verkliga 400 %-zoom.
 - **Sticky rail:** `max-height`+`overflow:auto` så den aldrig täcker innehåll eller blir
   onåbar vid zoom. Behåll DOM-ordning och `aria-current="step"`.
 - **Synlig fokusring** (2 px orange + offset) på alla nya kontroller; alla interaktiva
@@ -283,11 +283,12 @@ vilket kommando som kör det och hur det hålls utanför runtime.
   committas bara om ägaren uttryckligen vill (annars enbart invariant-assertions → inga
   binärer i repo).
 - **Kommando:** `npm run snap` (dev-only). Kan senare bli en valfri CI-job; skriptet refereras
-  **aldrig** av `index.html`, lägger **ingen** runtime-beroende, och `file://`-/WebUSB-
-  kontroll förblir den manuella grinden för det som inte är statisk UI/CSS.
+  **aldrig** av `index.html` och lägger **inget** runtime-beroende. WebUSB-/robotflöden ligger
+  utanför den statiska grinden och kräver ett separat testupplägg när de blir aktuella.
 
 ---
 
 ## 9. Vad detta pass INTE gör
 Ingen ändring i `style.css`, `js/`, `content/`, `index.html`, `package.json` eller tester.
-Inga commits/pushar/PR. Måtten blir kanon i `docs/design.md` först när ägaren valt alternativ.
+Inga commits/pushar/PR i detta designpass. Måtten blir kanon i `docs/design.md` först efter
+implementation och verifiering.

@@ -49,8 +49,11 @@ tillägg i respektive wrapper – duplicera inte dessa regler.
   `docs/status.md`. Ange status + nästa åtgärd innan du kör verktyg.
 - Vid implementation: gör ett roadmap-steg per session. Granskning, felsökning och
   processunderhåll får vara egna tydligt avgränsade pass.
-- Vid produktändring: verifiera relevant syntax/test samt `file://` i Chrome och genomklick
-  av berört kapitel. Ren dokumentation kräver normalt inte visuell kontroll.
+- Vid produktändring: verifiera relevant syntax/test. När visual-QA-harnessen finns används
+  `npm run snap` som grind för statisk UI/CSS, reflow och `file://`-resurser; utöka dess
+  browserflöde när en ändrad interaktion behöver verifieras. Manuell Chrome-/hårdvarukontroll
+  krävs bara för WebUSB/robotflöden eller ett uttryckligt ägarbeslut. Ren dokumentation kräver
+  normalt inte visuell kontroll.
 - Arbeta på en branch, aldrig direkt på `main`. Håll ändringar lokala som standard.
   Committa, pusha, öppna/stäng PR eller merga endast när användaren uttryckligen ber om det.
 - Vid ett faktiskt roadmap-steg: uppdatera `docs/status.md` (nuläge, gjort, beslut,
@@ -69,7 +72,9 @@ tillägg i respektive wrapper – duplicera inte dessa regler.
   renderaren + innehållet: gating, fel→rätt, blandad ordning/"Börja om", bakåtnavigering.
 - `jsdom` är ett DEV-beroende i `package.json`; `node_modules/` är git-ignorerat och ingår
   ALDRIG i sajten. Testet använder Nodes inbyggda `node:test`/`node:assert` (inget ramverk).
-- Kör `npm install` en gång, sedan `npm test`. Verifiera fortfarande även `file://` i Chrome.
+- Kör `npm install` en gång, sedan `npm test`. När visual-QA-harnessen har lagts till körs även
+  `npm run snap` för statisk UI/CSS och `file://`-resurser. WebUSB/robotflöden kan inte täckas
+  fullt automatiskt och hålls därför utanför denna grind tills ett separat testupplägg finns.
 - Testet läser `correctAnswer` ur `window.KAPITEL` (hårdkodar inga svar) – fungerar för nya
   kapitel utan ändring.
 - Genomklicket laddar AUTOMATISKT alla `content/kapitel-*.js` och klickar igenom var och en
