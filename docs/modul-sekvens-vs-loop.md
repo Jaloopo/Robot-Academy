@@ -2,11 +2,16 @@
 
 **Typ:** källbelagd pedagogisk spec för EN modul (Uppgift B). Ingen kursplan, ingen
 produktkod. Målgrupp: barn ca **7–10 år tillsammans med en vuxen**. Den tekniska gränsen
-för spiken finns i `docs/architecture.md`; den bredare riktningen i
-`docs/reference/cs-curriculum.md`.
+för spiken finns i `docs/architecture.md`; den beslutade pedagogiska riktningen i
+`docs/curriculum.md`.
 
-**Datum:** 2026-06-21 · **Status:** förslag. Bygg modulen först efter den verifierade
-Fas 2-refaktorn (nu mergad) och enligt Fas 3.
+**Datum:** 2026-06-21 · **Status:** curriculumgranskad kandidat för Fas 3. Kurerat
+källunderlag finns i `docs/reference/curriculum-evidence-map.md` och beslutad progression
+i `docs/curriculum.md`.
+
+Researchbeslutet är **JUSTERA**, inte ersätt: modulen är fortsatt nästa interaktiva bygge,
+men får en kort spårnings-/felsökningskontroll och gör skillnaden mellan block **inuti och
+utanför** loopkroppen synlig. Ett helt separat debuggingkapitel behöver inte byggas först.
 
 > **Källprincip:** nedan skiljs **[KÄLLA]** (vad en primär-/förstahandskälla faktiskt
 > säger) från **[DESIGNSLUTSATS]** (mitt designval för den här modulen). Inget kursmaterial
@@ -64,7 +69,12 @@ Fas 2-refaktorn (nu mergad) och enligt Fas 3.
 
 ---
 
-## 2. Lärandemål
+## 2. Förkunskap och lärandemål
+
+Innan loopjämförelsen ska barnet kunna läsa en kort sekvens och peka ut vad som händer
+först. Fas 3-modulen verifierar detta med en kort, icke-dömande spårningskontroll. Om
+svaret inte stämmer visar modulen sekvensen stegvis; det är stöd, inte en blockerande
+förtest eller ett separat poängsatt moment. **[DESIGNSLUTSATS: curriculumgranskningen]**
 
 Efter modulen ska barnet (tillsammans med vuxen) kunna:
 
@@ -77,6 +87,8 @@ Efter modulen ska barnet (tillsammans med vuxen) kunna:
    `cs-curriculum.md`]**
 4. Förutsäga ("gissa") ett litet utfall och sedan **ändra antal varv** och säga hur
    resultatet ändras. **[KÄLLA: PRIMM Predict/Modify; UMC Use→Modify]**
+5. Peka ut att bara block **inuti** loopramen upprepas och förklara vad som händer när
+   samma block flyttas utanför ramen. **[DESIGNSLUTSATS: loopgräns + tracing]**
 
 Avgränsning: målet är **inte** att skriva ett eget program, förstå villkor/förgrening eller
 nästlade loopar. Det är begreppen *sekvens* och *upprepning* samt idén "samma resultat,
@@ -84,7 +96,7 @@ olika uttryck".
 
 ---
 
-## 3. Två vanliga missuppfattningar (att designa mot)
+## 3. Tre vanliga missuppfattningar (att designa mot)
 
 1. **"Loop = trolleri / annat resultat."** Barn antar att loopen gör något *annat* än de
    staplade stegen, i stället för *samma sak färre block*. **[KÄLLA: dokumenterade
@@ -107,32 +119,37 @@ men ligger **utanför** denna modul – se §8.)
 
 ---
 
-## 4. Flöde 3–5 minuter (Predict / Run / Investigate / Modify / Make)
+## 4. Flöde cirka 4–6 minuter (Trace / Predict / Run / Investigate / Modify / Make)
 
 Ramverket är PRIMM **[KÄLLA: Sentance, Waite & Kallia 2019]**; nedskalat till 7–10 år med
 vuxen är **[DESIGNSLUTSATS]**. Varje steg är max 2–3 meningar (projektets skrivregel,
 `docs/pedagogik.md`).
 
-1. **Predict (~45 s) – gissa.** Visa två små program sida vid sida: "Tre steg" (tre staplade
+1. **Trace (~30–45 s) – spåra.** Visa en mycket kort sekvens och fråga vad som händer
+   först. Vid osäkerhet markeras ett block i taget. Barnet går vidare efter att ha sett
+   förklaringen; momentet samlar inga poäng och skapar ingen personprofil.
+2. **Predict (~45 s) – gissa.** Visa två små program sida vid sida: "Tre steg" (tre staplade
    KÖR) och "En loop" (KÖR ramad, etikett "×3"). Fråga: *"Tror du de gör samma sak eller
    olika?"* Två knappar. Ingen bestraffning av gissningen.
-2. **Run (~30 s) – kör/visa.** En "Visa"-knapp avtäcker **en** resultatremsa (3 rutor/3
+3. **Run (~30 s) – kör/visa.** En "Visa"-knapp avtäcker **en** resultatremsa (3 rutor/3
    LED-prickar) för båda programmen + en textrad: *"Båda gör samma sak: roboten kör framåt
    tre steg."*
-3. **Investigate (~60 s) – undersök tillsammans.** En kort `child`-text + ett `adult`-tips
+4. **Investigate (~60 s) – undersök tillsammans.** En kort `child`-text + ett `adult`-tips
    med samtalsfrågan (§6). Här bär den vuxnes dialog förståelsen (PRIMM:s sociokulturella
    kärna). **[KÄLLA: dialogfokus]** Lägg in en enkel **kontrollfråga** som testar innebörden,
    inte bara att målet nås: *"Vad är det som Edison upprepar?"* (rätt svar pekar på blocket
-   inuti loop-ramen, inte på "hela programmet" eller "knappen"). Motverkar missuppfattning 3.
-4. **Modify (~60 s) – ändra en sak.** "Ändra antal varv" (− / +, t.ex. 2–5). Loop-etiketten,
+   inuti loop-ramen, inte på "hela programmet" eller "knappen"). Visa därefter samma extra
+   signalblock först **inuti**, sedan **utanför**, ramen och fråga när det upprepas.
+5. **Modify (~60–90 s) – ändra en sak.** "Ändra antal varv" (− / +, t.ex. 2–5). Loop-etiketten,
    resultatremsan och textraden uppdateras. Poäng: bara **siffran** ändras i loopen, medan de
-   staplade stegen skulle behöva *en rad till* per varv. **[KÄLLA: UMC Modify]**
-5. **Make (~30 s) – gör på riktigt (utanför webben).** Ett `adult`-tips uppmuntrar att prova
+   staplade stegen skulle behöva *en rad till* per varv. Låt även barnet flytta/jämföra
+   signalblocket över loopgränsen. **[KÄLLA: UMC Modify; DESIGNSLUTSATS: tracing]**
+6. **Make (~30 s) – gör på riktigt (utanför webben).** Ett `adult`-tips uppmuntrar att prova
    samma idé med riktiga Edison när det är säkert och praktiskt: kör framåt tre gånger, sedan
    en loop. **Webben lär konceptet; roboten är labbet.** **[DESIGNSLUTSATS, ur
    `cs-curriculum.md`]** Ingen robotanslutning i appen (se §8).
 
-Totalt ~3,5–4,5 min. Allt fungerar utan animation, på mobil och utan hårdvara.
+Totalt ungefär 4–6 min. Allt fungerar utan animation, på mobil och utan hårdvara.
 
 ---
 
@@ -180,13 +197,16 @@ bestraffning; `cs-curriculum.md`]**):
   skiljer verklig förståelse från "loopen är bara en genväg".
 - **Modify-insikt:** säger barnet att man bara ändrar *siffran* i loopen, medan staplade steg
   kräver fler block?
-- **Genomförbarhet:** klaras modulen på ~3–5 min utan att den vuxne måste förklara hela
+- **Loopgräns:** kan barnet säga om det extra signalblocket upprepas när det ligger inuti
+  respektive utanför ramen?
+- **Genomförbarhet:** klaras modulen på ~4–6 min utan att den vuxne måste förklara hela
   gränssnittet? Fastnar någon på interaktionen (knappar, "Ändra varv")?
 - **A11y i praktiken:** fungerar flödet med enbart tangentbord och med reduced motion, och
   bär texten betydelsen utan animationen?
 
-Dessa signaler avgör (i Fas 4) om nästa koncept bör vara händelser, nästlade loopar eller
-felsökning **[öppen fråga i `cs-curriculum.md`]**.
+Dessa signaler avgör i Fas 4 om modulen behöver justeras innan curriculumets nästa koncept,
+**Sensorer som begränsad input**, byggs. De ska inte användas för att skapa poäng eller en
+individuell barnprofil.
 
 ---
 
@@ -198,6 +218,9 @@ felsökning **[öppen fråga i `cs-curriculum.md`]**.
 - **Ingen förgrening/villkor.** Inga om-då-val, inga grenval, ingen rutt som hoppar mellan
   steg. Flödet är linjärt. **[KÄLLA: `docs/architecture.md` "Framtida förgrening (utanför
   fas 2)"]**
+- **Inga formella `start events` eller `wait until`-moment.** EdBlocks dokumenterar dessa som
+  separata kontrollformer. De hör till senare curriculumsteg och ska inte blandas in i den
+  första räknade loopmodulen. **[KÄLLA: officiell EdBlocks block guide; `docs/curriculum.md`]**
 - **Ingen generell programspråksmotor.** Ingen tolk, ingen kod i `content/`-data; programmet
   är **deklarativ** indata (strängar, tal, listor) och en liten, isolerad, ren mini-runner i
   pluginet ger JSON-säkert utfall. Inga funktioner/HTML/exekverbar kod i kapitelfilen.

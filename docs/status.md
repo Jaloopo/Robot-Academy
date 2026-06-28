@@ -5,7 +5,7 @@ Levande arbetsdokument. Nästa session läser `AGENTS.md`, `docs/plan.md`, `docs
 granskning, felsökning och processunderhåll kan vara egna avgränsade pass. Ändringar hålls
 lokala tills användaren uttryckligen ber om commit/push/PR/merge.
 
-Senast uppdaterad: 2026-06-21 · visual-QA-baslinje + desktoplayout (Alternativ 1) byggd på branch `visual-qa-och-desktoplayout`
+Senast uppdaterad: 2026-06-21 · curriculum-evidenskarta kurerad på branch `codex/curriculum-evidence-map`
 
 ## Nuläge (fakta)
 - Kapitel 1 komplett: text, vuxen-tips, flerval, ordning – med gating, snäll feedback, a11y.
@@ -46,9 +46,10 @@ Senast uppdaterad: 2026-06-21 · visual-QA-baslinje + desktoplayout (Alternativ 
   text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
   http-resurser. För statisk UI/CSS ersätts den tidigare manuella Chrome-grinden nu av den
   beslutade Playwright-visual-QA:n; WebUSB/robotflöden har ett separat manuellt testbehov.
-- `docs/architecture.md` definierar det fortsatta stegtyps-plugin-kontraktet och
-  `docs/reference/cs-curriculum.md` beskriver den anonymiserade, utforskande riktningen
-  för en senare interaktiv "Sekvens vs loop"-spik.
+- `docs/architecture.md` definierar stegtyps-plugin-kontraktet. `docs/curriculum.md` är
+  kanonisk progression för kommande interaktiva moduler och
+  `docs/reference/curriculum-evidence-map.md` är dess kurerade källunderlag.
+  `docs/reference/cs-curriculum.md` är fortsatt idébank, inte beslutskälla.
 - Committat testverktyg: `npm test` kör en jsdom-genomklick (`test/clickthrough.test.js`,
   **25 tester**). Nya kontraktstester täcker additivt registry, obligatoriska pluginmetoder,
   app-bootstrap utan namespace-överskrivning, okänd låst stegtyp, plugin-cleanup, sena
@@ -87,8 +88,23 @@ Senast uppdaterad: 2026-06-21 · visual-QA-baslinje + desktoplayout (Alternativ 
   Badges, fokus, touch-mål, responsivitet, "text bär betydelse" verifierade som AA-OK. Datamodellen
   orörd; sajten beroendefri. `npm test` har nu **16 tester**.
 
-## Denna session gjorde (visual-QA + desktoplayout, 2026-06-21)
-- **Branch:** `visual-qa-och-desktoplayout` (lokalt, ej committat/pushat).
+## Denna session gjorde (curriculum-kurering, 2026-06-21)
+- **Branch:** `codex/curriculum-evidence-map` (lokala dokumentändringar; ej committat/pushat).
+- **Researchrapporten kurerades, inte kopierades:** interna `turn…`-markörer och den långa
+  exporttexten stannar utanför repot. Ny `docs/reference/curriculum-evidence-map.md` innehåller
+  källor, begränsningar, evidensstyrka, Edison-mappning, missuppfattningar och osäkerheter.
+- **Beslutad progression:** ny `docs/curriculum.md` skiljer framtida interaktiva moduler från
+  dagens fem läskapitel. Befintlig kapitelordning och produktkod är orörda.
+- **Tre reviewrättningar:** EdBlocks officiella målålder korrigerad från 7–12 till cirka
+  **7–10 år**; `wait until` skiljs från separata `start events`; exakt modulordning markeras
+  som designbeslut där evidensen inte räcker till effektpåstående.
+- **Fas 3 behålls som nästa bygge:** `docs/modul-sekvens-vs-loop.md` har fått en kort
+  icke-dömande spårningskontroll och ett inuti/utanför-moment för loopkroppen. Ingen separat
+  debuggingmodul eller eventmodul måste byggas först.
+- **Filscope:** endast dokumentation; ingen produktkod, CSS, package-fil eller test ändrad.
+
+## Föregående session gjorde (visual-QA + desktoplayout, 2026-06-21)
+- **Branch:** `visual-qa-och-desktoplayout`, mergad till `main` via PR #24.
 - **Playwright visual-QA:** `npm run snap` (`tools/snap.js`, dev-only) – viewportar 320, 390,
   768, 900, 1280, 1440, 1718 för landning + kapitel 1; assertions för horisontell scroll,
   rail-synlighet, läsmått ≤700 px, reflow 320 px, arket växer (skal), **landningsark 860 px**,
@@ -120,7 +136,7 @@ Senast uppdaterad: 2026-06-21 · visual-QA-baslinje + desktoplayout (Alternativ 
 - **`docs/modul-sekvens-vs-loop.md` (ny):** källbelagd modulspec (CSTA 1A-AP-10/1B-AP-10,
   K-12 CS Framework, PRIMM-originalet Sentance/Waite/Kallia 2019, Use–Modify–Create Lee 2011)
   med tydlig [KÄLLA]/[DESIGNSLUTSATS]-uppdelning: lärandemål, tre missuppfattningar,
-  PRIMM-flöde 3–5 min, textbärande alternativ, vuxenfråga, observationssignaler och gräns
+  curriculumgranskat flöde 4–6 min, textbärande alternativ, vuxenfråga, observationssignaler och gräns
   (ingen robotanslutning, ingen förgrening, ingen generell programspråksmotor).
 - **Justeringar efter review:** (1) klargjort att PR #22 redan finns på `origin/main`;
   (2) ändrat "400 % zoom" i visual-QA-planen till "smal viewport / 400 %-ekvivalent reflow
@@ -315,19 +331,17 @@ Faktabas så nästa session slipper gissa. Skriv ändå om med egna ord i kapite
   Filerna var redan Pages-redo (relativa `./`-sökvägar, ingen CDN/fetch).
 
 ## Nästa steg (beslutad ordning – se docs/roadmap.md)
-Claude Design (storyboard) är levererad och desktoplayout + visual-QA-baslinje är byggda
-(roadmap-steg 3 och 4). Nästa:
+Desktoplayout, visual-QA-baslinje och curriculum-evidenskarta är klara. Nästa:
 
-1. **Curriculum-evidenskarta + Edison-mappning (före Fas 3):** ett avgränsat deep-research-pass.
-   Resultatet ska skilja källor från designval, täcka progression 7–10 år, fysisk robot som
-   lärresurs, missuppfattningar och formativ observation – men inte bygga produktkod eller en
-   individuell barnprofil. Det kan skärpa modulspecen.
-2. **Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt `docs/modul-sekvens-vs-loop.md`
-   – textbärande betydelse, tangentbord, cleanup, persistence, reduced motion; ingen simulator-/
-   aktivitetslogik i appkärnan.
-3. **Efter verifierad Fas 3, före modul två:** låt en stark mjukvaruarkitekt granska verklig
+1. **Fas 3:** "Sekvens vs loop" mot plugin-kontraktet enligt
+   `docs/modul-sekvens-vs-loop.md`. Spiken innehåller kort tracing/felsökning, tydlig
+   loopkropp och inuti/utanför-jämförelse samt textbärande betydelse, tangentbord, cleanup,
+   persistence och reduced motion. Ingen simulator-/aktivitetslogik i appkärnan.
+2. **Efter verifierad Fas 3, före modul två:** låt en stark mjukvaruarkitekt granska verklig
    kod mot framtida moduler och övningar. Bedöm plugin-kontrakt, persistence, validering,
    cleanup, a11y och testbarhet; gör inga abstraktioner som den byggda modulen inte motiverar.
+3. **Därefter, om Fas 3 håller:** planera "Sensorer som begränsad input" utifrån
+   `docs/curriculum.md`. Bygg inte denna modul i samma pass som arkitektureftergranskningen.
 
 **Icke-mål tills respektive steg beställs:** inga fler plugins av bara arkitekturskäl,
 ingen ändring av `content/`/package-filer utan tydligt scope, inga ES-moduler, ingen
@@ -338,50 +352,32 @@ bundler och inga runtime-beroenden i sajten (Playwright är ett DEV-beroende, la
 - **Fas 3** innebär ny interaktion, a11y och pedagogisk produktkänsla → Opus 4.8 High eller
   motsvarande stark modell för design/review; implementation kan delegeras till billigare
   modell först när specen är smal och tydlig.
-- **Curriculum-evidenskartan och arkitektureftergranskningen:** använd en stark
-  resonemangsmodell. Research kan samla material med enklare modell, men källvärdering,
-  progression och rekommendationer ska granskas av stark modell.
+- **Arkitektureftergranskningen:** använd en stark resonemangsmodell och granska den byggda
+  koden, inte bara planerna.
 
-## Copy-paste för nästa steg (curriculum-evidenskarta + Edison-mappning)
+## Copy-paste för nästa steg (Fas 3 – Sekvens vs loop)
 ```text
-Gör nästa avgränsade researchpass för Edison Hemguide:
-CURRICULUM-EVIDENSKARTA + EDISON-/EDBLOCKS-MAPPNING för barn cirka 7–10 år tillsammans
-med en vuxen. Detta är research och dokumentation – ingen produktkod, UI eller ny modul.
+Genomför endast Fas 3: den första interaktiva modulen "Sekvens vs loop".
 
 LÄS FÖRST: AGENTS.md, docs/plan.md, docs/pedagogik.md, docs/architecture.md,
-docs/roadmap.md, docs/status.md, docs/reference/cs-curriculum.md och
-docs/modul-sekvens-vs-loop.md. Synka main och arbeta på en ny branch. Ingen commit/push/PR
-utan uttrycklig begäran.
+docs/design.md, docs/curriculum.md, docs/reference/curriculum-evidence-map.md,
+docs/modul-sekvens-vs-loop.md, docs/roadmap.md och docs/status.md. Synka main och arbeta på
+en ny branch. Ingen commit/push/PR utan uttrycklig begäran.
 
-FORSKNINGSFRÅGOR:
-1. Vilken progression av sekvens, händelser, loopar, sensorer/villkor och felsökning stöds
-   för åldern 7–10? Skilj vid behov på ungefär 7–8 och 9–10 år.
-2. Vad visar forskning om fysisk utbildningsrobotik jämfört med eller kombinerat med
-   skärmbaserad programmering – inklusive motivation, transfer och kognitiv belastning?
-3. Vilka vanliga missuppfattningar bör varje modul uttryckligen designa mot?
-4. Vilka korta, icke-dömande observationssignaler kan användas formativt tillsammans med
-   en vuxen utan poängsystem eller personprofilering?
-5. Hur mappar detta exakt till Edison V3/EdBlocks funktioner och begränsningar?
+BYGG EXAKT DEN BESLUTADE SPIKEN:
+- kort, icke-dömande tracingkontroll före loopjämförelsen,
+- jämför tre explicita instruktioner med samma instruktion i en räknad loop,
+- synlig loopkropp och ett block som jämförs/flyttas inuti respektive utanför ramen,
+- Predict → Run → Investigate → Modify; fråga "Vad är det som Edison upprepar?",
+- deklarativt, JSON-säkert state; ingen simulatorlogik i appkärnan,
+- full funktion utan robot, animation, nätverk eller WebUSB,
+- tangentbord, textbärande utfall, reduced motion, idempotent cleanup och rendergeneration,
+- persistence genom befintligt envelope; inga timer-id:n i sparat state.
 
-KÄLLHIERARKI:
-- officiella standarder/ramverk (CSTA, K–12 CS Framework och relevant svensk förstahandskälla),
-- peer-reviewad primärforskning med relevant ålder; systematiska översikter används för att
-  hitta och väga studier, inte som enda stöd,
-- Edison-fakta endast från Microbric/EdBlocks/meetedison och deras officiella lärarmaterial.
+UTÖKA verifieringen proportionerligt: validator/Node-registry för ny stegtyp, jsdom-tester
+för state/gating/restore/cleanup och `npm run snap` med den nya rutten samt relevanta
+interaktions-/layoutinvarianter. Kör `node --check`, `npm run validate`, `npm test` och
+`npm run snap`. Ändra inte befintliga kapitel eller bygg nästa sensormodul i samma pass.
 
-För varje central källa: ange full referens/DOI eller stabil länk, ålder/urval, metod,
-relevant resultat och begränsning. Märk påståenden som [KÄLLA], [EVIDENSSTYRKA],
-[DESIGNSLUTSATS] eller [OSÄKERHET]. Kopiera inte kursmaterial eller bilder; skriv med egna ord.
-
-LEVERERA:
-- skapa docs/reference/curriculum-evidence-map.md,
-- föreslå en liten konceptprogression och innehållsrubrikbank, inte ett helt jättelångt curriculum,
-- granska "Sekvens vs loop" mot evidensen och ändra docs/modul-sekvens-vs-loop.md endast om
-  ett tydligt källbelagt skäl finns,
-- uppdatera docs/reference/cs-curriculum.md, docs/roadmap.md och docs/status.md endast där
-  besluten faktiskt förändras,
-- redovisa osäkerheter och vad som fortfarande kräver mänsklig/robotbaserad observation.
-
-HÅRDA GRÄNSER: ingen individuell barnprofil, ingen produktkod, ingen WebUSB-implementation,
-ingen generell programspråksmotor och inga påhittade Edison-fakta.
+Uppdatera docs/roadmap.md och docs/status.md först när Fas 3 faktiskt är verifierad.
 ```

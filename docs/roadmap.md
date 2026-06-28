@@ -27,6 +27,11 @@ branch och håll ändringar lokala tills användaren uttryckligen ber om commit/
   ark") är valt**. Källbelagd modulspec för "Sekvens vs loop" i `docs/modul-sekvens-vs-loop.md`.
   **Beslut:** automatiserad visuell QA (Playwright, dev-only) ersätter den manuella Chrome-
   kontrollen som grind för statisk UI/CSS.
+- **Curriculum-evidenskarta (2026-06-21):** Deep Research-underlaget är kurerat till
+  `docs/reference/curriculum-evidence-map.md`; beslutad progression finns i
+  `docs/curriculum.md`. Exakt modulordning är märkt som designbeslut där forskning inte
+  bevisar den. EdBlocks målålder är korrigerad till cirka 7–10 år, och `wait until` hålls
+  isär från formella `start events`.
 
 ## Roller (vem gör vad)
 - **Samordnare / planerare (stark resonemangsmodell):** äger denna roadmap, granskar
@@ -243,10 +248,10 @@ beroende-policy finns i `docs/architecture.md`.
   text, bild, fel→rätt, ordering, bakåt, reloadad progress, reset, avslutslänk och inga
   http-resurser). För senare statisk UI/CSS ersätts den tidigare manuella Chrome-grinden av
   beslutade Playwright-visual-QA; WebUSB/robotflöden är fortsatt ett separat manuellt område.
-- **Fas 3 – nästa möjliga produktsteg:** bygg endast "Sekvens vs loop" mot det verifierade kontraktet, med textbärande
-  betydelse, tangentbord, cleanup, persistence och reduced-motion-stöd. Spec finns i
-  `docs/modul-sekvens-vs-loop.md`. **Byggs först efter** visual-QA-baslinjen och desktoplayouten
-  (se "Beslutad ordning framåt" nedan).
+- **Fas 3 – nästa produktsteg:** bygg endast "Sekvens vs loop" mot det verifierade
+  kontraktet, med en kort inbyggd spårningskontroll, tydlig loopkropp och jämförelse av ett
+  block inuti/utanför ramen. Krav: textbärande betydelse, tangentbord, cleanup, persistence
+  och reduced-motion-stöd. Spec finns i `docs/modul-sekvens-vs-loop.md`.
 - **Fas 4:** användartesta och utvärdera innan fler interaktiva stegtyper eller ett rikare
   programformat planeras. Återöppna beroende-/buildfrågan bara vid ett konkret hinder.
 
@@ -269,13 +274,14 @@ så modulen blir ett tryggt, smalt bygge i stället för ett experiment ovanpå 
    860 px / kapitel 1180→1280 px sluttak, rail 260→280 px, typografi 19 px, flex+
    `margin-block:auto` för vertikal balans – inte `place-content:center`). Verifierat: `node --check`,
    `npm run validate`, `npm test` (25), `npm run snap` (alla kontroller gröna inkl. skal 1280/1440/1718).
-5. **Curriculum-evidenskarta + Edison-mappning:** ett avgränsat deep-research-pass före
-   Fas 3-bygget. Kartlägg åldersprogression (7–10, utan individprofil), evidens för
-   programmering med fysisk robot, kända missuppfattningar, formativ observation och exakt
-   Edison-/EdBlocks-koppling mot primär- och förstahandskällor. Resultatet ska vara ett
-   källspårbart beslutsunderlag och en innehållsrubrikbank – inte ett färdigt jättelångt
-   curriculum eller produktkod. Det får justera modulspecen om evidensen kräver det.
-6. **Fas 3:** "Sekvens vs loop" som liten interaktiv modul mot plugin-kontraktet.
+5. **(✓ KLAR)** **Curriculum-evidenskarta + Edison-mappning.** Resultat:
+   `docs/reference/curriculum-evidence-map.md` (kuraterade källor, evidensstyrka,
+   Edison-mappning, missuppfattningar och osäkerheter) samt `docs/curriculum.md` (beslutad
+   progression). `docs/modul-sekvens-vs-loop.md` är justerad med tracing/felsökning och
+   loopkropp inuti/utanför. Den långa research-exporten och interna `turn…`-hänvisningar
+   sparas inte som kanoniskt repoinnehåll.
+6. **NÄSTA – Fas 3:** "Sekvens vs loop" som liten interaktiv modul mot plugin-kontraktet.
+   Ingen separat debuggingmodul först; den korta spårningskontrollen ingår i spiken.
 7. **Arkitektureftergranskning:** efter en verifierad Fas 3-modul men före modul två. Granska
    verklig kod och testsuite för utbyggbarhet (plugin-kontrakt, state/persistence, validering,
    cleanup, a11y och testbarhet); föreslå bara ändringar som den första modulen faktiskt visar
